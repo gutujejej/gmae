@@ -1,0 +1,629 @@
+/* ====================================================================== */
+/*  users.js                                                              */
+/*  Merged from: auth.js + wallet.js + wallet_socket.js                   */
+/*  (Mechanical merge only — no logic changed. Kept in three clearly      */
+/*  marked sections below so each original file's code stays traceable.) */
+/* ====================================================================== */
+
+const express = require('express');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
+const { query, pool, logger } = require('./core');
+
+const router = express.Router();
+
+/* ======================================================================
+ *  SECTION 1 — formerly auth.js
+ *  Registration, login, JWT + auth/admin middleware, signup bonus,
+ *  referral linking.
+ * ==================================================================== */
+
+const BCRYPT_ROUNDS = 12;
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again later.' },
+});
+
+function signToken(user) {
+  return jwt.sign(
+    { sub: user.id, role: user.role, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+}
+
+function verifyToken(token) {
+  return jwt.verify(token, process.env.JWT_SECRET);
+}
+
+async function generateUniqueReferralCode(queryFn) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = crypto.randomBytes(5).toString('hex'); // 10 hex chars
+    const { rows } = await queryFn('SELECT id FROM users WHERE referral_code = $1', [code]);
+    if (rows.length === 0) return code;
+  }
+  // Extremely unlikely to ever reach here, but fail safe with a
+  // timestamp-based fallback that's guaranteed unique.
+  return `t${Date.now().toString(36)}`;
+}
+
+async function requireAuth(req, res, next) {
+  try {
+    const header = req.headers.authorization || '';
+    const [scheme, token] = header.split(' ');
+
+    if (scheme !== 'Bearer' || !token) {
+      return res.status(401).json({ error: 'Missing or malformed Authorization header' });
+    }
+
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    const { rows } = await query(
+      'SELECT id, username, phone, role, balance, bonus_balance, wagering_required, wagering_target_total, is_active, referral_code FROM users WHERE id = $1',
+      [payload.sub]
+    );
+    const user = rows[0];
+
+    if (!user || !user.is_active) {
+      return res.status(401).json({ error: 'User not found or deactivated' });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
+function publicUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    phone: user.phone || null,
+    role: user.role,
+    balance: user.balance,
+    bonus_balance: user.bonus_balance || 0,
+    wagering_required: user.wagering_required || 0,
+    wagering_target_total: user.wagering_target_total || 0,
+    referral_code: user.referral_code || null,
+  };
+}
+
+// Credits a one-time bonus (default 10 birr, or whatever's configured in
+// platform_settings) to a brand-new user. Guarded so it can never be
+// granted twice even under a retried/duplicate request.
+//
+// The bonus is credited to bonus_balance (NOT balance) and is locked
+// behind a wagering requirement (100x the bonus amount). It only becomes
+// withdrawable once wagering_required reaches 0 — see the withdraw route
+// below, which blocks withdrawal while wagering_required > 0.
+async function grantSignupBonus(user) {
+  const WAGERING_MULTIPLIER = 100;
+  try {
+    const { rows: settingRows } = await query(
+      `SELECT value FROM platform_settings WHERE key = 'signup_bonus_birr'`
+    );
+    const bonusBirr = parseFloat(settingRows[0]?.value || '10');
+    const bonusCents = Math.round(bonusBirr * 100);
+
+    if (bonusCents <= 0) return;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const { rows: lockedUserRows } = await client.query(
+        'SELECT signup_bonus_granted FROM users WHERE id = $1 FOR UPDATE',
+        [user.id]
+      );
+      const alreadyGranted = lockedUserRows[0]?.signup_bonus_granted;
+
+      if (!alreadyGranted) {
+        const wageringRequiredCents = bonusCents * WAGERING_MULTIPLIER;
+        await client.query(
+          `UPDATE users
+           SET bonus_balance = bonus_balance + $1,
+               wagering_required = wagering_required + $2,
+               wagering_target_total = wagering_target_total + $2,
+               signup_bonus_granted = TRUE
+           WHERE id = $3`,
+          [bonusCents, wageringRequiredCents, user.id]
+        );
+        await client.query(
+          `INSERT INTO transactions (user_id, type, amount, status, note)
+           VALUES ($1, 'payout', $2, 'completed', 'Registration bonus (locked - wagering required)')`,
+          [user.id, bonusCents]
+        );
+        user.bonus_balance = (user.bonus_balance || 0) + bonusCents;
+        user.wagering_required = (user.wagering_required || 0) + wageringRequiredCents;
+        user.wagering_target_total = (user.wagering_target_total || 0) + wageringRequiredCents;
+      }
+
+      await client.query('COMMIT');
+    } catch (bonusErr) {
+      await client.query('ROLLBACK');
+      logger.error('[auth] Failed to grant signup bonus', { userId: user.id, error: bonusErr.message });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    logger.error('[auth] Signup bonus lookup failed', { error: err.message });
+  }
+}
+
+// Generates the new user's own referral code, then (if they signed up via
+// someone else's referral link) links them to that referrer and pays the
+// referrer a flat one-time bonus immediately. Referral tracking never
+// blocks signup — any failure here is logged and swallowed, not surfaced
+// as an error.
+const REFERRAL_JOIN_BONUS_BIRR = 10;
+
+async function setupReferral(user, referralCodeUsed) {
+  try {
+    const referralCode = await generateUniqueReferralCode(query);
+    await query('UPDATE users SET referral_code = $1 WHERE id = $2', [referralCode, user.id]);
+    user.referral_code = referralCode;
+
+    if (referralCodeUsed && typeof referralCodeUsed === 'string') {
+      const { rows: referrerRows } = await query(
+        'SELECT id FROM users WHERE referral_code = $1',
+        [referralCodeUsed.trim()]
+      );
+
+      if (referrerRows.length > 0 && referrerRows[0].id !== user.id) {
+        const referrerId = referrerRows[0].id;
+        await query('UPDATE users SET referred_by = $1 WHERE id = $2', [referrerId, user.id]);
+
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          const { rows: selfRows } = await client.query(
+            'SELECT referral_join_bonus_paid FROM users WHERE id = $1 FOR UPDATE',
+            [user.id]
+          );
+          if (!selfRows[0]?.referral_join_bonus_paid) {
+            const bonusCents = Math.round(REFERRAL_JOIN_BONUS_BIRR * 100);
+            await client.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [
+              bonusCents,
+              referrerId,
+            ]);
+            await client.query(
+              `INSERT INTO transactions (user_id, type, amount, status, note) VALUES ($1, 'payout', $2, 'completed', $3)`,
+              [referrerId, bonusCents, 'Referral join bonus']
+            );
+            await client.query('UPDATE users SET referral_join_bonus_paid = TRUE WHERE id = $1', [user.id]);
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          logger.error('[auth] Failed to pay referral join bonus', { referrerId, error: err.message });
+        } finally {
+          client.release();
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('[auth] Referral setup failed', { userId: user.id, error: err.message });
+  }
+}
+
+const registerValidation = [
+  body('username')
+    .isString()
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be 3-30 characters')
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Username can only contain letters, numbers, and underscores'),
+  body('password')
+    .isString()
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone number is required')
+    .matches(/^\+251\d{9}$/)
+    .withMessage('Enter a valid Ethiopian phone number (e.g. +251912345678)'),
+];
+
+const loginValidation = [
+  body('username').isString().trim().notEmpty().withMessage('Username is required'),
+  body('password').isString().notEmpty().withMessage('Password is required'),
+];
+
+function handleValidation(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array()[0].msg });
+  }
+  next();
+}
+
+// POST /api/auth/register
+router.post('/register', authLimiter, (req, res, next) => {
+  logger.info('[DIAGNOSTIC] /api/auth/register hit', { origin: req.headers.origin, method: req.method });
+  next();
+}, registerValidation, handleValidation, async (req, res, next) => {
+  try {
+    const username = req.body.username.trim();
+    const phone = req.body.phone.trim();
+    const { password, referral_code: referralCodeUsed } = req.body;
+
+    const { rows: existing } = await query(
+      'SELECT id, username, phone FROM users WHERE username = $1 OR phone = $2',
+      [username, phone]
+    );
+    if (existing.some((u) => u.username === username)) {
+      return res.status(409).json({ error: 'That username is already taken' });
+    }
+    if (existing.some((u) => u.phone === phone)) {
+      return res.status(409).json({ error: 'That phone number is already registered' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    const insertRes = await query(
+      `INSERT INTO users (username, phone, password_hash, role, balance)
+       VALUES ($1, $2, $3, 'user', 0)
+       RETURNING *`,
+      [username, phone, passwordHash]
+    );
+    const user = insertRes.rows[0];
+
+    await grantSignupBonus(user);
+    await setupReferral(user, referralCodeUsed);
+
+    const token = signToken(user);
+    res.status(201).json({ token, user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/login
+router.post('/login', authLimiter, loginValidation, handleValidation, async (req, res, next) => {
+  try {
+    const username = req.body.username.trim();
+    const { password } = req.body;
+
+    const { rows } = await query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = rows[0];
+
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatches) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'This account has been deactivated' });
+    }
+
+    const token = signToken(user);
+    res.json({ token, user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/auth/me
+router.get('/me', requireAuth, async (req, res) => {
+  res.json({ user: publicUser(req.user) });
+});
+
+/* ======================================================================
+ *  SECTION 2 — formerly wallet.js
+ *  Deposit/withdraw requests (manual Telebirr workflow) + transaction
+ *  history. Mounted separately at /api/wallet in server.js.
+ * ==================================================================== */
+
+const walletRouter = express.Router();
+
+const financialLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many financial requests. Please try again later.' },
+});
+
+const MIN_DEPOSIT_BIRR = 10;
+const MIN_WITHDRAW_BIRR = 200;
+
+// Deposits: user must supply the Telebirr transaction reference they paid
+// with, so the admin can cross-check it against the actual Telebirr
+// business account before crediting the balance.
+const depositValidation = [
+  body('amount')
+    .isFloat({ gt: 0, max: 1000000 })
+    .withMessage('Amount must be a positive number')
+    .custom((value) => {
+      if (parseFloat(value) < MIN_DEPOSIT_BIRR) {
+        throw new Error(`Minimum deposit is ${MIN_DEPOSIT_BIRR} ETB`);
+      }
+      return true;
+    }),
+  body('telebirr_reference')
+    .trim()
+    .notEmpty()
+    .withMessage('Telebirr transaction reference is required')
+    .isLength({ max: 100 })
+    .withMessage('Reference is too long'),
+];
+
+// Withdrawals: user must supply the Telebirr phone number funds should be
+// sent to.
+const withdrawValidation = [
+  body('amount')
+    .isFloat({ gt: 0, max: 1000000 })
+    .withMessage('Amount must be a positive number')
+    .custom((value) => {
+      if (parseFloat(value) < MIN_WITHDRAW_BIRR) {
+        throw new Error(`Minimum withdrawal is ${MIN_WITHDRAW_BIRR} ETB`);
+      }
+      return true;
+    }),
+  body('telebirr_phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Telebirr phone number is required')
+    .matches(/^\+?\d{9,15}$/)
+    .withMessage('Enter a valid Telebirr phone number (digits only, optional leading +)'),
+];
+
+function toCents(amount) {
+  return Math.round(Number(amount) * 100);
+}
+
+// GET /api/wallet/balance
+walletRouter.get('/balance', requireAuth, async (req, res) => {
+  res.json({
+    balance: req.user.balance / 100,
+    bonus_balance: (req.user.bonus_balance || 0) / 100,
+    wagering_required: (req.user.wagering_required || 0) / 100,
+    wagering_target_total: (req.user.wagering_target_total || 0) / 100,
+  });
+});
+
+// POST /api/wallet/deposit  -> creates a PENDING deposit request for admin review
+walletRouter.post('/deposit', requireAuth, financialLimiter, depositValidation, handleValidation, async (req, res, next) => {
+  try {
+    const amountCents = toCents(req.body.amount);
+    const reference = req.body.telebirr_reference.trim();
+
+    const duplicate = await query(
+      `SELECT id FROM transactions
+       WHERE type = 'deposit' AND telebirr_reference_submitted = $1 AND status IN ('pending', 'approved')`,
+      [reference]
+    );
+    if (duplicate.rows.length > 0) {
+      return res.status(409).json({ error: 'This Telebirr reference has already been submitted' });
+    }
+
+    const { rows } = await query(
+      `INSERT INTO transactions (user_id, type, amount, status, note, telebirr_reference_submitted)
+       VALUES ($1, 'deposit', $2, 'pending', $3, $4)
+       RETURNING *`,
+      [req.user.id, amountCents, (req.body.note || '').slice(0, 500), reference]
+    );
+
+    res.status(201).json({
+      message: 'Deposit request submitted. An admin will verify your Telebirr payment and approve it shortly.',
+      transaction: rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/wallet/withdraw -> creates a PENDING withdrawal request for admin review
+// Balance is NOT deducted until an admin approves (after actually sending the
+// funds). We check the user currently has sufficient balance to cover it.
+//
+// Withdrawal is blocked while the user has an outstanding wagering
+// requirement (from a bonus, e.g. the 10 ETB signup bonus) - the requirement
+// is decremented elsewhere as the user wagers real bets. See grantSignupBonus
+// above for where wagering_required is set on signup bonus grant.
+walletRouter.post('/withdraw', requireAuth, financialLimiter, withdrawValidation, handleValidation, async (req, res, next) => {
+  try {
+    const amountCents = toCents(req.body.amount);
+
+    const { rows: userRows } = await query(
+      'SELECT balance, wagering_required FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (!userRows[0]) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+    if (userRows[0].wagering_required > 0) {
+      return res.status(400).json({
+        error: `You still need to wager ${(userRows[0].wagering_required / 100).toFixed(2)} ETB before you can withdraw`,
+      });
+    }
+    if (userRows[0].balance < amountCents) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    const { rows } = await query(
+      `INSERT INTO transactions (user_id, type, amount, status, note, telebirr_phone)
+       VALUES ($1, 'withdraw', $2, 'pending', $3, $4)
+       RETURNING *`,
+      [req.user.id, amountCents, (req.body.note || '').slice(0, 500), req.body.telebirr_phone.trim()]
+    );
+
+    res.status(201).json({
+      message: 'Withdrawal request submitted. An admin will send the funds via Telebirr and approve it shortly.',
+      transaction: rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/wallet/transactions -> the current user's own transaction history
+walletRouter.get('/transactions', requireAuth, async (req, res, next) => {
+  try {
+    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+    const limit = Math.min(parseInt(req.query.limit || '20', 10), 100);
+    const offset = (page - 1) * limit;
+
+    const [itemsRes, countRes] = await Promise.all([
+      query(
+        `SELECT * FROM transactions WHERE user_id = $1
+         ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+        [req.user.id, limit, offset]
+      ),
+      query('SELECT COUNT(*)::int AS count FROM transactions WHERE user_id = $1', [req.user.id]),
+    ]);
+
+    const total = countRes.rows[0].count;
+
+    res.json({
+      transactions: itemsRes.rows.map((t) => ({
+        id: t.id,
+        type: t.type,
+        amount: t.amount / 100,
+        status: t.status,
+        note: t.note,
+        telebirr_reference_submitted: t.telebirr_reference_submitted,
+        telebirr_phone: t.telebirr_phone,
+        telebirr_reference_admin: t.telebirr_reference_admin,
+        created_at: t.created_at,
+      })),
+      page,
+      totalPages: Math.ceil(total / limit),
+      total,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ======================================================================
+ *  SECTION 3 — formerly wallet_socket.js
+ *  Realtime balance push over Socket.IO + live online user count.
+ *
+ *  Every place balance/bonus_balance changes today already re-queries
+ *  the fresh value after commit (admin approve, game.js bet/cashout,
+ *  cashback.js claim). pushBalanceUpdate(userId) can be called right
+ *  after any of those commits to push the new numbers straight to that
+ *  user's wallet page - no polling wait. It does not change what any of
+ *  those routes compute; it only adds a notification on top.
+ *
+ *  The frontend's getSocket() (api.js) sends the user's JWT in the
+ *  connection handshake (auth: { token }) for every socket it opens -
+ *  this module reads that same token to identify the connecting user and
+ *  place them in a private room ("user:<id>") that only their own
+ *  socket(s) are in, so a balance push is never broadcast to everyone.
+ *
+ *  The same authenticated connections are used to track who's "online" -
+ *  meaning currently holding at least one open, authenticated socket,
+ *  live and real-time, not a last-seen timestamp. One user can have
+ *  multiple tabs/devices open at once, so we track distinct user IDs
+ *  with at least one live socket, not a raw socket count - closing one
+ *  tab doesn't mark them offline if another is still connected.
+ * ==================================================================== */
+
+const onlineUserSockets = new Map(); // userId -> Set<socketId>
+
+let ioRef = null;
+
+function attachWalletSocket(io) {
+  ioRef = io;
+
+  io.on('connection', (socket) => {
+    try {
+      const token = socket.handshake?.auth?.token;
+      if (!token || typeof token !== 'string') return;
+      const payload = verifyToken(token);
+      socket.data.userId = payload.sub;
+      socket.join(`user:${payload.sub}`);
+
+      if (!onlineUserSockets.has(payload.sub)) {
+        onlineUserSockets.set(payload.sub, new Set());
+      }
+      onlineUserSockets.get(payload.sub).add(socket.id);
+
+      socket.on('disconnect', () => {
+        const sockets = onlineUserSockets.get(payload.sub);
+        if (!sockets) return;
+        sockets.delete(socket.id);
+        if (sockets.size === 0) onlineUserSockets.delete(payload.sub);
+      });
+    } catch {
+      // Invalid/expired token - the socket just won't receive pushes and
+      // isn't counted as online; the wallet page still has its normal
+      // poll as a fallback for balance updates.
+    }
+  });
+}
+
+// Number of distinct users currently holding at least one live,
+// authenticated socket connection right now.
+function getOnlineUserCount() {
+  return onlineUserSockets.size;
+}
+
+// Fetches the latest balance fields for a user and pushes them to that
+// user's private room. Safe to call from anywhere after a balance-changing
+// commit - if the socket server isn't attached yet or the user has no
+// open socket, this is a no-op.
+async function pushBalanceUpdate(userId) {
+  if (!ioRef || !userId) return;
+  try {
+    const { rows } = await query(
+      'SELECT balance, bonus_balance, wagering_required, wagering_target_total FROM users WHERE id = $1',
+      [userId]
+    );
+    const user = rows[0];
+    if (!user) return;
+
+    ioRef.to(`user:${userId}`).emit('wallet:balance_updated', {
+      balance: user.balance / 100,
+      bonus_balance: (user.bonus_balance || 0) / 100,
+      wagering_required: (user.wagering_required || 0) / 100,
+      wagering_target_total: (user.wagering_target_total || 0) / 100,
+    });
+  } catch (err) {
+    console.error('[wallet] Failed to push balance update', { userId, error: err.message });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Exports                                                             */
+/* ------------------------------------------------------------------ */
+
+module.exports = {
+  router,             // mount at /api/auth
+  walletRouter,       // mount at /api/wallet
+  requireAuth,
+  requireAdmin,
+  signToken,
+  verifyToken,
+  attachWalletSocket,
+  pushBalanceUpdate,
+  getOnlineUserCount,
+};
