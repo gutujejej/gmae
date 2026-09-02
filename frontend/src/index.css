@@ -1,0 +1,2926 @@
+Ii/* ============================================================
+   Global reset & base
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #0a0a0d;
+  color: #e8e8ea;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ============================================================
+   Cards
+   ============================================================ */
+.card {
+  background: #1a1d29;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  display: inline-block;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4f8ef7;
+  color: white;
+}
+.btn-success {
+  background: #22c55e;
+  color: white;
+}
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid #3a3f52;
+  color: #e8e8ea;
+}
+
+/* ============================================================
+   Form inputs
+   ============================================================ */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #3a3f52;
+  background: #12141c;
+  color: #e8e8ea;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.input:focus {
+  outline: 2px solid #4f8ef7;
+}
+
+.error-text {
+  color: #f87171;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.success-text {
+  color: #4ade80;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   Tables
+   ============================================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #2a2e3e;
+  font-size: 14px;
+}
+th {
+  color: #9aa0b4;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-pending {
+  background: #4b3d1a;
+  color: #fbbf24;
+}
+.badge-approved,
+.badge-completed {
+  background: #14351f;
+  color: #4ade80;
+}
+.badge-rejected {
+  background: #3a1616;
+  color: #f87171;
+}
+
+/* ============================================================
+   Navbar (admin/dashboard chrome, not the in-game top bar)
+   ============================================================ */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #12141c;
+  border-bottom: 1px solid #2a2e3e;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.navbar .links {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.navbar .brand {
+  font-weight: 800;
+  font-size: 20px;
+  color: #4f8ef7;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================================
+   Legacy multiplier/history styles
+   (superseded by the Aviator-specific block below for the live
+   game screen, but kept here in case any other page still uses
+   the generic versions of these class names.)
+   ============================================================ */
+.phase-label {
+  text-align: center;
+  font-size: 16px;
+  color: #9aa0b4;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.stat-row span:first-child {
+  color: #9aa0b4;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #2a2e3e;
+}
+.tab {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #9aa0b4;
+  border-bottom: 2px solid transparent;
+}
+.tab.active {
+  color: #4f8ef7;
+  border-bottom-color: #4f8ef7;
+}
+
+/* ============================================================
+   AVIATOR GAME SCREEN
+   Top bar, history strip, flight stage, plane, glow, multiplier
+   ============================================================ */
+
+.aviator-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+
+.aviator-brand {
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 800;
+  color: #ff3b4e;
+  letter-spacing: -0.5px;
+  text-shadow: 0 0 14px rgba(255, 59, 78, 0.35);
+}
+
+.aviator-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aviator-balance {
+  font-weight: 800;
+  font-size: 15px;
+  color: #3ddc73;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #1a1a1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a9aa5;
+  font-size: 14px;
+  border: 1px solid #26262d;
+  cursor: pointer;
+}
+
+/* History strip sits directly under the top bar, above the flight stage. */
+.history-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 16px 10px;
+}
+
+.history-chip {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #16161b;
+}
+.history-chip.low {
+  color: #ff6b7a;
+}
+.history-chip.mid {
+  color: #b98bff;
+}
+.history-chip.high {
+  color: #3ddc73;
+}
+
+.stage-wrap {
+  padding: 0 16px;
+}
+
+.stage {
+  position: relative;
+  border-radius: 14px;
+  height: 280px;
+  background:
+    radial-gradient(120% 90% at 15% 85%, rgba(232, 40, 63, 0.14), transparent 60%),
+    linear-gradient(180deg, #121016 0%, #0a0a0d 70%);
+  overflow: hidden;
+  border: 1px solid #1c1c22;
+}
+
+.stage .rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 200deg at 14% 88%,
+    rgba(255, 255, 255, 0.045) 0deg 3deg,
+    transparent 3deg 12deg
+  );
+  opacity: 0.6;
+}
+
+.curve-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.flight-glow {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  /* Fully red glow, no white core - a white hot-spot at the join
+     between the plane and the trail reads as a mismatched/disconnected
+     joint rather than a glow. Bright red at the center, fading to
+     transparent red at the edges keeps everything one consistent color. */
+  background: radial-gradient(circle, rgba(255, 90, 100, 0.95) 0%, rgba(232, 40, 63, 0.45) 35%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.25s;
+}
+.flight-glow.active {
+  opacity: 1;
+}
+
+.plane-wrap {
+  position: absolute;
+  z-index: 3;
+  width: 84px;
+  height: 48px;
+  /* The curve's endpoint should land on the plane's tail, not the SVG's
+     bounding-box center. The tail sits at roughly 5% across and 87% down
+     the plane's own box, so we translate/pivot by that fraction instead
+     of the usual -50%/-50% centering. */
+  transform: translate(-5%, -87%);
+  transform-origin: 5% 87%;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+
+.plane-wrap svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 4px 10px rgba(232, 40, 63, 0.55));
+}
+
+.multiplier-display {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 12vw, 64px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  z-index: 3;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  margin: 0;
+}
+
+.flew-away-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #ff4d5e;
+  margin-bottom: 4px;
+}
+
+/* ============================================================
+   Betting-phase countdown ring - shows time left until the round
+   starts flying, driven by the server's own betting_duration_ms.
+   ============================================================ */
+.betting-countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: 108px;
+  height: 108px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.betting-countdown-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.betting-countdown-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 6;
+}
+
+.betting-countdown-fill {
+  fill: none;
+  stroke: #e8283f;
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(232, 40, 63, 0.6));
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.betting-countdown-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.betting-countdown-number {
+  font-size: 30px;
+  font-weight: 800;
+  color: #f2f2f4;
+  line-height: 1;
+}
+
+.betting-countdown-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #9aa0b4;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Connecting overlay - shown while Socket.IO establishes the
+   connection. Driven by a real `connected` flag, not decorative.
+   ============================================================ */
+.connecting-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(10, 10, 13, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+.connecting-overlay p {
+  color: #9aa0b4;
+  font-size: 14px;
+  margin: 0;
+}
+
+.connecting-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #26262e;
+  border-top-color: #ff3b4e;
+  animation: connecting-spin 0.8s linear infinite;
+}
+
+@keyframes connecting-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   Bet panels (dual bet slots)
+   ============================================================ */
+.bet-panel {
+  background: #131317;
+  border: 1px solid #1e1e24;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.bet-panel-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mode-tabs {
+  display: flex;
+  background: #0a0a0d;
+  border-radius: 9px;
+  padding: 3px;
+  flex: 1;
+}
+.mode-tab {
+  flex: 1;
+  text-align: center;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 7px;
+  color: #7a7a85;
+  cursor: pointer;
+}
+.mode-tab.active {
+  background: #26262e;
+  color: #f2f2f4;
+}
+
+.panel-remove-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #1e1e24;
+  color: #9a9aa5;
+  border: none;
+  font-size: 16px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.auto-row {
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9a9aa5;
+  margin-bottom: 10px;
+}
+.auto-row input[type='number'] {
+  width: 70px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  border: 1px solid #26262d;
+  background: #0a0a0d;
+  color: #f2f2f4;
+  font-size: 13px;
+  text-align: right;
+}
+.auto-label {
+  margin-right: 8px;
+}
+
+.bet-amount-block {
+  margin-bottom: 10px;
+}
+
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stepper-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #1e1e24;
+  color: #f2f2f4;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+}
+.stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.stepper-input {
+  flex: 1;
+  text-align: center;
+  font-size: 19px;
+  font-weight: 800;
+  background: transparent;
+  border: none;
+  color: #f2f2f4;
+  min-width: 0;
+}
+
+.quick-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.quick-amount-btn {
+  padding: 7px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b7b7c2;
+  background: #1a1a20;
+  border-radius: 7px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+}
+.quick-amount-btn.selected {
+  background: #26262e;
+  color: #ffffff;
+}
+.quick-amount-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bet-action-block {
+  margin-bottom: 4px;
+}
+
+.bet-btn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.bet-btn:disabled {
+  cursor: not-allowed;
+}
+
+.bet-btn-top {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+.bet-btn-sub {
+  font-size: 17px;
+  font-weight: 800;
+}
+.cur-tag {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+.bet-btn.state-idle {
+  background: linear-gradient(180deg, #4eea82, #22c55e);
+  color: #06210f;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.28);
+}
+.bet-btn.state-placed {
+  background: #26262e;
+  color: #f2f2f4;
+}
+.bet-btn.state-cashout {
+  background: linear-gradient(180deg, #ffcf4d, #ffb930);
+  color: #2b1900;
+  box-shadow: 0 6px 16px rgba(255, 185, 48, 0.3);
+}
+.bet-btn.state-won {
+  background: #14351f;
+  color: #4ade80;
+}
+.bet-btn.state-lost {
+  background: #3a1616;
+  color: #f87171;
+}
+/* ==================================================================
+   Layout fix for the Aviator game card - append to index.css, or
+   replace the equivalent rules if you're regenerating the whole file.
+   ================================================================== */
+
+.aviator-card {
+  position: relative;
+  padding: 0;
+  /* No overflow:hidden here - that was the likely cause of the second
+     bet panel appearing clipped/missing on narrow screens. The
+     connecting-overlay still displays correctly since it's already
+     position:absolute + inset:0, which doesn't need parent clipping
+     to stay contained. */
+}
+
+.aviator-body {
+  padding: 0 16px 16px;
+}
+
+.seed-hash-note {
+  font-size: 12px;
+  color: #5b6178;
+  text-align: center;
+  word-break: break-all;
+  margin-top: 8px;
+}
+
+/* Two bet panels side by side by default. minmax(0, 1fr) - not just 1fr -
+   is the actual fix: plain `1fr` columns can still grow to fit their
+   content's intrinsic width (the quick-amount button row, in this case),
+   which is exactly what pushed the second panel off-screen. minmax(0, 1fr)
+   forces each column to respect the grid's available width instead of
+   its content's natural width. */
+.bet-panels-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Below ~360px wide, even minmax(0,1fr) columns get too cramped for the
+   4-across quick-amount row to read comfortably - stack the two panels
+   vertically instead of forcing them to squeeze side by side. */
+@media (max-width: 360px) {
+  .bet-panels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Also make sure the quick-amount grid itself never overflows its own
+   panel, regardless of how many buttons are in a row. */
+.quick-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+}
+.quick-amount-btn {
+  min-width: 0;
+  padding: 7px 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b7b7c2;
+  background: #1a1a20;
+  border-radius: 7px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+   }
+   /* ==================================================================
+   Compact bet-panel sizing - replaces the equivalent rules in index.css
+   (bet-panel, stepper, quick-amount, bet-btn) with tighter dimensions.
+   ================================================================== */
+
+.bet-panel {
+  background: #131317;
+  border: 1px solid #1e1e24;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.bet-panel-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mode-tabs {
+  display: flex;
+  background: #0a0a0d;
+  border-radius: 8px;
+  padding: 2px;
+  flex: 1;
+}
+.mode-tab {
+  flex: 1;
+  text-align: center;
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  color: #7a7a85;
+  cursor: pointer;
+}
+.mode-tab.active {
+  background: #26262e;
+  color: #f2f2f4;
+}
+
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.stepper-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #1e1e24;
+  color: #f2f2f4;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+}
+.stepper-input {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  background: transparent;
+  border: none;
+  color: #f2f2f4;
+  min-width: 0;
+}
+
+.quick-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+.quick-amount-btn {
+  min-width: 0;
+  padding: 5px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b7b7c2;
+  background: #1a1a20;
+  border-radius: 6px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quick-amount-btn.selected {
+  background: #26262e;
+  color: #ffffff;
+}
+
+.bet-btn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.bet-btn-top {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.85;
+}
+.bet-btn-sub {
+  font-size: 15px;
+  font-weight: 800;
+}
+.cur-tag {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 3px;
+  opacity: 0.8;
+}
+
+.auto-row {
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.auto-row input[type='number'] {
+  width: 58px;
+  padding: 4px 6px;
+  font-size: 12px;
+}
+/* ==================================================================
+   Bottom navigation - append to frontend/src/index.css
+   ================================================================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  background: #12141c;
+  border-top: 1px solid #2a2e3e;
+  padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  color: #7a7a85;
+  cursor: pointer;
+}
+
+.bottom-nav-item.active {
+  color: #ff3b4e;
+}
+
+.bottom-nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bottom-nav-label {
+  font-size: 11px;
+  font-weight: 600;
+}
+/* ==================================================================
+   Bottom navigation - glass/frosted style
+   Replaces the earlier solid-background .bottom-nav rules in index.css
+   ================================================================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+
+  /* Glass effect: translucent dark background + blur, so whatever content
+     scrolls behind the nav is softly visible through it. */
+  background: rgba(18, 20, 28, 0.6);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 0;
+  color: #7a7a85;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.bottom-nav-item:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bottom-nav-item.active {
+  color: #ff3b4e;
+}
+
+.bottom-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+}
+
+.bottom-nav-label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Give scrollable page content room so it doesn't sit underneath the
+   fixed, translucent nav bar - pages already add paddingBottom: 90 inline,
+   this is a fallback/global safety net for any that don't. */
+.container {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+   }
+   
+/* ==================================================================
+   Smooth balance update transition - append to frontend/src/index.css
+   Prevents the "glitch" of an abrupt re-render when the balance changes;
+   briefly scales/fades the number instead of an instant hard swap.
+   ================================================================== */
+
+.balance-pulse {
+  display: inline-block;
+  animation: balance-pulse-anim 0.35s ease;
+}
+
+@keyframes balance-pulse-anim {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* ==================================================================
+   Operator payment account rows (Telebirr/CBE Birr) shown on the
+   deposit tab - append to frontend/src/index.css
+   ================================================================== */
+
+.operator-accounts-block {
+  background: #12141c;
+  border: 1px solid #2a2e3e;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.operator-accounts-title {
+  font-size: 13px;
+  color: #9aa0b4;
+  margin: 0 0 10px;
+}
+
+.operator-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #22263380;
+}
+.operator-account-row:last-child {
+  border-bottom: none;
+}
+
+.operator-account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.operator-account-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4f8ef7;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.operator-account-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f2f2f4;
+  letter-spacing: 0.3px;
+}
+
+.operator-account-name {
+  font-size: 12px;
+  color: #7a7a85;
+}
+
+.operator-copy-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 13px;
+  min-width: 74px;
+  text-align: center;
+}
+/* ==================================================================
+   Admin overview stat cards
+   ================================================================== */
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.admin-stat-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-left: 3px solid #4a3c28;
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+
+.admin-stat-card.tone-positive {
+  border-left-color: #4ade80;
+}
+.admin-stat-card.tone-negative {
+  border-left-color: #f87171;
+}
+.admin-stat-card.tone-warning {
+  border-left-color: #f0b93f;
+}
+.admin-stat-card.tone-neutral {
+  border-left-color: #f7902e;
+}
+
+.admin-stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #cbbda6;
+}
+
+.admin-stat-card.tone-positive .admin-stat-icon {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+.admin-stat-card.tone-negative .admin-stat-icon {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+}
+.admin-stat-card.tone-warning .admin-stat-icon {
+  color: #f0b93f;
+  background: rgba(240, 185, 63, 0.12);
+}
+.admin-stat-card.tone-neutral .admin-stat-icon {
+  color: #f7902e;
+  background: rgba(247, 144, 46, 0.12);
+}
+
+.admin-stat-body {
+  min-width: 0;
+}
+
+.admin-stat-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #9c8f7c;
+  margin-bottom: 4px;
+}
+
+.admin-stat-value {
+  font-size: 19px;
+  font-weight: 800;
+  color: #f4f0ea;
+  font-variant-numeric: tabular-nums;
+}
+/* ==================================================================
+   Deposit wizard step indicator - append to frontend/src/index.css
+   ================================================================== */
+
+.wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.wizard-step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1a1a20;
+  color: #7a7a85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #26262d;
+}
+
+.wizard-step-dot.active {
+  background: #4f8ef7;
+  color: white;
+  border-color: #4f8ef7;
+}
+
+.wizard-step-line {
+  width: 28px;
+  height: 2px;
+  background: #26262d;
+}
+
+.wizard-step-line.active {
+  background: #4f8ef7;
+}
+
+/* ============================================================
+   Wallet redesign (My Wallet page) - append only, does not
+   modify or remove any rules above.
+   ============================================================ */
+
+.wallet-card {
+  padding: 0;
+  background: #17120d;
+  border: 1px solid #2b2018;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
+}
+
+.wallet-scroll-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #17120d;
+  padding: 20px 18px 0;
+  flex-shrink: 0;
+}
+
+.wallet-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 18px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wallet-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #f7b96a;
+  letter-spacing: 0.2px;
+}
+
+/* --- Balance panel --- */
+.balance-panel {
+  background: linear-gradient(180deg, #241a10 0%, #1c150e 100%);
+  border: 1px solid #34281a;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.balance-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d7c3a6;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.balance-panel-header svg {
+  color: #f7b955;
+  flex-shrink: 0;
+}
+
+.balance-panel-value {
+  margin-top: 8px;
+  font-size: 38px;
+  font-weight: 800;
+  color: #f4f0ea;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.balance-currency {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f7b955;
+}
+
+.balance-sub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.balance-sub-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.balance-sub-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #9c8f7c;
+}
+
+.balance-sub-label-safe {
+  color: #7fd99a;
+}
+
+.balance-sub-label-locked {
+  color: #e0ad5c;
+}
+
+.balance-sub-value {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.balance-sub-value-safe {
+  color: #4ade80;
+}
+
+.balance-sub-value-locked {
+  color: #f0b93f;
+}
+
+/* --- Deposit / Withdraw pill toggle --- */
+.wallet-tabs {
+  display: flex;
+  gap: 10px;
+  background: #241a10;
+  border-radius: 14px;
+  padding: 6px;
+}
+
+.wallet-tab {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  background: transparent;
+  color: #cbbda6;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wallet-tab.active {
+  background: linear-gradient(180deg, #ffb35c 0%, #f7902e 100%);
+  color: #201203;
+  box-shadow: 0 4px 12px rgba(247, 144, 46, 0.35);
+}
+
+.wallet-panel-body {
+  margin-top: 16px;
+}
+
+.wallet-scroll-header .wallet-tabs {
+  margin-bottom: 4px;
+}
+
+/* --- Bonus / wagering --- */
+.bonus-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, rgba(247, 144, 46, 0.16), rgba(247, 144, 46, 0.04));
+  border: 1px solid rgba(247, 144, 46, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.bonus-banner-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.bonus-banner-text {
+  font-size: 12.5px;
+  color: #f4e3c8;
+  line-height: 1.4;
+}
+
+.bonus-banner-text strong {
+  color: #f7b955;
+}
+
+.wagering-block {
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.wagering-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.wagering-block-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #cbbda6;
+}
+
+.wagering-block-fraction {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f7b955;
+}
+
+.wagering-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #241a10;
+  overflow: hidden;
+}
+
+.wagering-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f7902e, #ffb35c);
+  transition: width 0.3s ease;
+}
+
+.wagering-block-hint {
+  font-size: 11.5px;
+  color: #9aa0b4;
+  margin: 8px 0 0;
+}
+
+/* --- Amount input --- */
+.amount-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+}
+
+.amount-field-currency {
+  font-weight: 700;
+  color: #f7b955;
+  font-size: 15px;
+}
+
+.amount-field-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #f4f0ea;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.field-hint {
+  font-size: 12.5px;
+  color: #9aa0b4;
+  margin: 4px 0 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #cbbda6;
+  margin-bottom: 6px;
+}
+
+/* --- Payment method grid --- */
+.section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+.section-label-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbbda6;
+  background: #241a10;
+  border-radius: 8px;
+  padding: 4px 9px;
+}
+
+.pm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pm-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-radius: 14px;
+  padding: 16px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.pm-card.active {
+  border-color: #f7902e;
+  background: #2c2011;
+}
+
+.pm-card-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pm-card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.pm-card-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+/* --- Chips --- */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 6px 11px;
+  border-radius: 999px;
+}
+
+.chip-amount {
+  background: rgba(247, 144, 46, 0.15);
+  color: #f7902e;
+  border: 1px solid rgba(247, 144, 46, 0.35);
+}
+
+.chip-method {
+  background: rgba(79, 142, 247, 0.15);
+  color: #6fa2f7;
+  border: 1px solid rgba(79, 142, 247, 0.35);
+}
+
+.chip-pending {
+  background: rgba(240, 185, 63, 0.15);
+  color: #f0b93f;
+  border: 1px solid rgba(240, 185, 63, 0.35);
+}
+
+/* --- Agent selection --- */
+.agent-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.agent-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.agent-card.active {
+  border-color: #f7902e;
+  background: #2c2011;
+}
+
+.agent-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #34281a;
+  color: #cbbda6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.agent-name {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+.agent-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #4a3c28;
+  flex-shrink: 0;
+}
+
+.agent-radio.active {
+  border-color: #f7902e;
+  background: #f7902e;
+}
+
+.selected-agent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #34281a;
+  color: #f4f0ea;
+}
+
+/* --- Deposit instructions --- */
+.countdown-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(247, 144, 46, 0.1);
+  border: 1px solid rgba(247, 144, 46, 0.3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.countdown-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #f7902e;
+}
+
+.countdown-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f4b4a8;
+}
+
+.instruction-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 10px;
+}
+
+.instruction-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f7902e;
+  color: #201203;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.instruction-step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+.amount-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.amount-display-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f7b955;
+}
+
+.icon-btn {
+  border: none;
+  background: #241a10;
+  color: #cbbda6;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.recipient-info-block {
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.recipient-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #241a10;
+  font-size: 13.5px;
+}
+
+.recipient-info-row:last-child {
+  border-bottom: none;
+}
+
+.recipient-info-label {
+  color: #9aa0b4;
+}
+
+.recipient-info-value {
+  color: #f4f0ea;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-inline-btn {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* --- Complete order (reference submission) --- */
+.complete-order {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notice-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(247, 144, 46, 0.1);
+  border: 1px solid rgba(247, 144, 46, 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: #f0b93f;
+  margin: 10px 0 14px;
+}
+
+/* --- History header --- */
+.wallet-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 26px;
+  margin-bottom: 10px;
+}
+
+.wallet-history-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+/* ============================================================
+   Profile & Referral pages - append only, does not modify or
+   remove any rules above.
+   ============================================================ */
+
+.profile-card .wallet-scroll-body {
+  padding-bottom: 24px;
+}
+
+.profile-identity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.profile-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #f7902e, #ffb35c);
+  color: #201203;
+  font-size: 19px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.profile-identity-text strong {
+  font-size: 15.5px;
+  color: #f4f0ea;
+}
+
+.profile-referral-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: linear-gradient(90deg, rgba(247, 144, 46, 0.16), rgba(247, 144, 46, 0.05));
+  border: 1px solid rgba(247, 144, 46, 0.35);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 16px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.profile-referral-banner-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(247, 144, 46, 0.18);
+  color: #f7902e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-referral-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-referral-banner-text strong {
+  font-size: 14px;
+  color: #f4f0ea;
+}
+
+.profile-referral-banner-text span:last-child {
+  font-size: 12px;
+  color: #9aa0b4;
+}
+
+.profile-referral-banner-arrow {
+  font-size: 22px;
+  color: #f7902e;
+  flex-shrink: 0;
+}
+
+/* --- Referral link box --- */
+.referral-link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.referral-link-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #cbbda6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.referral-share-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* --- How it works --- */
+.how-it-works-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.how-it-works-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.how-it-works-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(247, 144, 46, 0.18);
+  color: #f7902e;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.how-it-works-title {
+  font-size: 13.5px;
+  color: #f4f0ea;
+}
+
+/* --- Manual balance refresh --- */
+.balance-refresh-btn {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #34281a;
+  background: rgba(0, 0, 0, 0.25);
+  color: #cbbda6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.balance-refresh-btn:hover:not(:disabled) {
+  color: #f7b955;
+  border-color: #f7902e;
+}
+
+.balance-refresh-btn:disabled {
+  cursor: default;
+}
+
+.balance-refresh-btn.spinning svg {
+  animation: balance-refresh-spin 0.6s linear infinite;
+}
+
+@keyframes balance-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   Deposit modal (popup-per-step overlay) - append only.
+   ============================================================ */
+
+.deposit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.deposit-modal-card {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: #1c150e;
+  border: 1px solid #34281a;
+  border-radius: 18px;
+  padding: 22px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.deposit-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.deposit-modal-title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  color: #f4f0ea;
+}
+
+.deposit-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #34281a;
+  background: transparent;
+  color: #cbbda6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deposit-modal-close:hover {
+  color: #f7b955;
+  border-color: #f7902e;
+}
+
+.deposit-modal-body {
+  color: inherit;
+}
+
+/* ============================================================
+   Admin Panel - append only.
+   ============================================================ */
+
+.admin-panel {
+  padding-bottom: 40px;
+}
+
+.admin-panel-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-panel-heading {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #f4f0ea;
+  letter-spacing: 0.2px;
+}
+
+.admin-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-panel-card {
+  background: #17120d;
+  border: 1px solid #2b2018;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+/* --- Tabs --- */
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #12141c;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 20px;
+}
+
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  color: #9c8f7c;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.admin-tab:hover {
+  color: #cbbda6;
+}
+
+.admin-tab.active {
+  background: linear-gradient(180deg, #ffb35c 0%, #f7902e 100%);
+  color: #201203;
+  box-shadow: 0 3px 10px rgba(247, 144, 46, 0.3);
+}
+
+.admin-tab-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* --- Shared section elements --- */
+.admin-muted-text {
+  font-size: 13px;
+  color: #9aa0b4;
+}
+
+.admin-section-card {
+  background: #1c150e;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.admin-section-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f4f0ea;
+}
+
+.admin-inline-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.admin-logo-preview {
+  margin-bottom: 12px;
+}
+
+.admin-logo-preview img {
+  max-height: 60px;
+  border-radius: 8px;
+  border: 1px solid #34281a;
+}
+
+.admin-refresh-btn {
+  margin-top: 14px;
+}
+
+.admin-notice {
+  font-size: 13px;
+  color: #f0b93f;
+  background: rgba(240, 185, 63, 0.1);
+  border: 1px solid rgba(240, 185, 63, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.admin-confirm-box {
+  background: rgba(240, 185, 63, 0.08);
+  border: 1px solid rgba(240, 185, 63, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.admin-confirm-text {
+  font-size: 13px;
+  color: #f0b93f;
+  margin-top: 0;
+}
+
+/* --- Status badge dot --- */
+.badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* --- Tables inside the admin panel: a little more breathing room --- */
+.admin-panel table th,
+.admin-panel table td {
+  padding: 11px 12px;
+  font-size: 13.5px;
+}
+
+.admin-panel table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-panel table th {
+  color: #9c8f7c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Admin: Coupons tab - append only.
+   ============================================================ */
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.admin-type-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.admin-type-btn {
+  flex: 1;
+  border: 1px solid #34281a;
+  background: #12141c;
+  color: #9c8f7c;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.admin-type-btn.active {
+  border-color: #f7902e;
+  color: #f7b955;
+  background: rgba(247, 144, 46, 0.1);
+}
+
+/* ============================================================
+   Coupon redemption success state - append only.
+   ============================================================ */
+
+.coupon-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.coupon-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.coupon-success-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #4ade80;
+  margin-bottom: 4px;
+}
+
+.coupon-success-text {
+  font-size: 13.5px;
+  color: #9aa0b4;
+  margin: 0 0 18px;
+}
+
+/* ============================================================
+   Referral stat cards - a beautified variant of .balance-sub-card
+   scoped to the Referral page only, so Wallet's cards are untouched.
+   Adds a colored left accent, a large background watermark icon,
+   and a distinct highlighted style for the GGR card, matching the
+   reference layout (Total Referrals / Unpaid Commission / Paid
+   Commission / GGR Amount).
+   ============================================================ */
+
+.referral-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.referral-stat-card {
+  position: relative;
+  overflow: hidden;
+  background: #1c2a1f;
+  border: 1px solid #2f4433;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 108px;
+}
+
+.referral-stat-card.tone-ggr {
+  background: #241a10;
+  border-color: rgba(247, 144, 46, 0.45);
+}
+
+.referral-stat-watermark {
+  position: absolute;
+  right: -6px;
+  bottom: -10px;
+  opacity: 0.14;
+  color: #f4f0ea;
+  pointer-events: none;
+}
+
+.referral-stat-card.tone-ggr .referral-stat-watermark {
+  color: #f7902e;
+  opacity: 0.22;
+}
+
+.referral-stat-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #9aa0b4;
+  position: relative;
+  z-index: 1;
+}
+
+.referral-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #f4f0ea;
+  position: relative;
+  z-index: 1;
+  line-height: 1.1;
+}
+
+.referral-stat-card.tone-ggr .referral-stat-value {
+  color: #ffb35c;
+}
+
+.referral-stat-sub {
+  font-size: 11.5px;
+  color: #7a8a7d;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   Bingo game screen - append only. Header, status card, live
+   number board, cartela picker, cartela preview, result banner.
+   ============================================================ */
+
+.bingo-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.bingo-status-card {
+  background: #101613;
+  border: 1px solid #234a30;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.bingo-status-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f4f0ea;
+  margin-bottom: 6px;
+}
+
+.bingo-current-call {
+  display: inline-block;
+  margin: 8px auto 4px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* --- Result banner shown when a round finishes --- */
+.bingo-result-card {
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  border: 1px solid;
+}
+
+.bingo-result-card.won {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.bingo-result-card.platform {
+  background: rgba(240, 185, 63, 0.08);
+  border-color: rgba(240, 185, 63, 0.3);
+}
+
+.bingo-result-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f4f0ea;
+  margin-bottom: 8px;
+}
+
+.bingo-result-winner-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #d7f5e2;
+  padding: 4px 0;
+}
+
+/* --- Live number board (1-75, five columns B/I/N/G/O) --- */
+.bingo-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  background: #12141c;
+  border: 1px solid #2a2e3e;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.bingo-board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bingo-board-header {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 0;
+}
+
+.bingo-board-cell {
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #1a1d29;
+  border-radius: 5px;
+  padding: 5px 0;
+}
+
+.bingo-board-cell.called {
+  color: #ffffff;
+  background: #234a30;
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.4) inset;
+}
+
+/* --- Cartela picker modal grid (100 cartela buttons) --- */
+.bingo-cartela-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.bingo-cartela-chip {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid #34281a;
+  background: #12141c;
+  color: #cbbda6;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.bingo-cartela-chip.selected {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.bingo-cartela-chip.mine {
+  border-color: #4f8ef7;
+  color: #7fb0ff;
+}
+
+.bingo-cartela-chip.taken {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* --- A user's own cartela(s), shown live with marked numbers --- */
+.bingo-my-cartelas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.bingo-cartela-preview {
+  background: #1a1d29;
+  border: 1px solid #2a2e3e;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.bingo-cartela-preview-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9aa0b4;
+  margin-bottom: 8px;
+}
+
+.bingo-cartela-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.bingo-cartela-grid-header {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  padding-bottom: 2px;
+}
+
+.bingo-cartela-cell {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbbda6;
+  background: #12141c;
+  border-radius: 5px;
+  padding: 8px 0;
+}
+
+.bingo-cartela-cell.marked {
+  background: #234a30;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.4) inset;
+}
+
+.bingo-cartela-cell.free {
+  background: #2b2018;
+  color: #f7b955;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+/* ============================================================
+   Channel/group join gate - append only.
+   ============================================================ */
+
+.channel-gate-card {
+  text-align: center;
+  padding: 28px 22px;
+}
+
+.channel-gate-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(247, 144, 46, 0.14);
+  border: 1px solid rgba(247, 144, 46, 0.35);
+  color: #f7902e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.channel-gate-title {
+  margin: 0 0 8px;
+  font-size: 21px;
+  font-weight: 800;
+  color: #f4f0ea;
+}
+
+.channel-gate-text {
+  font-size: 13.5px;
+  color: #9aa0b4;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+.channel-gate-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #241a10;
+  border: 1px solid #34281a;
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-bottom: 10px;
+  color: #f4f0ea;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.channel-gate-link:hover {
+  border-color: #f7902e;
+}
+
+.channel-gate-link svg {
+  color: #f7902e;
+  flex-shrink: 0;
+}
+
+.channel-gate-link.clicked {
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.channel-gate-link.clicked svg {
+  color: #4ade80;
+}
+
+/* ============================================================
+   Bingo game screen - append only. Header, status card, live
+   number board, cartela picker, cartela preview, result banner.
+   ============================================================ */
+
+.bingo-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.bingo-status-card {
+  background: #101613;
+  border: 1px solid #234a30;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+}
+
+/* Number board - 15 rows x 5 columns (B/I/N/G/O), all 75 numbers,
+   toggling a "called" state as the round progresses. */
+.bingo-number-board {
+  background: #12141c;
+  border-radius: 12px;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+.bingo-board-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.bingo-letter-badge {
+  text-align: center;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 0;
+  border-radius: 6px;
+  color: #0b0d17;
+}
+.bingo-letter-B { background: #4f8ef7; }
+.bingo-letter-I { background: #ef4444; }
+.bingo-letter-N { background: #f7b955; }
+.bingo-letter-G { background: #4ade80; }
+.bingo-letter-O { background: #a78bfa; }
+
+.bingo-board-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bingo-board-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.bingo-board-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1d29;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5b6178;
+  min-width: 26px;
+}
+
+.bingo-board-cell.called {
+  background: #234a30;
+  color: #4ade80;
+}
+
+.bingo-board-cell.last-called {
+  background: #4ade80;
+  color: #0b0d17;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.4);
+}
+
+/* A single player-held cartela - 5x5 grid with FREE center square. */
+.bingo-cartela {
+  background: #12141c;
+  border: 1px solid #234a30;
+  border-radius: 12px;
+  padding: 10px;
+  width: 160px;
+}
+
+.bingo-cartela-title {
+  font-size: 12px;
+  color: #9aa0b4;
+  text-align: center;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.bingo-cartela-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.bingo-cartela-letter {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.bingo-cartela-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.bingo-cartela-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1d29;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e8e8ea;
+}
+
+.bingo-cartela-cell.marked {
+  background: #234a30;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.4) inset;
+}
+
+.bingo-cartela-cell.free {
+  background: #2b2018;
+  color: #f7b955;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+/* Cartela picker modal - "tap a card to join". */
+.bingo-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  z-index: 50;
+}
+
+.bingo-picker-modal {
+  background: #1a1d29;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.bingo-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.bingo-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.bingo-picker-cell {
+  aspect-ratio: 1;
+  border: 1px solid #3a3f52;
+  background: #12141c;
+  color: #e8e8ea;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bingo-picker-cell:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bingo-picker-cell.mine {
+  background: #234a30;
+  border-color: #4ade80;
+  color: #4ade80;
+  opacity: 1;
+}
