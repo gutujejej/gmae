@@ -1,0 +1,535 @@
+/* ============================================================================
+   Design tokens
+   Concept: a real bingo hall's felt table, not a fintech dashboard.
+   Deep green felt, warm ivory paper-card tones, a coral "called ball" accent,
+   and muted gold for wins. Tactile and specific to the subject matter.
+   ============================================================================ */
+
+:root {
+  /* Color */
+  --felt-900: #0f3d2e;
+  --felt-800: #164a38;
+  --felt-700: #1d5943;
+  --ivory: #f2ead8;
+  --ivory-dim: #d8cdb3;
+  --coral: #e8543e;
+  --coral-dim: #b8402f;
+  --gold: #c9a24b;
+  --gold-bright: #e0bc6b;
+  --ink: #12241d;
+
+  /* Type */
+  --font-display: 'Roboto Slab', 'Georgia', serif;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-card: 14px;
+  --radius-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(ellipse at top, var(--felt-700) 0%, var(--felt-900) 65%);
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  /* Respect Telegram's safe areas on notched devices */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+  min-height: 100%;
+}
+
+.lobby__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+}
+
+.lobby__title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 0;
+  color: var(--gold-bright);
+  letter-spacing: 0.01em;
+}
+
+.lobby__greeting {
+  margin: var(--space-1) 0 0;
+  color: var(--ivory-dim);
+  font-size: 0.9rem;
+}
+
+.lobby__balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.lobby__balance-label {
+  font-size: 0.7rem;
+  text-transform: none;
+  color: var(--ivory-dim);
+}
+
+.lobby__balance-amount {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--ivory);
+}
+
+.lobby__section-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 var(--space-3);
+  color: var(--ivory);
+}
+
+.lobby__muted {
+  color: var(--ivory-dim);
+  font-size: 0.9rem;
+}
+
+.lobby__error {
+  background: rgba(232, 84, 62, 0.15);
+  border: 1px solid var(--coral);
+  color: var(--ivory);
+  padding: var(--space-3);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.lobby__create {
+  margin-bottom: var(--space-6);
+}
+
+.lobby__stake-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.stake-button {
+  background: var(--felt-800);
+  border: 1.5px solid var(--gold);
+  color: var(--gold-bright);
+  border-radius: 10px;
+  padding: var(--space-3) 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.stake-button:active {
+  transform: scale(0.96);
+}
+
+.room-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.room-list__button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--felt-800);
+  border: 1px solid rgba(242, 234, 216, 0.15);
+  border-radius: 10px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--ivory);
+}
+
+.room-list__code {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin-right: var(--space-3);
+}
+
+.room-list__players {
+  color: var(--ivory-dim);
+  font-size: 0.85rem;
+}
+
+.room-list__stake {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+/* --- Room page ------------------------------------------------------- */
+
+.room-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.room-page__code {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.room-page__stake {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.room-page__result {
+  text-align: center;
+  color: var(--gold-bright);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin-bottom: var(--space-4);
+}
+
+.room-page__join {
+  text-align: center;
+  padding: var(--space-6) 0;
+}
+
+.ghost-button {
+  background: transparent;
+  border: none;
+  color: var(--ivory-dim);
+  font-size: 0.9rem;
+  padding: var(--space-2) 0;
+}
+
+.primary-button {
+  width: 100%;
+  background: var(--coral);
+  color: var(--ivory);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: var(--space-4);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: var(--space-4);
+}
+
+.primary-button:active {
+  transform: scale(0.98);
+}
+
+.primary-button--claim {
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+}
+
+/* --- Wallet page ------------------------------------------------------- */
+
+.wallet-balance-card {
+  background: var(--felt-800);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+
+.wallet-balance-card__amount {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--gold-bright);
+  margin-top: var(--space-1);
+}
+
+.wallet-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.wallet-tab {
+  flex: 1;
+  background: var(--felt-800);
+  border: 1px solid transparent;
+  color: var(--ivory-dim);
+  padding: var(--space-3);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.wallet-tab--active {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.wallet-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.wallet-form__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--ivory-dim);
+}
+
+.wallet-form__input {
+  background: var(--felt-800);
+  border: 1px solid rgba(242, 234, 216, 0.2);
+  border-radius: 8px;
+  padding: var(--space-3);
+  color: var(--ivory);
+  font-size: 1rem;
+}
+
+.wallet-form__success {
+  color: var(--gold-bright);
+  font-size: 0.9rem;
+}
+
+.wallet-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.wallet-history__item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3);
+  background: var(--felt-800);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.wallet-history__amount--credit {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.wallet-history__amount--debit {
+  color: var(--ivory-dim);
+  font-weight: 600;
+}
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.app-shell__content {
+  flex: 1;
+}
+
+.bottom-nav {
+  display: flex;
+  border-top: 1px solid rgba(242, 234, 216, 0.1);
+  background: var(--felt-900);
+  padding: var(--space-2) 0;
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+}
+
+.bottom-nav__item {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-2) 0;
+  color: var(--ivory-dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bottom-nav__item.active {
+  color: var(--gold-bright);
+}
+.bingo-card {
+  background: var(--ivory);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 12px 28px rgba(0, 0, 0, 0.35);
+  max-width: 380px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.bingo-card__header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.bingo-card__letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-align: center;
+  color: var(--coral-dim);
+  letter-spacing: 0.02em;
+}
+
+.bingo-card__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+}
+
+.bingo-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: #fffdf8;
+  border: 1.5px solid var(--ivory-dim);
+  border-radius: 8px;
+  cursor: not-allowed;
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.bingo-cell--drawn {
+  cursor: pointer;
+  border-color: var(--coral);
+}
+
+.bingo-cell--drawn:active {
+  transform: scale(0.94);
+}
+
+.bingo-cell--marked {
+  background: var(--coral);
+  color: var(--ivory);
+  border-color: var(--coral-dim);
+}
+
+.bingo-cell--free {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold-bright);
+  cursor: default;
+  font-size: 1.3rem;
+}
+.called-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.called-strip__latest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(232, 84, 62, 0.5);
+  animation: ball-pop 0.3s ease;
+}
+
+.called-strip__latest-number {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+@keyframes ball-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.called-strip__history {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.called-strip__history::-webkit-scrollbar {
+  display: none;
+}
+
+.called-strip__chip {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(242, 234, 216, 0.15);
+  color: var(--ivory-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
