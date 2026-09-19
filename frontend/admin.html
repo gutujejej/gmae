@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginView" class="center" style="min-height:90vh">
+    <div class="card" style="width:100%;max-width:380px">
+      <h1 style="margin-bottom:6px">🔐 Admin</h1>
+      <p class="sub" style="margin-bottom:18px">Sign in to manage your bots.</p>
+      <div id="loginMsg" class="msg"></div>
+      <input type="password" id="password" placeholder="Admin password" />
+      <button class="btn block" id="loginBtn">Sign in</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashView" class="container hidden">
+    <div class="topbar">
+      <h1>🤖 Bot Manager</h1>
+      <button class="btn ghost small" id="logoutBtn">Log out</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:16px;font-size:18px">➕ Add another bot</h2>
+      <div id="addMsg" class="msg"></div>
+
+      <div class="grid">
+        <div>
+          <label>Display name</label>
+          <input type="text" id="name" placeholder="e.g. Bonus Bot 2" />
+        </div>
+        <div>
+          <label>Bonus amount (birr)</label>
+          <input type="number" id="bonus" value="20" min="0" />
+        </div>
+      </div>
+
+      <label>Bot token (from @BotFather)</label>
+      <input type="text" id="token" placeholder="123456789:AAxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+
+      <div class="grid">
+        <div>
+          <label>Channel username</label>
+          <input type="text" id="channel" placeholder="@my_channel" />
+        </div>
+        <div>
+          <label>Group username</label>
+          <input type="text" id="group" placeholder="@my_group" />
+        </div>
+      </div>
+
+      <div class="check">
+        <input type="checkbox" id="verify" checked />
+        <span>Verify membership (bot must be admin in the channel and group)</span>
+      </div>
+
+      <button class="btn" id="addBtn">Add bot</button>
+    </div>
+
+    <div class="bot-list" id="botList"></div>
+  </div>
+
+  <script>
+    // ⚠️ Set this to your Railway URL
+    const API_URL = 'https://your-app.up.railway.app';
+
+    const $ = (id) => document.getElementById(id);
+    const show = (el, text, type) => { el.textContent = text; el.className = `msg ${type}`; };
+    const hide = (el) => { el.className = 'msg'; };
+
+    let token = localStorage.getItem('admin_token');
+
+    async function api(path, method = 'GET', body) {
+      const res = await fetch(`${API_URL}${path}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && path !== '/api/admin/login') { logout(); throw new Error('Session expired'); }
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_token');
+      token = null;
+      $('dashView').classList.add('hidden');
+      $('loginView').classList.remove('hidden');
+    }
+
+    function enterDashboard() {
+      $('loginView').classList.add('hidden');
+      $('dashView').classList.remove('hidden');
+      loadBots();
+    }
+
+    $('loginBtn').onclick = async () => {
+      hide($('loginMsg'));
+      try {
+        const r = await api('/api/admin/login', 'POST', { password: $('password').value });
+        token = r.token;
+        localStorage.setItem('admin_token', token);
+        $('password').value = '';
+        enterDashboard();
+      } catch (e) { show($('loginMsg'), e.message, 'error'); }
+    };
+    $('password').addEventListener('keydown', (e) => e.key === 'Enter' && $('loginBtn').click());
+    $('logoutBtn').onclick = logout;
+
+    async function loadBots() {
+      try {
+        const bots = await api('/api/admin/bots');
+        $('botList').innerHTML = bots.length ? bots.map(botCard).join('') :
+          '<div class="card"><p class="sub" style="margin:0">No bots yet. Add your first one above.</p></div>';
+      } catch (e) { console.error(e); }
+    }
+
+    function botCard(b) {
+      return `
+        <div class="card bot">
+          <div>
+            <h3>${esc(b.name)}
+              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>
+            </h3>
+            <div class="meta">
+              <a href="https://t.me/${b.bot_username}" target="_blank" style="color:#38bdf8">@${b.bot_username}</a>
+              · Token ${b.token_preview}<br/>
+              📢 ${esc(b.channel)} · 👥 ${esc(b.group_chat)}<br/>
+              💰 ${b.bonus} birr · 👤 ${b.users} users · ✅ ${b.claimed} claimed
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost small" onclick="editBonus(${b.id}, ${b.bonus})">Edit bonus</button>
+            <button class="btn ghost small" onclick="toggle(${b.id}, ${!b.active})">${b.active ? 'Pause' : 'Resume'}</button>
+            <button class="btn danger small" onclick="removeBot(${b.id}, '${esc(b.name).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </div>`;
+    }
+
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    $('addBtn').onclick = async () => {
+      hide($('addMsg'));
+      $('addBtn').disabled = true;
+      $('addBtn').textContent = 'Adding…';
+      try {
+        await api('/api/admin/bots', 'POST', {
+          name: $('name').value.trim(),
+          token: $('token').value.trim(),
+          channel: $('channel').value.trim(),
+          group_chat: $('group').value.trim(),
+          bonus: Number($('bonus').value),
+          verify: $('verify').checked,
+        });
+        show($('addMsg'), '✅ Bot added and running!', 'success');
+        ['name', 'token', 'channel', 'group'].forEach((i) => ($(i).value = ''));
+        $('bonus').value = 20;
+        loadBots();
+      } catch (e) { show($('addMsg'), e.message, 'error'); }
+      $('addBtn').disabled = false;
+      $('addBtn').textContent = 'Add bot';
+    };
+
+    async function toggle(id, active) {
+      try { await api(`/api/admin/bots/${id}`, 'PATCH', { active }); loadBots(); }
+      catch (e) { alert(e.message); }
+    }
+
+    async function editBonus(id, current) {
+      const v = prompt('New bonus amount (birr):', current);
+      if (v === null || isNaN(Number(v))) return;
+      try { await api(`/api/admin/bots/${id}`, 'PATCH', { bonus: Number(v) }); loadBots(); }
+      catch (e) { alert(e.message); }
+    }
+
+    async function removeBot(id, name) {
+      if (!confirm(`Delete "${name}" and all its users? This cannot be undone.`)) return;
+      try { await api(`/api/admin/bots/${id}`, 'DELETE'); loadBots(); }
+      catch (e) { alert(e.message); }
+    }
+
+    if (token) enterDashboard();
+  </script>
+</body>
+</html>
