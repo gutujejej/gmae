@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bingo</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a; --card-bg:#141414; --gold:#f5b642; --gold-dark:#c98f1f;
+    --blue:#3b6df0; --red:#e0453f; --green:#3fbf5f; --purple:#9b5de5;
+    --text:#f2f2f2; --muted:#9a9a9a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,'Segoe UI',Arial,sans-serif;user-select:none;-webkit-tap-highlight-color:transparent;}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:#000;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #222;}
+  .topbar h1{font-size:18px;letter-spacing:1px;margin:0;}
+  .topbar h1 span{color:var(--gold);}
+
+  .stat-row{display:flex;gap:8px;padding:12px 16px;}
+  .stat{flex:1;background:var(--card-bg);border-radius:10px;padding:8px 6px;text-align:center;border:1px solid #222;}
+  .stat.active{border-color:var(--gold);background:#1c1608;}
+  .stat.balance{background:var(--gold);color:#1a1400;border-color:var(--gold);}
+  .stat label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .stat.balance label{color:#5a4300;}
+  .stat.active label{color:var(--gold);}
+  .stat strong{font-size:15px;}
+
+  .stake-row{display:flex;gap:8px;padding:0 16px 12px;flex-wrap:wrap;}
+  .stake-chip{padding:7px 14px;border-radius:20px;border:1px solid #2a2a2a;background:#161616;color:#ccc;font-size:13px;font-weight:600;}
+  .stake-chip.active{background:var(--gold);color:#1a1400;border-color:var(--gold);}
+
+  .msg{margin:0 16px 12px;padding:10px 14px;border-radius:10px;font-size:13px;}
+  .msg.error{background:#2a1414;color:#ff8a8a;border:1px solid #5c2626;}
+  .msg.info{background:#1c1608;color:var(--gold);border:1px solid var(--gold-dark);}
+
+  .picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;padding:0 16px 16px;flex:1;align-content:start;}
+  .picker-cell{aspect-ratio:1;border-radius:50%;background:#161616;border:1px solid #2a2a2a;
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12.5px;}
+  .picker-cell.taken{background:#2a2a2a;color:#555;}
+  .picker-cell.selected{background:var(--gold);color:#1a1400;border-color:var(--gold);}
+
+  .play-btn{margin:0 16px 20px;padding:15px;border:none;border-radius:12px;background:var(--gold);
+    color:#1a1400;font-weight:800;font-size:15px;}
+  .play-btn:disabled{background:#333;color:#666;}
+
+  .game-top{display:flex;gap:14px;padding:12px 16px;align-items:center;}
+  .game-stat label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;}
+  .game-stat strong{font-size:17px;}
+  .game-stat.derash strong{color:var(--green);}
+  .game-stat.players strong{color:var(--gold);}
+  .called-ball{margin-left:auto;width:62px;height:62px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:15px;color:#fff;border:3px solid #fff3;background:#333;}
+  .recent-balls{display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto;}
+  .mini-ball{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:#222;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  .game-body{display:flex;gap:10px;padding:0 16px;flex:1;}
+  .board{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;align-content:start;}
+  .board .bhead{text-align:center;padding:5px 0;font-weight:800;border-radius:4px;color:#fff;font-size:12px;}
+  .board .bnum{aspect-ratio:1;background:#161616;color:#eee;display:flex;align-items:center;justify-content:center;
+    font-size:11px;border-radius:4px;}
+  .board .bnum.marked{background:#333;color:#666;}
+
+  .mycard-wrap{flex:1;display:flex;flex-direction:column;}
+  .mycard{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+  .mycard .chead{text-align:center;padding:6px 0;font-weight:800;border-radius:6px;color:#fff;font-size:13px;}
+  .mycard .ccell{aspect-ratio:1;background:#161616;color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:13px;border-radius:6px;font-weight:600;border:1px solid #222;}
+  .mycard .ccell.marked{background:var(--blue);color:#fff;}
+  .mycard .ccell.free{background:var(--blue);}
+
+  .bingo-btn{margin-top:auto;padding:14px;border:none;border-radius:10px;background:var(--green);
+    color:#052b0c;font-weight:800;font-size:15px;width:100%;}
+  .bingo-btn:disabled{background:#333;color:#666;}
+
+  .waiting-banner{margin:0 16px 12px;padding:12px 14px;border-radius:10px;background:#1c1608;
+    border:1px solid var(--gold-dark);color:var(--gold);text-align:center;font-weight:700;font-size:13px;}
+
+  .col-B{background:var(--blue);} .col-I{background:var(--red);}
+  .col-N{background:var(--gold-dark);} .col-G{background:var(--green);}
+  .col-O{background:var(--purple);}
+  .hidden{display:none !important;}
+
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#052b0c;
+    padding:12px 22px;border-radius:10px;font-weight:800;z-index:50;box-shadow:0 4px 20px #000a;}
+  .center-msg{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:20px;text-align:center;}
+
+  .winner-overlay{position:fixed;inset:0;background:#000d;z-index:100;display:flex;align-items:center;
+    justify-content:center;padding:24px;}
+  .winner-box{width:100%;max-width:340px;background:#141414;border:2px solid var(--gold);border-radius:18px;
+    padding:26px 20px;text-align:center;box-shadow:0 0 40px #f5b64240;}
+  .winner-box .w-title{font-size:30px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:14px;}
+  .winner-box .w-user{font-size:20px;font-weight:800;margin-bottom:6px;word-break:break-all;}
+  .winner-box .w-card{font-size:15px;color:var(--muted);margin-bottom:10px;}
+  .winner-box .w-card b{color:#fff;}
+  .winner-box .w-prize{font-size:22px;font-weight:800;color:var(--green);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <h1 id="gameTitle">BINGO</h1>
+    <span id="walletBtn" style="color:var(--gold);font-size:13px;">Wallet</span>
+  </div>
+
+  <div id="authFail" class="center-msg hidden">Please open this from the bot inside Telegram.</div>
+
+  <div id="lobby" class="hidden">
+    <div class="stat-row">
+      <div class="stat active"><label>Stake</label><strong id="stakeLabel">-</strong></div>
+      <div class="stat"><label>Sold</label><strong id="soldCount">0</strong></div>
+      <div class="stat balance"><label>Balance</label><strong id="balanceLabel">0 ETB</strong></div>
+    </div>
+    <div class="stake-row" id="stakeRow"></div>
+    <div id="lobbyMsg"></div>
+    <div class="picker-grid" id="pickerGrid"></div>
+    <button class="play-btn" id="playBtn" disabled>SELECT A CARD TO PLAY</button>
+  </div>
+
+  <div id="waitingScreen" class="hidden">
+    <div class="waiting-banner" id="waitingBanner">Waiting for round to start...</div>
+    <div class="center-msg">Your card is locked in. The round starts automatically once the timer ends.</div>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+    <div class="game-top">
+      <div class="game-stat derash"><label>Pool</label><strong id="derash">0 ETB</strong></div>
+      <div class="game-stat"><label>Balls</label><strong id="ballsCount">0/75</strong></div>
+      <div class="game-stat players"><label>Players</label><strong id="playersCount">0</strong></div>
+      <div class="called-ball" id="calledBall">--</div>
+    </div>
+    <div class="recent-balls" id="recentBalls"></div>
+    <div class="game-body">
+      <div class="board" id="board"></div>
+      <div class="mycard-wrap">
+        <div class="mycard" id="mycard"></div>
+        <button class="bingo-btn" id="bingoBtn" disabled>BINGO!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://gmae-production.up.railway.app'; // same backend as app.html
+const tg = window.Telegram && window.Telegram.WebApp;
+const BOT = new URLSearchParams(location.search).get('b');
+const $ = (id) => document.getElementById(id);
+const COLS = ['B','I','N','G','O'];
+const colColor = {B:'col-B', I:'col-I', N:'col-N', G:'col-G', O:'col-O'};
+const bgMap = {B:'#3b6df0', I:'#e0453f', N:'#c98f1f', G:'#3fbf5f', O:'#9b5de5'};
+
+let selectedStake = null;
+let selectedCard = null;
+let currentRoundId = null;
+let pollTimer = null;
+
+async function api(path, method = 'GET', body) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+
+function colOf(n){
+  if(n<=15) return 'B'; if(n<=30) return 'I'; if(n<=45) return 'N'; if(n<=60) return 'G'; return 'O';
+}
+
+function showLobbyMsg(text, type='error'){
+  $('lobbyMsg').innerHTML = `<div class="msg ${type}">${text}</div>`;
+}
+function clearLobbyMsg(){ $('lobbyMsg').innerHTML = ''; }
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+/* ---------------- WINNER ANNOUNCEMENT ---------------- */
+
+const announcedRounds = new Set(); // never show the same round's result twice
+
+// Shows "BINGO!" + winner username + winning card for exactly 3 seconds.
+// Called from every poll, so all players see it whichever screen they're on.
+function maybeShowWinner(result){
+  if(!result || !result.winner || announcedRounds.has(result.roundId)) return;
+  announcedRounds.add(result.roundId);
+
+  const w = result.winner;
+  const who = w.username || w.name || ('Player ' + w.telegramId);
+  const isMe = String(w.telegramId) === String(window.__myId);
+
+  const el = document.createElement('div');
+  el.className = 'winner-overlay';
+  el.innerHTML = `
+    <div class="winner-box">
+      <div class="w-title">BINGO!</div>
+      <div class="w-user">${isMe ? 'You won! 🎉' : esc(who)}</div>
+      ${isMe ? `<div class="w-card">${esc(who)}</div>` : ''}
+      <div class="w-card">Won with card <b>#${esc(w.cardNo ?? '?')}</b></div>
+      <div class="w-prize">${esc(result.prize)} ETB</div>
+    </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ---------------- LOBBY ---------------- */
+
+async function loadLobby(){
+  try{
+    const s = await api(`/api/mini/${BOT}/bingo/state?stake=${selectedStake || ''}`);
+    maybeShowWinner(s.result);
+    $('gameTitle').innerHTML = `<span>${esc(s.name).toUpperCase()}</span>`;
+    $('balanceLabel').textContent = s.balance.toFixed(2) + ' ETB';
+
+    if(!selectedStake) selectedStake = s.stake;
+    renderStakeRow(s.stakes);
+    $('stakeLabel').textContent = selectedStake + ' ETB';
+
+    if(s.round && s.myCard){
+      // already joined this stake's open round
+      currentRoundId = s.round.id;
+      if(s.round.status === 'waiting'){
+        showWaiting();
+      } else {
+        enterGame(s);
+      }
+      return;
+    }
+
+    $('lobby').classList.remove('hidden');
+    $('waitingScreen').classList.add('hidden');
+    $('gameScreen').classList.add('hidden');
+    $('soldCount').textContent = s.round ? s.round.sold : 0;
+
+    const taken = await api(`/api/mini/${BOT}/bingo/taken-cards?stake=${selectedStake}`);
+    renderPicker(taken.taken || []);
+  }catch(e){
+    showLobbyMsg(e.message);
+  }
+}
+
+function renderStakeRow(stakes){
+  $('stakeRow').innerHTML = stakes.map(st => `
+    <div class="stake-chip ${st === selectedStake ? 'active' : ''}" data-stake="${st}">${st} ETB</div>
+  `).join('');
+  $('stakeRow').querySelectorAll('.stake-chip').forEach(el => {
+    el.onclick = () => {
+      selectedStake = Number(el.dataset.stake);
+      selectedCard = null;
+      loadLobby();
+    };
+  });
+}
+
+function renderPicker(taken){
+  const grid = $('pickerGrid');
+  const takenSet = new Set(taken);
+  let html = '';
+  for(let i=1;i<=100;i++){
+    const cls = takenSet.has(i) ? 'taken' : (selectedCard === i ? 'selected' : '');
+    html += `<div class="picker-cell ${cls}" data-n="${i}">${i}</div>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('.picker-cell').forEach(cell => {
+    cell.onclick = () => {
+      if(cell.classList.contains('taken')) return;
+      const n = Number(cell.dataset.n);
+      selectedCard = (selectedCard === n) ? null : n;
+      renderPicker(taken);
+      updatePlayBtn();
+    };
+  });
+}
+
+function updatePlayBtn(){
+  const btn = $('playBtn');
+  if(selectedCard){
+    btn.disabled = false;
+    btn.textContent = `PLAY CARD #${selectedCard} — ${selectedStake} ETB`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'SELECT A CARD TO PLAY';
+  }
+}
+
+$('playBtn').onclick = async () => {
+  if(!selectedCard) return;
+  clearLobbyMsg();
+  $('playBtn').disabled = true;
+  try{
+    const r = await api(`/api/mini/${BOT}/bingo/join`, 'POST', { stake: selectedStake, cardNo: selectedCard });
+    currentRoundId = r.roundId;
+    $('balanceLabel').textContent = Number(r.newBalance).toFixed(2) + ' ETB';
+    showWaiting();
+  }catch(e){
+    showLobbyMsg(e.message);
+    $('playBtn').disabled = false;
+  }
+};
+
+function showWaiting(){
+  $('lobby').classList.add('hidden');
+  $('gameScreen').classList.add('hidden');
+  $('waitingScreen').classList.remove('hidden');
+  pollForStart();
+}
+
+function pollForStart(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try{
+      const s = await api(`/api/mini/${BOT}/bingo/state?stake=${selectedStake}`);
+      maybeShowWinner(s.result);
+      if(s.round && s.round.status === 'playing'){
+        clearInterval(pollTimer);
+        enterGame(s);
+      } else if(!s.round){
+        // round vanished (no one joined / edge case) — back to lobby
+        clearInterval(pollTimer);
+        selectedCard = null;
+        loadLobby();
+      }
+    }catch(e){ /* keep polling silently */ }
+  }, 2000);
+}
+
+/* ---------------- GAME ---------------- */
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function buildBoard(){
+  const board = $('board');
+  let html = '';
+  COLS.forEach(c => html += `<div class="bhead ${colColor[c]}">${c}</div>`);
+  const ranges = {B:[1,15],I:[16,30],N:[31,45],G:[46,60],O:[61,75]};
+  for(let r=0;r<15;r++){
+    COLS.forEach(c => {
+      const num = ranges[c][0] + r;
+      html += `<div class="bnum" id="board-${num}">${num}</div>`;
+    });
+  }
+  board.innerHTML = html;
+}
+
+function renderMyCard(numbers, marked){
+  const el = $('mycard');
+  let html = '';
+  COLS.forEach(c => html += `<div class="chead ${colColor[c]}">${c}</div>`);
+  for(let i=0;i<25;i++){
+    const n = numbers[i];
+    if(n === 0){
+      html += `<div class="ccell free">&#9733;</div>`;
+    } else {
+      html += `<div class="ccell ${marked[i] ? 'marked' : ''}">${n}</div>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+function enterGame(s){
+  $('lobby').classList.add('hidden');
+  $('waitingScreen').classList.add('hidden');
+  $('gameScreen').classList.remove('hidden');
+  clearInterval(pollTimer);
+
+  buildBoard();
+  renderRoundState(s);
+  pollGame();
+}
+
+function renderRoundState(s){
+  const round = s.round;
+  $('derash').textContent = round.pool + ' ETB';
+  $('playersCount').textContent = round.players;
+  $('ballsCount').textContent = round.calledNumbers.length + '/75';
+
+  document.querySelectorAll('.bnum.marked').forEach(el => el.classList.remove('marked'));
+  round.calledNumbers.forEach(n => {
+    const cell = document.getElementById('board-' + n);
+    if(cell) cell.classList.add('marked');
+  });
+
+  if(round.calledNumbers.length){
+    const last = round.calledNumbers[round.calledNumbers.length - 1];
+    const col = colOf(last);
+    $('calledBall').textContent = col + '-' + last;
+    $('calledBall').style.background = bgMap[col];
+  }
+
+  $('recentBalls').innerHTML = [...round.calledNumbers].reverse().slice(0,10).map(n => {
+    const col = colOf(n);
+    return `<div class="mini-ball" style="background:${bgMap[col]}">${n}</div>`;
+  }).join('');
+
+  if(s.myCard){
+    renderMyCard(s.myCard.numbers, s.myCard.marked);
+    const calledSet = new Set(round.calledNumbers);
+    const marked = s.myCard.numbers.map(n => n === 0 || calledSet.has(n));
+    $('bingoBtn').disabled = s.myCard.won || !checkWinClient(s.myCard.numbers, marked);
+  }
+
+  if(round.status === 'finished'){
+    clearInterval(pollTimer);
+    if(round.winnerTelegramId){
+      showToast(round.winnerTelegramId === (window.__myId) ? 'You won this round!' : 'Round ended — better luck next time!');
+    }
+    setTimeout(() => { selectedCard = null; loadLobby(); }, 3000);
+  }
+}
+
+function checkWinClient(numbers, marked){
+  const at = (r,c) => marked[r*5+c];
+  for(let r=0;r<5;r++) if([0,1,2,3,4].every(c=>at(r,c))) return true;
+  for(let c=0;c<5;c++) if([0,1,2,3,4].every(r=>at(r,c))) return true;
+  if([0,1,2,3,4].every(i=>at(i,i))) return true;
+  if([0,1,2,3,4].every(i=>at(i,4-i))) return true;
+  return false;
+}
+
+function pollGame(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try{
+      const s = await api(`/api/mini/${BOT}/bingo/state?stake=${selectedStake}`);
+      maybeShowWinner(s.result);
+      if(!s.round){ clearInterval(pollTimer); selectedCard = null; loadLobby(); return; }
+      renderRoundState(s);
+    }catch(e){ /* keep polling */ }
+  }, 2500);
+}
+
+$('bingoBtn').onclick = async () => {
+  if(!currentRoundId) return;
+  $('bingoBtn').disabled = true;
+  try{
+    await api(`/api/mini/${BOT}/bingo/claim`, 'POST', { roundId: currentRoundId });
+    clearInterval(pollTimer);
+    // loadLobby reads the state, which now carries the winner result and
+    // triggers the shared 3-second announcement.
+    selectedCard = null;
+    loadLobby();
+  }catch(e){
+    showLobbyMsg(e.message);
+    $('bingoBtn').disabled = false;
+  }
+};
+
+$('walletBtn').onclick = () => {
+  // Deposit/Withdraw happen in the bot chat per spec — just point the user there.
+  tg.showAlert ? tg.showAlert('Use Deposit / Withdraw in the bot chat menu to manage your balance.')
+               : alert('Use Deposit / Withdraw in the bot chat menu to manage your balance.');
+};
+
+(async function init(){
+  if(!tg || !tg.initData || !BOT){
+    $('authFail').classList.remove('hidden');
+    return;
+  }
+  tg.ready(); tg.expand();
+  window.__myId = tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+  $('lobby').classList.remove('hidden');
+  loadLobby();
+})();
+</script>
+</body>
+</html>
