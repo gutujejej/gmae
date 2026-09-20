@@ -24,7 +24,7 @@ const getLang = (botId, tgId) => langs.get(pendKey(botId, tgId)) || 'am';
 // Bank accounts shown when the user picks a bank on Deposit.
 // Edit the names / numbers here.
 const BANKS = {
-  telebirr: { label: '📱 TeleBirr', name: 'TeleBirr', holder: 'Yohannes aberham', number: '0953839231' },
+  telebirr: { label: '📱 TeleBirr', name: 'TeleBirr', holder: 'Baqale', number: '0930008319' },
   cbebirr:  { label: '🏦 CBEBirr',  name: 'CBEBirr',  holder: 'Yohannes aberham', number: '0953839231' },
 };
 
