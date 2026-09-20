@@ -25,7 +25,6 @@ const getLang = (botId, tgId) => langs.get(pendKey(botId, tgId)) || 'am';
 // Edit the names / numbers here.
 const BANKS = {
   telebirr: { label: '📱 TeleBirr', name: 'TeleBirr', holder: 'Baqale', number: '0930008319' },
-  cbebirr:  { label: '🏦 CBEBirr',  name: 'CBEBirr',  holder: 'Yohannes aberham', number: '0953839231' },
 };
 
 // Only the deposit flow and language screens are translated. Keys missing
@@ -216,7 +215,6 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
       await bot.sendMessage(chatId, t(lang, 'pickBank'), {
         reply_markup: { inline_keyboard: [[
           { text: BANKS.telebirr.label, callback_data: 'dep_bank:telebirr' },
-          { text: BANKS.cbebirr.label, callback_data: 'dep_bank:cbebirr' },
         ]] },
       });
       return true;
@@ -392,3 +390,4 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
 
   return { handleWalletMessage, handleWalletCallback, extendedMenu, MENU_EXTRA };
 };
+      
