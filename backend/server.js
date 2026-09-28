@@ -92,11 +92,11 @@ if (!MINIAPP_BASE) {
 // Label of the chat button that launches the Mini App. Change it here.
 const TASKS_BUTTON_TEXT = 'Open Tasks';
 
-// Enforcement only applies when the admin wants it, there is something to
-// open, and the Mini App is reachable. Otherwise users would be blocked with
-// no way to satisfy the rule.
-const trackingOn = (row) =>
-  row.require_all_clicks !== false && requiredButtons(row).length > 0 && !!MINIAPP_BASE;
+// Registration now uses plain link buttons that open directly in Telegram
+// (no Mini App), so per-button click tracking is off. The Mini App is still
+// used for wallet/bingo via MINIAPP_BASE. Membership is still enforced at
+// Continue when the admin turns on "verify" (channel + group).
+const trackingOn = () => false;
 
 function keyboard(row) {
   const cont = [{ text: row.continue_text || 'Continue', callback_data: 'continue' }];
