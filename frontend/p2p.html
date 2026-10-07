@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cross P2P</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0B1220; --ink-2:#17233C; --paper:#F3F5F9; --card:#FFFFFF;
+  --line:#E2E7EF; --line-2:#EEF1F6; --text:#142033; --muted:#5D6B83; --faint:#8C98AD;
+  --cobalt:#2340E8; --cobalt-dk:#1A31BD; --cobalt-soft:#E8ECFF;
+  --buy:#0E9F6E; --buy-dk:#0B805A; --buy-soft:#E1F5EC;
+  --sell:#C46108; --sell-soft:#FCEEDB;
+  --danger:#D13B3B; --danger-soft:#FCE8E8;
+  --r-xl:26px; --r-lg:18px; --r-md:12px; --r-sm:8px;
+  --display:"Bricolage Grotesque","Plus Jakarta Sans",system-ui,sans-serif;
+  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--body);font-size:15px;line-height:1.55;color:var(--text);
+  background:
+    radial-gradient(900px 480px at 88% -8%,#DCE3FF 0%,transparent 62%),
+    radial-gradient(700px 400px at -6% 12%,#E3F3EC 0%,transparent 60%),
+    var(--paper);
+  min-height:100vh;font-variant-numeric:tabular-nums;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic.sm{width:16px;height:16px}
+:focus-visible{outline:3px solid #7C91FF;outline-offset:2px;border-radius:6px}
+.wrap{width:min(1120px,100% - 40px);margin-inline:auto}
+
+/* ---------- Header ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(243,245,249,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(226,231,239,.9)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:12px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em}
+.brand-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,#2F4DFF,#1A2FB5);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -4px rgba(35,64,232,.55),inset 0 1px 0 rgba(255,255,255,.28)}
+.brand-mark .ic{width:20px;height:20px;stroke-width:2.1}
+.nav{display:flex;align-items:center;gap:4px}
+.nav button{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);transition:background .15s,color .15s;white-space:nowrap}
+.nav button:hover{background:#E9EDF5;color:var(--text)}
+.nav button[aria-current="page"]{background:#fff;color:var(--cobalt);box-shadow:0 0 0 1px var(--line)}
+.nav .admin-switch{background:var(--ink);color:#fff}
+.nav .admin-switch:hover{background:var(--ink-2);color:#fff}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:46px;padding:0 20px;border-radius:12px;font-weight:700;font-size:14.5px;transition:transform .12s,background .15s,box-shadow .15s,border-color .15s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-block{width:100%}
+.btn-primary{background:var(--cobalt);color:#fff;box-shadow:0 8px 18px -8px rgba(35,64,232,.7),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn-primary:hover:not(:disabled){background:var(--cobalt-dk)}
+.btn-buy{background:var(--buy);color:#fff;box-shadow:0 8px 16px -9px rgba(14,159,110,.8),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn-buy:hover:not(:disabled){background:var(--buy-dk)}
+.btn-sell{background:#fff;color:var(--sell);border:1.5px solid #E7B987}
+.btn-sell:hover:not(:disabled){background:var(--sell-soft)}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover:not(:disabled){background:#F7F9FC;border-color:#CFD7E4}
+.btn-danger{background:var(--danger-soft);color:var(--danger)}
+.btn-danger:hover:not(:disabled){background:#F8D5D5}
+.btn.sm{height:36px;padding:0 14px;font-size:13px;border-radius:10px}
+.icon-btn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
+.icon-btn:hover{background:#EAEEF6;color:var(--text)}
+
+/* ---------- Hero ---------- */
+.hero{display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:center;padding:64px 0 56px}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5.2vw,58px);line-height:1.03;letter-spacing:-.035em;max-width:11.5em}
+.lead{margin-top:20px;font-size:17px;color:var(--muted);max-width:30em}
+.facts{list-style:none;margin-top:32px;display:grid;gap:18px}
+.facts li{display:flex;gap:14px;align-items:flex-start}
+.facts .ico{width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--cobalt);flex:none}
+.facts strong{display:block;font-size:15px}
+.facts span{font-size:14px;color:var(--muted)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hero-copy{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.conv{animation:rise .7s .12s cubic-bezier(.2,.7,.2,1) both}
+
+.conv{position:relative;isolation:isolate;overflow:hidden;color:#fff;border-radius:var(--r-xl);padding:26px;
+  background:linear-gradient(160deg,#16213A 0%,#0B1220 70%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 40px 70px -28px rgba(11,18,32,.6),0 16px 30px -18px rgba(35,64,232,.5)}
+.conv::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px),repeating-linear-gradient(45deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 85%);mask-image:linear-gradient(180deg,#000 0%,transparent 85%)}
+.conv::after{content:"";position:absolute;width:320px;height:320px;right:-110px;top:-130px;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(70,100,255,.55),transparent 68%)}
+
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:rgba(255,255,255,.08)}
+.seg .thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:10px;background:#fff;box-shadow:0 4px 10px -4px rgba(0,0,0,.4);transition:transform .28s cubic-bezier(.3,.8,.3,1)}
+.seg[data-mode="sell"] .thumb{transform:translateX(100%)}
+.seg button{position:relative;z-index:1;height:40px;border-radius:10px;font-weight:700;font-size:14px;color:rgba(255,255,255,.7);transition:color .2s}
+.seg button[aria-selected="true"]{color:var(--ink)}
+.seg-light{background:#EDF0F6}
+.seg-light .thumb{box-shadow:0 3px 8px -3px rgba(11,18,32,.35)}
+.seg-light button{color:var(--muted)}
+.seg-light button[aria-selected="true"]{color:var(--ink)}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+
+.clabel{display:block;margin:20px 0 8px;font-size:13px;font-weight:600;color:rgba(255,255,255,.7)}
+.cfield{display:flex;align-items:center;height:62px;padding:0 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);transition:border-color .15s,background .15s}
+.cfield:focus-within{border-color:#7C91FF;background:rgba(255,255,255,.1)}
+.cfield input{flex:1;min-width:0;background:none;border:0;outline:0;font-family:var(--display);font-size:30px;font-weight:600;letter-spacing:-.02em;color:#fff}
+.unit{font-weight:700;font-size:14px;color:rgba(255,255,255,.6)}
+.cresult{margin-top:18px;padding:18px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.1);display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.cresult>span{font-size:13px;font-weight:600;color:rgba(255,255,255,.7)}
+.cresult strong{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:-.02em;margin-right:8px}
+.cresult div{text-align:right}
+.crate{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 2px 18px;font-size:13.5px;color:rgba(255,255,255,.7)}
+.crate b{color:#fff;font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--buy-soft);color:var(--buy-dk);white-space:nowrap}
+.conv .pill{background:rgba(52,211,153,.16);color:#6EE7B7}
+.pill.warn{background:var(--sell-soft);color:var(--sell)}
+.pill.blue{background:var(--cobalt-soft);color:var(--cobalt)}
+.pill.gray{background:#EDF0F6;color:var(--muted)}
+.pill.red{background:var(--danger-soft);color:var(--danger)}
+
+/* ---------- Notice ---------- */
+.notice{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:14px;background:#fff;border:1px solid var(--line);margin-bottom:20px;color:var(--muted);font-size:14px}
+.notice .ic{color:var(--cobalt);margin-top:1px}
+
+/* ---------- Market ---------- */
+.market-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.market-head h2{font-family:var(--display);font-size:32px;letter-spacing:-.03em;line-height:1.1}
+.market-head p{color:var(--muted);margin-top:6px}
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+.search{position:relative}
+.search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.search input{height:46px;width:260px;max-width:100%;padding:0 14px 0 42px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:0;transition:border-color .15s,box-shadow .15s}
+select{appearance:none;-webkit-appearance:none;width:100%;height:50px;padding:0 44px 0 16px;border-radius:12px;font-weight:600;border:1px solid var(--line);background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238C98AD' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;outline:0}
+.tools select{width:232px;height:46px}
+.search input:focus,select:focus,.field input:focus,.field textarea:focus{border-color:var(--cobalt);box-shadow:0 0 0 4px rgba(35,64,232,.12)}
+
+.market{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(11,18,32,.04)}
+.mrow{display:grid;grid-template-columns:minmax(230px,1.35fr) 1fr 1fr auto;gap:28px;align-items:center;padding:22px 28px;transition:background .15s}
+.mrow+.mrow{border-top:1px solid var(--line-2)}
+.mrow:hover{background:#FAFBFD}
+.mrow[data-paused="true"]{opacity:.62}
+.ident{display:flex;align-items:center;gap:14px;min-width:0}
+.av{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;overflow:hidden;
+  background:hsl(var(--h) 75% 93%);color:hsl(var(--h) 55% 30%);border:1px solid hsl(var(--h) 55% 86%)}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.lg{width:72px;height:72px;border-radius:20px;font-size:24px}
+.ident-text{min-width:0}
+.ident-text strong{display:flex;align-items:center;gap:9px;font-size:16.5px;font-family:var(--display);font-weight:650;letter-spacing:-.01em;flex-wrap:wrap}
+.state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--buy-dk);font-family:var(--body);letter-spacing:0}
+.state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--buy);box-shadow:0 0 0 3px rgba(14,159,110,.2)}
+.state.off{color:var(--faint)}
+.state.off::before{background:#B3BCCB;box-shadow:0 0 0 3px rgba(179,188,203,.25)}
+.tg{display:inline-flex;align-items:center;gap:6px;margin-top:5px;max-width:100%;padding:3px 10px 3px 8px;border-radius:99px;background:var(--cobalt-soft);color:var(--cobalt);font-size:12.5px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tg:hover{background:#DAE0FF}
+.note-line{margin-top:5px;font-size:13px;color:var(--muted)}
+.rate .k{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.rate .n{font-family:var(--display);font-size:29px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+.rate .n small{font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:5px}
+.rate .lim{font-size:12.5px;color:var(--faint);margin-top:2px}
+.rate.buy .n{color:var(--buy-dk)}
+.rate.sell .n{color:var(--sell)}
+.rate.na .n{color:var(--faint);font-size:18px;font-weight:600;letter-spacing:0;line-height:2.1}
+.macts{display:flex;gap:10px}
+.empty{padding:56px 24px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
+.skeleton{height:96px;margin:0;background:linear-gradient(90deg,#F3F5F9 25%,#EAEEF5 37%,#F3F5F9 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+.skeleton+.skeleton{border-top:1px solid var(--line-2)}
+@keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+footer.site{padding:56px 0 48px;color:var(--faint);font-size:13.5px;text-align:center}
+
+/* ---------- Dialogs / sheet ---------- */
+dialog{border:0;padding:0;color:var(--text);background:var(--card);font-family:var(--body)}
+dialog::backdrop{background:rgba(11,18,32,.56);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes popIn{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.sheet{margin:0 0 0 auto;height:100dvh;max-height:none;max-width:none;width:min(540px,100%);border-radius:26px 0 0 26px;box-shadow:-30px 0 60px -30px rgba(11,18,32,.45)}
+.sheet[open]{display:flex;flex-direction:column;animation:slideIn .32s cubic-bezier(.2,.8,.2,1)}
+.sh-head{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid var(--line-2)}
+.sh-head .ident-text{flex:1}
+.sh-head h2{font-family:var(--display);font-size:20px;letter-spacing:-.02em;line-height:1.2}
+.sh-main{flex:1;min-height:0;display:flex;flex-direction:column}
+.sh-body{flex:1;overflow:auto;padding:22px 24px 8px}
+.sh-foot{padding:16px 24px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line-2);background:linear-gradient(180deg,#fff,#FAFBFD)}
+.foot-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.foot-total span{color:var(--muted);font-weight:600;font-size:14px}
+.foot-total strong{font-family:var(--display);font-size:24px;letter-spacing:-.02em}
+.err{margin-bottom:12px;padding:10px 14px;border-radius:10px;background:var(--danger-soft);color:#A52A2A;font-size:13.5px;font-weight:600}
+.modal{margin:auto;width:min(480px,calc(100% - 32px));border-radius:22px;box-shadow:0 40px 80px -30px rgba(11,18,32,.6)}
+.modal[open]{animation:popIn .25s ease both}
+.modal-in{padding:24px}
+.modal-in h3{font-family:var(--display);font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
+.modal-in .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1}
+.proof-view{width:min(720px,calc(100% - 24px));border-radius:20px;background:#0B1220}
+.proof-view img{display:block;width:100%;max-height:82vh;object-fit:contain}
+.proof-view .close{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.16);color:#fff}
+
+.field{margin-top:18px}
+.field:first-child{margin-top:0}
+.field>label,.lbl{display:block;font-size:13.5px;font-weight:700;margin-bottom:7px}
+.field .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+.field input[type=text],.field input[type=number],.field input[type=tel],.field select,.field textarea{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:0;transition:border-color .15s,box-shadow .15s}
+.field textarea{height:96px;padding:12px 14px;resize:vertical;line-height:1.45}
+.field select{height:48px}
+.field input[aria-invalid="true"]{border-color:var(--danger);box-shadow:0 0 0 4px rgba(209,59,59,.1)}
+.inwrap{position:relative}
+.inwrap .suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--faint);pointer-events:none}
+.inwrap input{padding-right:64px!important}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chip{height:32px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--muted);transition:all .15s}
+.chip:hover{border-color:var(--cobalt);color:var(--cobalt);background:var(--cobalt-soft)}
+.chip[aria-pressed="true"]{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
+.sect{margin:26px 0 10px;font-family:var(--display);font-size:16px;font-weight:650;letter-spacing:-.01em}
+.sect:first-child{margin-top:0}
+.summary{display:grid;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:18px}
+.summary div{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;font-size:14px}
+.summary div+div{border-top:1px solid var(--line-2)}
+.summary span{color:var(--muted)}
+.summary b{font-weight:700;text-align:right;word-break:break-word}
+.instruct{padding:14px 16px;border-radius:14px;background:var(--cobalt-soft);color:#1B2E9E;font-size:14px;font-weight:600;margin-bottom:14px}
+
+/* Payment accounts with copy */
+.pay{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;margin-bottom:12px}
+.pay-head{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#F7F9FC;border-bottom:1px solid var(--line-2);font-weight:700;font-size:13.5px}
+.logo-chip{height:24px;min-width:34px;padding:0 7px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;letter-spacing:.02em;color:#fff;background:#44546F}
+.logo-chip.telebirr{background:#1E8E3E}
+.logo-chip.cbe{background:#7A1F5C}
+.logo-chip.awash{background:#E0A800;color:#241A00}
+.logo-chip.abyssinia{background:#B8860B}
+.logo-chip.dashen{background:#0E4DA4}
+.logo-chip.usdt{background:#0E9F6E}
+.copyrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px}
+.copyrow+.copyrow{border-top:1px solid var(--line-2)}
+.copyrow>div{min-width:0}
+.copyrow .k{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.copyrow .v{display:block;font-size:17px;font-weight:700;letter-spacing:.01em;word-break:break-all}
+.copy{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:700;color:var(--cobalt);flex:none;transition:all .15s}
+.copy:hover{background:var(--cobalt-soft);border-color:#C5CEFF}
+.copy.copied{background:var(--buy-soft);border-color:#B8E5D1;color:var(--buy-dk)}
+.copy.xs{height:28px;padding:0 9px;font-size:12px}
+
+.drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;text-align:center;border:1.5px dashed #C3CCDC;border-radius:16px;background:#FAFBFD;cursor:pointer;transition:all .15s;color:var(--muted)}
+.drop:hover,.drop.over{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
+.drop strong{color:var(--text);font-size:14px}
+.drop .ic{width:26px;height:26px}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.proof-ok{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.proof-ok img{width:68px;height:68px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.proof-ok div{flex:1;min-width:0}
+.proof-ok strong{display:block;font-size:14px}
+.proof-ok span{font-size:12.5px;color:var(--muted)}
+
+.done{padding:30px 4px;text-align:center}
+.done .badge{width:84px;height:84px;margin:0 auto 22px;display:block}
+.done .badge circle{fill:var(--buy-soft);stroke:var(--buy);stroke-width:2.5;stroke-dasharray:240;stroke-dashoffset:240;animation:draw .6s .1s ease forwards}
+.done .badge path{fill:none;stroke:var(--buy-dk);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:44;stroke-dashoffset:44;animation:draw .4s .55s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.done h2{font-family:var(--display);font-size:26px;letter-spacing:-.02em}
+.done p{color:var(--muted);margin:8px auto 22px;max-width:28em}
+.done .pay{text-align:left}
+
+/* ---------- Toast ---------- */
+.toasts{position:fixed;z-index:100;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;gap:8px;justify-items:center;pointer-events:none;width:max-content;max-width:calc(100% - 32px)}
+.toast{display:flex;align-items:center;gap:10px;padding:11px 18px 11px 14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:14px;box-shadow:0 18px 30px -12px rgba(11,18,32,.6);animation:popIn .25s ease both}
+.toast .ic{color:#6EE7B7}
+.toast.error .ic{color:#FCA5A5}
+.toast.out{opacity:0;transform:translateY(8px);transition:all .25s}
+
+/* ---------- My orders ---------- */
+.page{padding:40px 0 24px}
+.page-head{margin-bottom:22px}
+.page-head h1{font-family:var(--display);font-size:34px;letter-spacing:-.03em;line-height:1.1}
+.page-head p{color:var(--muted);margin-top:6px}
+.list{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.orow{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:20px;align-items:center;padding:18px 24px}
+.orow+.orow{border-top:1px solid var(--line-2)}
+.orow .t{font-weight:700}
+.orow .s{font-size:13px;color:var(--muted)}
+.orow .reason{grid-column:1/-1;font-size:13.5px;color:#A52A2A;background:var(--danger-soft);padding:8px 12px;border-radius:10px}
+.sidepill{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:7px;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+.sidepill.buy{background:var(--buy-soft);color:var(--buy-dk)}
+.sidepill.sell{background:var(--sell-soft);color:var(--sell)}
+
+/* ---------- Operator console ---------- */
+.admin{padding:34px 0 40px}
+.admin-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.admin-head h1{font-family:var(--display);font-size:32px;letter-spacing:-.03em;line-height:1.1}
+.admin-head p{color:var(--muted);margin-top:4px}
+.admin-head select{width:240px;height:46px}
+.shell{display:grid;grid-template-columns:236px 1fr;gap:34px;align-items:start}
+.side{position:sticky;top:92px;display:grid;gap:4px}
+.side button{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:12px;font-weight:600;color:var(--muted);text-align:left;position:relative;transition:background .15s,color .15s;white-space:nowrap}
+.side button:hover{background:#E9EDF5;color:var(--text)}
+.side button[aria-current="page"]{background:#fff;color:var(--cobalt);box-shadow:0 1px 2px rgba(11,18,32,.06),0 0 0 1px var(--line)}
+.side button[aria-current="page"]::before{content:"";position:absolute;left:-1px;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--cobalt)}
+.side .count{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:var(--cobalt);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}
+.panel+.panel{margin-top:18px}
+.panel h2{font-family:var(--display);font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
+.panel .sub{color:var(--muted);margin-bottom:20px;font-size:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+
+.ocard{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
+.ocard+.ocard{margin-top:14px}
+.ohead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;background:#F7F9FC;border-bottom:1px solid var(--line-2)}
+.ohead b{font-family:var(--display);font-size:16px;letter-spacing:.01em}
+.ohead time{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.obody{padding:16px 18px;display:grid;gap:14px}
+.ogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ogrid .k{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.ogrid .v{display:block;font-weight:700;font-size:15px;word-break:break-word}
+.ogrid .v small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.todo{padding:12px 14px;border-radius:12px;background:var(--cobalt-soft);color:#1B2E9E;font-size:14px;font-weight:600}
+.oproof{display:flex;align-items:center;gap:12px}
+.oproof button{border:1px solid var(--line);border-radius:12px;overflow:hidden;width:88px;height:88px;flex:none;background:#F7F9FC}
+.oproof img{width:100%;height:100%;object-fit:cover;display:block}
+.oacts{display:flex;gap:10px;flex-wrap:wrap}
+.copy-box{border:1px solid var(--line);border-radius:14px}
+
+.switch{position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;font-weight:700;font-size:14px}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{width:46px;height:27px;border-radius:99px;background:#CBD3E1;position:relative;transition:background .2s;flex:none}
+.switch .track::after{content:"";position:absolute;left:3px;top:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(11,18,32,.3);transition:transform .2s}
+.switch input:checked+.track{background:var(--buy)}
+.switch input:checked+.track::after{transform:translateX(19px)}
+.switch input:focus-visible+.track{outline:3px solid #7C91FF;outline-offset:2px}
+.logo-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.mlist{display:grid;gap:12px}
+.mitem{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px}
+.mitem[data-off="true"]{opacity:.55}
+.mitem .grow{flex:1;min-width:0}
+.mitem strong{display:block;font-size:15px}
+.mitem span{display:block;font-size:13px;color:var(--muted);word-break:break-all}
+
+.login-card{max-width:420px;margin:12vh auto 0;background:#fff;border:1px solid var(--line);border-radius:24px;padding:34px;text-align:center;box-shadow:0 30px 50px -30px rgba(11,18,32,.25)}
+.login-card .lock{width:56px;height:56px;border-radius:16px;background:var(--cobalt-soft);color:var(--cobalt);display:grid;place-items:center;margin:0 auto 18px}
+.login-card h1{font-family:var(--display);font-size:26px;letter-spacing:-.02em}
+.login-card p{color:var(--muted);margin-top:8px}
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .wrap{width:min(1120px,100% - 28px)}
+  .hero{grid-template-columns:1fr;gap:36px;padding:36px 0 36px}
+  .hero h1{max-width:none}
+  .mrow{grid-template-columns:1fr 1fr;gap:16px 20px;padding:20px}
+  .mrow .ident{grid-column:1/-1}
+  .mrow .macts{grid-column:1/-1}
+  .mrow .macts .btn{flex:1}
+  .orow{grid-template-columns:1fr 1fr;gap:12px 16px;padding:18px 20px}
+  .orow .macts{grid-column:1/-1}
+  .shell{grid-template-columns:1fr;gap:18px}
+  .side{position:static;display:flex;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .side button{flex:none;padding:0 16px}
+  .side button[aria-current="page"]::before{display:none}
+  .ogrid{grid-template-columns:1fr 1fr}
+  .market-head h2,.page-head h1,.admin-head h1{font-size:28px}
+  .search input,.tools select{width:100%}
+  .tools{width:100%}
+  .tools .search{flex:1 1 100%}
+  .tools select{flex:1}
+}
+@media (max-width:560px){
+  .nav button:not(.admin-switch):not(.keep) span.lbl{display:none}
+  .nav button{padding:9px 11px}
+  .sheet{border-radius:0;width:100%}
+  .sh-head,.sh-body,.sh-foot{padding-left:18px;padding-right:18px}
+  .row2{grid-template-columns:1fr}
+  .conv{padding:20px}
+  .cfield input{font-size:26px}
+  .cresult strong{font-size:27px}
+  .panel{padding:20px 16px}
+  .rate .n{font-size:25px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite: all icons are drawn with CSS-styled SVG strokes, no emoji -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12M16 3l4 4-4 4M17 17H5M8 13l-4 4 4 4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 013-3h9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L3 10.5l6.5 2.5L12 20z"/><path d="M9.5 13L21 3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.6-3.3 7.8-8 9-4.7-1.2-8-4.4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h8M16 6h4M4 12h2M10 12h10M4 18h12M20 18h0"/><circle cx="14" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2M7 6l8-3v3"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M10 6l-6 6 6 6M4 12h16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="" id="brand" aria-label="Cross P2P home">
+      <span class="brand-mark"><svg class="ic"><use href="#i-swap"/></svg></span>Cross P2P
+    </a>
+    <nav class="nav" id="nav" aria-label="Main"></nav>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<footer class="site"><div class="wrap">Cross P2P. Rates are set by each platform and can change at any time.</div></footer>
+
+<!-- Order sheet -->
+<dialog id="sheet" class="sheet" aria-label="Order">
+  <div class="sh-head" id="shHead"></div>
+  <div class="sh-main">
+    <div class="sh-body" id="shBody"></div>
+    <div class="sh-foot" id="shFoot"></div>
+  </div>
+</dialog>
+
+<!-- Reject reason -->
+<dialog id="rejectDlg" class="modal">
+  <div class="modal-in">
+    <h3>Reject order</h3>
+    <p class="sub">The customer receives this reason in Telegram.</p>
+    <div class="field"><textarea id="rejectNote" maxlength="200" placeholder="Example: payment not received"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" type="button" id="rejectCancel">Back</button>
+      <button class="btn btn-danger" type="button" id="rejectOk">Reject order</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Payment account editor -->
+<dialog id="methodDlg" class="modal">
+  <div class="modal-in">
+    <h3 id="mTitle">Payment account</h3>
+    <p class="sub">Customers see these details with a copy button.</p>
+    <div class="err" id="mErr" hidden></div>
+    <div class="field"><label for="mKind">Type</label>
+      <select id="mKind">
+        <option value="telebirr">Telebirr</option>
+        <option value="cbe">Commercial Bank of Ethiopia</option>
+        <option value="awash">Awash Bank</option>
+        <option value="abyssinia">Bank of Abyssinia</option>
+        <option value="dashen">Dashen Bank</option>
+        <option value="bank">Other bank</option>
+        <option value="usdt">USDT wallet (for sell orders)</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field"><label for="mLabel">Label shown to customers</label><input type="text" id="mLabel" maxlength="40" placeholder="Telebirr"></div>
+    <div class="field"><label for="mName" id="mNameLbl">Account holder name</label><input type="text" id="mName" maxlength="80"></div>
+    <div class="field"><label for="mNumber" id="mNumberLbl">Account number</label><input type="text" id="mNumber" maxlength="120" autocomplete="off"></div>
+    <div class="field" id="mNetWrap" hidden><label for="mNet">Network</label>
+      <select id="mNet"><option>TRC20</option><option>BEP20</option><option>ERC20</option><option>Other</option></select>
+    </div>
+    <div class="field"><label class="switch"><input type="checkbox" id="mActive" checked><span class="track"></span><span>Visible to customers</span></label></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" type="button" id="mDelete" hidden>Delete</button>
+      <button class="btn btn-ghost" type="button" id="mCancel">Cancel</button>
+      <button class="btn btn-primary" type="button" id="mSave">Save</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Proof viewer -->
+<dialog id="proofDlg" class="proof-view">
+  <button class="icon-btn close" type="button" id="proofClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+  <img id="proofImg" alt="Payment proof">
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+/* ===================================================================
+   Cross P2P client
+   - Anyone can browse the market (public endpoint).
+   - Trading and the operator console need Telegram: identity comes from
+     Telegram's signed initData, verified by the backend. The "Switch to
+     admin" button exists only when the backend says this Telegram ID is
+     an operator of at least one platform.
+   =================================================================== */
+const API_URL = 'https://gmae-production-aa21.up.railway.app';
+
+const tg = window.Telegram && window.Telegram.WebApp;
+const qs = new URLSearchParams(location.search);
+const BOT = qs.get('b');
+const authed = !!(tg && tg.initData && BOT);
+if (tg) { try { tg.ready(); tg.expand(); } catch (_) {} }
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (n, cls = '') => `<svg class="ic ${cls}"><use href="#i-${n}"/></svg>`;
+const fmt = (n, d = 2) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtAmt = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+const hue = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+const initials = (s) => String(s).replace(/[^A-Za-z0-9 ]/g, '').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || 'P';
+
+const KIND_ABBR = { telebirr: 'TB', cbe: 'CBE', awash: 'AWB', abyssinia: 'BOA', dashen: 'DSH', bank: 'BANK', usdt: 'USDT', other: 'PAY' };
+const STATUS = {
+  open:      { text: 'Awaiting proof', cls: 'warn' },
+  submitted: { text: 'Under review', cls: 'blue' },
+  completed: { text: 'Completed', cls: '' },
+  rejected:  { text: 'Rejected', cls: 'red' },
+  cancelled: { text: 'Cancelled', cls: 'gray' },
+};
+
+/* ---------- API ---------- */
+async function api(path, opt = {}) {
+  const headers = {};
+  if (authed) headers.Authorization = `tma ${tg.initData}`;
+  let body;
+  if (opt.blob) { headers['Content-Type'] = opt.blob.type; body = opt.blob; }
+  else if (opt.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(opt.body); }
+  const res = await fetch(API_URL + path, { method: opt.method || 'GET', headers, body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  return data;
+}
+const mini = (p) => `/api/mini/${encodeURIComponent(BOT)}/p2p${p}`;
+
+/* ---------- Toasts and clipboard ---------- */
+function toast(text, type = 'ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type === 'error' ? 'error' : ''}`;
+  el.innerHTML = `${ic(type === 'error' ? 'info' : 'check', 'sm')}<span>${esc(text)}</span>`;
+  $('toasts').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }, 2600);
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (_) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) {}
+    ta.remove();
+    return ok;
+  }
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-copy]');
+  if (btn) {
+    const ok = await copyText(btn.dataset.copy);
+    if (!ok) return toast('Could not copy. Select the text and copy it manually.', 'error');
+    const label = btn.querySelector('.cl');
+    btn.classList.add('copied');
+    if (label) label.textContent = 'Copied';
+    setTimeout(() => { btn.classList.remove('copied'); if (label) label.textContent = 'Copy'; }, 1600);
+    return;
+  }
+  const link = e.target.closest('a.tg');
+  if (link && tg) { e.preventDefault(); tg.openTelegramLink(link.href); }
+});
+
+const copyBtn = (value, cls = '') =>
+  `<button type="button" class="copy ${cls}" data-copy="${esc(value)}">${ic('copy', 'sm')}<span class="cl">Copy</span></button>`;
+
+/* ---------- State ---------- */
+const S = {
+  market: [], marketLoaded: false, marketErr: '',
+  me: null,
+  view: 'market',                      // market | orders | admin
+  q: '', sort: 'buy',
+  conv: { mode: 'buy', amt: '100' },
+  orders: [], ordersLoaded: false,
+  admin: { list: [], pid: null, tab: 'orders', filter: 'review', orders: [], loading: false },
+};
+const isOperator = () => !!(S.me && S.me.admin_platforms && S.me.admin_platforms.length);
+
+/* ---------- Header ---------- */
+function renderNav() {
+  const item = (v, icon, label) =>
+    `<button type="button" data-nav="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(icon)}<span class="lbl">${label}</span></button>`;
+  let h = '';
+  if (S.view === 'admin') {
+    h += `<button type="button" class="keep" data-nav="market">${ic('back')}<span class="lbl">Back to market</span></button>`;
+  } else {
+    h += item('market', 'store', 'Market');
+    if (authed) h += item('orders', 'list', 'My orders');
+    if (isOperator()) h += `<button type="button" class="admin-switch" data-nav="admin">${ic('sliders')}<span class="lbl">Switch to admin</span></button>`;
+  }
+  $('nav').innerHTML = h;
+}
+
+document.addEventListener('click', (e) => {
+  const n = e.target.closest('[data-nav]');
+  if (n) go(n.dataset.nav);
+});
+$('brand').addEventListener('click', (e) => { e.preventDefault(); go('market'); });
+
+function go(v) {
+  if (v === 'admin' && !isOperator()) return;
+  if (v === 'orders' && !authed) return;
+  S.view = v;
+  stopAdminPoll();
+  render();
+  window.scrollTo({ top: 0 });
+  if (v === 'orders') loadOrders();
+  if (v === 'admin') loadAdmin();
+}
+
+function render() {
+  renderNav();
+  if (S.view === 'orders') return renderOrders();
+  if (S.view === 'admin') return renderAdmin();
+  renderMarket();
+}
+
+/* ===================================================================
+   MARKET
+   =================================================================== */
+async function loadMarket() {
+  try {
+    S.market = await api('/api/p2p/market');
+    S.marketErr = '';
+  } catch (e) { S.marketErr = e.message; }
+  S.marketLoaded = true;
+  if (S.view !== 'market') return;
+  // Background refresh: update only the list (and the converter when it is not being typed in)
+  // so the search box and amount field keep focus.
+  if ($('marketList')) {
+    $('marketList').innerHTML = marketBody();
+    if (document.activeElement !== $('convAmt')) renderConv();
+  } else renderMarket();
+}
+
+function bestRates() {
+  const live = S.market.filter((p) => !p.paused);
+  const buy = live.filter((p) => p.buy_rate > 0).sort((a, b) => a.buy_rate - b.buy_rate)[0] || null;
+  const sell = live.filter((p) => p.sell_rate > 0).sort((a, b) => b.sell_rate - a.sell_rate)[0] || null;
+  return { buy, sell };
+}
+
+function sortedMarket() {
+  const q = S.q.trim().toLowerCase();
+  let rows = S.market.filter((p) => !q || p.name.toLowerCase().includes(q));
+  const live = (p) => (p.paused ? 1 : 0);
+  rows = rows.slice().sort((a, b) => {
+    if (live(a) !== live(b)) return live(a) - live(b);
+    if (S.sort === 'sell') return (b.sell_rate || 0) - (a.sell_rate || 0);
+    if (S.sort === 'name') return a.name.localeCompare(b.name);
+    return (a.buy_rate || Infinity) - (b.buy_rate || Infinity);
+  });
+  return rows;
+}
+
+const avatar = (p, cls = '') => p.logo_url
+  ? `<span class="av ${cls}" style="--h:${hue(p.name)}"><img src="${esc(p.logo_url)}" alt="" loading="lazy"></span>`
+  : `<span class="av ${cls}" style="--h:${hue(p.name)}">${esc(initials(p.name))}</span>`;
+
+const tgChip = (p) => p.tg_username
+  ? `<a class="tg" href="https://t.me/${esc(p.tg_username)}" target="_blank" rel="noopener">${ic('send', 'sm')}@${esc(p.tg_username)}</a>` : '';
+
+function marketRow(p) {
+  const rate = (cls, label, val, hint) => `
+    <div class="rate ${cls} ${val > 0 ? '' : 'na'}">
+      <div class="k">${label}</div>
+      <div class="n">${val > 0 ? fmt(val) : 'Not offered'}${val > 0 ? '<small>ETB</small>' : ''}</div>
+      <div class="lim">${val > 0 ? hint : ''}</div>
+    </div>`;
+  const lim = `${fmtAmt(p.min_usdt)} to ${fmtAmt(p.max_usdt)} USDT`;
+  return `
+    <article class="mrow" data-paused="${p.paused}">
+      <div class="ident">
+        ${avatar(p)}
+        <div class="ident-text">
+          <strong>${esc(p.name)}<span class="state ${p.paused ? 'off' : ''}">${p.paused ? 'Paused' : 'Online'}</span></strong>
+          ${p.note ? `<div class="note-line">${esc(p.note)}</div>` : ''}
+          ${tgChip(p)}
+        </div>
+      </div>
+      ${rate('buy', 'You buy USDT at', p.buy_rate, lim)}
+      ${rate('sell', 'You sell USDT at', p.sell_rate, lim)}
+      <div class="macts">
+        <button class="btn btn-buy sm" data-trade="buy" data-id="${p.id}" ${p.paused || !(p.buy_rate > 0) ? 'disabled' : ''}>Buy</button>
+        <button class="btn btn-sell sm" data-trade="sell" data-id="${p.id}" ${p.paused || !(p.sell_rate > 0) ? 'disabled' : ''}>Sell</button>
+      </div>
+    </article>`;
+}
+
+function renderMarket() {
+  const rows = sortedMarket();
+  let list;
+  if (!S.marketLoaded) list = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+  else if (S.marketErr) list = `<div class="empty"><strong>Could not load the market</strong>${esc(S.marketErr)}</div>`;
+  else if (!S.market.length) list = '<div class="empty"><strong>No platforms listed yet</strong>Check back soon.</div>';
+  else if (!rows.length) list = '<div class="empty"><strong>No match</strong>Try a different name.</div>';
+  else list = rows.map(marketRow).join('');
+
+  $('view').innerHTML = `
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>Buy and sell USDT for birr, without the guesswork.</h1>
+          <p class="lead">Compare live rates from independent platforms, pay with the account details copied in one tap, and get notified in Telegram the moment your order is confirmed.</p>
+          <ul class="facts">
+            <li><span class="ico">${ic('bolt')}</span><div><strong>Live rates</strong><span>Every platform sets its own price and limits.</span></div></li>
+            <li><span class="ico">${ic('copy')}</span><div><strong>One-tap copy</strong><span>Account names, numbers and wallet addresses copy instantly.</span></div></li>
+            <li><span class="ico">${ic('shield')}</span><div><strong>Proof on every order</strong><span>Upload your payment screenshot and track the review.</span></div></li>
+          </ul>
+        </div>
+        <div class="conv" id="conv"></div>
+      </section>
+
+      ${authed ? '' : `<div class="notice">${ic('info')}<span>You are browsing as a guest. Open this page from the bot inside Telegram to place orders.</span></div>`}
+
+      <section>
+        <div class="market-head">
+          <div><h2>Live market</h2><p>${S.market.length ? `${S.market.length} platform${S.market.length === 1 ? '' : 's'} listed` : 'Platforms and their current prices'}</p></div>
+          <div class="tools">
+            <label class="search">${ic('search')}<input id="q" type="search" placeholder="Search platforms" value="${esc(S.q)}" aria-label="Search platforms"></label>
+            <select id="sort" aria-label="Sort">
+              <option value="buy" ${S.sort === 'buy' ? 'selected' : ''}>Best price to buy</option>
+              <option value="sell" ${S.sort === 'sell' ? 'selected' : ''}>Best price to sell</option>
+              <option value="name" ${S.sort === 'name' ? 'selected' : ''}>Name</option>
+            </select>
+          </div>
+        </div>
+        <div class="market" id="marketList">${list}</div>
+      </section>
+    </div>`;
+
+  renderConv();
+  $('q').oninput = (e) => { S.q = e.target.value; $('marketList').innerHTML = marketBody(); };
+  $('sort').onchange = (e) => { S.sort = e.target.value; $('marketList').innerHTML = marketBody(); };
+}
+
+function marketBody() {
+  const rows = sortedMarket();
+  if (!S.market.length) return '<div class="empty"><strong>No platforms listed yet</strong>Check back soon.</div>';
+  return rows.length ? rows.map(marketRow).join('') : '<div class="empty"><strong>No match</strong>Try a different name.</div>';
+}
+
+/* ---------- Converter ---------- */
+function renderConv() {
+  const best = bestRates();
+  const m = S.conv.mode;
+  const p = m === 'buy' ? best.buy : best.sell;
+  const amt = Number(S.conv.amt) || 0;
+  const rate = p ? (m === 'buy' ? p.buy_rate : p.sell_rate) : 0;
+  $('conv').innerHTML = `
+    <div class="seg" data-mode="${m}" role="tablist">
+      <span class="thumb"></span>
+      <button type="button" role="tab" data-cm="buy" aria-selected="${m === 'buy'}">Buy USDT</button>
+      <button type="button" role="tab" data-cm="sell" aria-selected="${m === 'sell'}">Sell USDT</button>
+    </div>
+    <label class="clabel" for="convAmt">Amount in USDT</label>
+    <div class="cfield"><input id="convAmt" inputmode="decimal" autocomplete="off" value="${esc(S.conv.amt)}"><span class="unit">USDT</span></div>
+    <div class="cresult">
+      <span>${m === 'buy' ? 'You pay' : 'You receive'}</span>
+      <div><strong id="convOut">${rate ? fmt(amt * rate) : '0.00'}</strong><span class="unit">ETB</span></div>
+    </div>
+    <div class="crate">
+      <span>${p ? `Best rate <b>${fmt(rate)}</b> ETB from <b>${esc(p.name)}</b>` : 'No live rate available'}</span>
+      ${p ? '<span class="pill">Best rate</span>' : ''}
+    </div>
+    <button class="btn btn-primary btn-block" id="convGo" ${p ? '' : 'disabled'}>${p ? `${m === 'buy' ? 'Buy' : 'Sell'} with ${esc(p.name)}` : 'Unavailable'}</button>`;
+
+  document.querySelectorAll('[data-cm]').forEach((b) => (b.onclick = () => { S.conv.mode = b.dataset.cm; renderConv(); }));
+  $('convAmt').oninput = (e) => {
+    S.conv.amt = e.target.value.replace(/[^\d.]/g, '');
+    const r = rate ? (Number(S.conv.amt) || 0) * rate : 0;
+    $('convOut').textContent = fmt(r);
+  };
+  $('convGo').onclick = () => { if (p) openOrder(p.id, m, Number(S.conv.amt) || ''); };
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-trade]');
+  if (b) openOrder(Number(b.dataset.id), b.dataset.trade);
+});
+
+/* ===================================================================
+   ORDER SHEET (create order, pay with copy, upload proof)
+   =================================================================== */
+const SH = { p: null, side: 'buy', amt: '', method: '', details: '', order: null, methods: [], step: 'form', busy: false, err: '', proof: null, proofUrl: '' };
+const BUY_NETWORKS = ['TRC20', 'BEP20', 'ERC20', 'Other'];
+const SELL_BANKS = ['Telebirr', 'Commercial Bank of Ethiopia', 'Awash Bank', 'Bank of Abyssinia', 'Dashen Bank', 'Other bank'];
+
+function openOrder(pid, side, amt = '') {
+  if (!authed) return toast('Open this page from the bot in Telegram to place an order.', 'error');
+  const p = S.market.find((x) => x.id === pid);
+  if (!p) return;
+  Object.assign(SH, { p, side, amt: amt ? String(amt) : '', details: '', order: null, methods: [], step: 'form', busy: false, err: '', proof: null, proofUrl: '' });
+  SH.method = side === 'buy' ? BUY_NETWORKS[0] : SELL_BANKS[0];
+  renderSheet();
+  if (!$('sheet').open) $('sheet').showModal();
+}
+
+async function resumeOrder(o) {
+  const p = S.market.find((x) => x.id === o.platform_id);
+  if (!p) return toast('This platform is not available right now.', 'error');
+  Object.assign(SH, { p, side: o.side, amt: String(o.amount_usdt), order: o, step: 'pay', busy: false, err: '', proof: null, proofUrl: '' });
+  renderSheet();
+  if (!$('sheet').open) $('sheet').showModal();
+  await loadMethods();
+}
+
+function closeSheet() {
+  if (SH.proofUrl) URL.revokeObjectURL(SH.proofUrl);
+  SH.proofUrl = ''; SH.proof = null;
+  $('sheet').close();
+}
+
+const shRate = () => (SH.side === 'buy' ? SH.p.buy_rate : SH.p.sell_rate);
+const shTotal = () => Math.round((Number(SH.amt) || 0) * shRate() * 100) / 100;
+
+function renderSheet() {
+  const p = SH.p;
+  $('shHead').innerHTML = `
+    ${avatar(p)}
+    <div class="ident-text"><h2>${esc(p.name)}</h2><span class="state ${p.paused ? 'off' : ''}">${p.paused ? 'Paused' : 'Online'}</span></div>
+    <button class="icon-btn" type="button" id="shClose" aria-label="Close">${ic('x')}</button>`;
+  $('shClose').onclick = closeSheet;
+
+  if (SH.step === 'form') return renderForm();
+  if (SH.step === 'pay') return renderPay();
+  renderDone();
+}
+
+function renderForm() {
+  const p = SH.p, buy = SH.side === 'buy';
+  const canBuy = p.buy_rate > 0, canSell = p.sell_rate > 0;
+  const quick = [25, 50, 100, 250, 500, 1000].filter((n) => n >= p.min_usdt && n <= p.max_usdt).slice(0, 4);
+  $('shBody').innerHTML = `
+    <div class="seg seg-light" data-mode="${SH.side}" role="tablist">
+      <span class="thumb"></span>
+      <button type="button" role="tab" data-side="buy" aria-selected="${buy}" ${canBuy ? '' : 'disabled'}>Buy USDT</button>
+      <button type="button" role="tab" data-side="sell" aria-selected="${!buy}" ${canSell ? '' : 'disabled'}>Sell USDT</button>
+    </div>
+    <div class="summary">
+      <div><span>Rate</span><b>${fmt(shRate())} ETB per USDT</b></div>
+      <div><span>Limits</span><b>${fmtAmt(p.min_usdt)} to ${fmtAmt(p.max_usdt)} USDT</b></div>
+    </div>
+    <div class="field">
+      <label for="shAmt">Amount in USDT</label>
+      <div class="inwrap"><input type="text" id="shAmt" inputmode="decimal" autocomplete="off" value="${esc(SH.amt)}" placeholder="0.00"><span class="suffix">USDT</span></div>
+      ${quick.length ? `<div class="chips">${quick.map((n) => `<button type="button" class="chip" data-q="${n}">${n}</button>`).join('')}<button type="button" class="chip" data-q="${p.max_usdt}">Max</button></div>` : ''}
+    </div>
+    <div class="field">
+      <label for="shMethod">${buy ? 'Network to receive USDT' : 'Receive birr in'}</label>
+      <select id="shMethod">${(buy ? BUY_NETWORKS : SELL_BANKS).map((o) => `<option ${o === SH.method ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label for="shDetails">${buy ? 'Your wallet address' : 'Account name and number'}</label>
+      <input type="text" id="shDetails" autocomplete="off" value="${esc(SH.details)}" placeholder="${buy ? 'Paste your USDT address' : 'Full name, account number'}">
+      <div class="hint">${buy ? 'Double check the address and network. USDT sent to a wrong address cannot be recovered.' : 'The platform sends your birr here after your USDT arrives.'}</div>
+    </div>`;
+  $('shFoot').innerHTML = `
+    <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
+    <div class="foot-total"><span>${buy ? 'You pay' : 'You receive'}</span><strong id="shTotal">${fmt(shTotal())} ETB</strong></div>
+    <button class="btn btn-primary btn-block" type="button" id="shNext" ${SH.busy ? 'disabled' : ''}>${SH.busy ? 'Creating order...' : 'Continue'}</button>`;
+
+  $('shBody').querySelectorAll('[data-side]').forEach((b) => (b.onclick = () => {
+    if (b.disabled || SH.side === b.dataset.side) return;
+    SH.side = b.dataset.side; SH.details = ''; SH.err = '';
+    SH.method = SH.side === 'buy' ? BUY_NETWORKS[0] : SELL_BANKS[0];
+    renderForm();
+  }));
+  $('shBody').querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { SH.amt = b.dataset.q; $('shAmt').value = SH.amt; $('shTotal').textContent = `${fmt(shTotal())} ETB`; }));
+  $('shAmt').oninput = (e) => { SH.amt = e.target.value.replace(/[^\d.]/g, ''); e.target.value = SH.amt; $('shTotal').textContent = `${fmt(shTotal())} ETB`; };
+  $('shMethod').onchange = (e) => (SH.method = e.target.value);
+  $('shDetails').oninput = (e) => { SH.details = e.target.value; e.target.removeAttribute('aria-invalid'); };
+  $('shNext').onclick = createOrder;
+}
+
+async function createOrder() {
+  const amount = Number(SH.amt);
+  const fail = (msg, field) => { SH.err = msg; renderForm(); if (field) { const f = $(field); if (f) { f.setAttribute('aria-invalid', 'true'); f.focus(); } } };
+  if (!(amount > 0)) return fail('Enter the amount of USDT.', 'shAmt');
+  if (amount < SH.p.min_usdt || amount > SH.p.max_usdt) return fail(`Amount must be between ${fmtAmt(SH.p.min_usdt)} and ${fmtAmt(SH.p.max_usdt)} USDT.`, 'shAmt');
+  if (SH.details.trim().length < 6) return fail(SH.side === 'buy' ? 'Enter the wallet address to receive your USDT.' : 'Enter the account where you want to receive birr.', 'shDetails');
+
+  SH.busy = true; SH.err = ''; renderForm();
+  try {
+    SH.order = await api(mini('/orders'), { method: 'POST', body: { platform_id: SH.p.id, side: SH.side, amount_usdt: amount, payout_method: SH.method, payout_details: SH.details.trim() } });
+    SH.busy = false; SH.step = 'pay'; renderSheet();
+    await loadMethods();
+  } catch (e) { SH.busy = false; SH.err = e.message; renderForm(); }
+}
+
+async function loadMethods() {
+  try {
+    const r = await api(mini(`/platforms/${SH.p.id}/payment?side=${SH.side}`));
+    SH.methods = r.methods;
+  } catch (e) { SH.methods = []; SH.err = e.message; }
+  if (SH.step === 'pay') renderPay();
+}
+
+function methodCard(m) {
+  const isUsdt = m.kind === 'usdt';
+  return `
+    <div class="pay">
+      <div class="pay-head"><span class="logo-chip ${esc(m.kind)}">${esc(KIND_ABBR[m.kind] || 'PAY')}</span>${esc(m.label)}${m.network ? `<span class="pill blue">${esc(m.network)}</span>` : ''}</div>
+      ${m.account_name ? `<div class="copyrow"><div><span class="k">${isUsdt ? 'Wallet name' : 'Account name'}</span><span class="v">${esc(m.account_name)}</span></div>${copyBtn(m.account_name)}</div>` : ''}
+      <div class="copyrow"><div><span class="k">${isUsdt ? 'Wallet address' : 'Account number'}</span><span class="v">${esc(m.account_number)}</span></div>${copyBtn(m.account_number)}</div>
+    </div>`;
+}
+
+function renderPay() {
+  const o = SH.order, buy = o.side === 'buy';
+  const payAmount = buy ? o.total_etb : o.amount_usdt;
+  const payUnit = buy ? 'ETB' : 'USDT';
+  const methods = SH.methods.length
+    ? SH.methods.map(methodCard).join('')
+    : `<div class="empty" style="padding:24px 8px"><strong>No payment account yet</strong>This platform has not added ${buy ? 'a birr account' : 'a USDT wallet'}. Contact them before paying.</div>`;
+
+  $('shBody').innerHTML = `
+    <div class="instruct">${buy ? `Send exactly ${fmt(o.total_etb)} ETB to one of the accounts below.` : `Send exactly ${fmtAmt(o.amount_usdt)} USDT to the wallet below, on the network shown.`}</div>
+    <div class="pay">
+      <div class="copyrow"><div><span class="k">Exact amount to send</span><span class="v">${buy ? fmt(payAmount) : fmtAmt(payAmount)} ${payUnit}</span></div>${copyBtn(buy ? payAmount.toFixed(2) : String(payAmount))}</div>
+      <div class="copyrow"><div><span class="k">Order reference</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div>
+    </div>
+    <div class="sect">${buy ? 'Pay to' : 'Send USDT to'}</div>
+    ${methods}
+    <div class="summary">
+      <div><span>${buy ? 'You receive' : 'You get paid'}</span><b>${buy ? `${fmtAmt(o.amount_usdt)} USDT` : `${fmt(o.total_etb)} ETB`}</b></div>
+      <div><span>Rate</span><b>${fmt(o.rate)} ETB per USDT</b></div>
+    </div>
+    <div class="sect">Payment proof</div>
+    <div id="proofBox"></div>
+    <div class="hint" style="margin:8px 0 18px;font-size:12.5px;color:var(--muted)">Upload a screenshot of the ${buy ? 'transfer confirmation' : 'transaction'}. Images are compressed before upload.</div>`;
+  renderProofBox();
+
+  $('shFoot').innerHTML = `
+    <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
+    <button class="btn btn-primary btn-block" type="button" id="shSubmit" ${SH.proof && !SH.busy ? '' : 'disabled'}>${SH.busy ? 'Uploading...' : 'I have paid, submit proof'}</button>
+    ${o.status === 'open' ? '<button class="btn btn-ghost btn-block" type="button" id="shCancel" style="margin-top:10px">Cancel this order</button>' : ''}`;
+  $('shSubmit').onclick = submitProof;
+  const c = $('shCancel'); if (c) c.onclick = cancelCurrent;
+}
+
+function renderProofBox() {
+  const box = $('proofBox'); if (!box) return;
+  if (SH.proof) {
+    box.innerHTML = `
+      <div class="proof-ok"><img src="${esc(SH.proofUrl)}" alt="Selected proof"><div><strong>Screenshot ready</strong><span>${Math.round(SH.proof.size / 1024)} KB after compression</span></div>
+      <button class="btn btn-ghost sm" type="button" id="proofChange">Change</button></div>`;
+    $('proofChange').onclick = () => $('proofFile').click();
+  } else {
+    box.innerHTML = `
+      <label class="drop" id="drop" for="proofFile">${ic('upload')}<strong>Upload payment screenshot</strong><span>Tap to choose, or drop an image here</span></label>`;
+    const drop = $('drop');
+    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+    drop.ondragleave = () => drop.classList.remove('over');
+    drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) pickProof(e.dataTransfer.files[0]); };
+  }
+  if (!$('proofFile')) {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'proofFile'; inp.hidden = true;
+    inp.onchange = () => { if (inp.files[0]) pickProof(inp.files[0]); inp.value = ''; };
+    $('sheet').appendChild(inp);
+  }
+}
+
+async function toJpeg(file, maxDim, quality) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('This image format is not supported. Use a JPG or PNG screenshot.')); i.src = url; });
+    const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale)), h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+    return await new Promise((ok, no) => c.toBlob((b) => (b ? ok(b) : no(new Error('Could not process this image.'))), 'image/jpeg', quality));
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function pickProof(file) {
+  if (!file.type.startsWith('image/')) return toast('Choose an image file.', 'error');
+  try {
+    const blob = await toJpeg(file, 1400, 0.82);
+    if (blob.size > 4 * 1024 * 1024) throw new Error('Image is too large.');
+    if (SH.proofUrl) URL.revokeObjectURL(SH.proofUrl);
+    SH.proof = blob; SH.proofUrl = URL.createObjectURL(blob); SH.err = '';
+    renderPay();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function submitProof() {
+  if (!SH.proof || SH.busy) return;
+  SH.busy = true; SH.err = ''; renderPay();
+  try {
+    await api(mini(`/orders/${SH.order.id}/proof`), { method: 'PUT', blob: SH.proof });
+    SH.busy = false; SH.order.status = 'submitted'; SH.step = 'done';
+    S.ordersLoaded = false;
+    renderSheet();
+  } catch (e) { SH.busy = false; SH.err = e.message; renderPay(); }
+}
+
+async function cancelCurrent() {
+  try {
+    await api(mini(`/orders/${SH.order.id}/cancel`), { method: 'POST' });
+    toast('Order cancelled');
+    S.ordersLoaded = false;
+    closeSheet();
+    if (S.view === 'orders') loadOrders();
+  } catch (e) { SH.err = e.message; renderPay(); }
+}
+
+function renderDone() {
+  const o = SH.order;
+  $('shBody').innerHTML = `
+    <div class="done">
+      <svg class="badge" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-23"/></svg>
+      <h2>Proof submitted</h2>
+      <p>The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.</p>
+      <div class="pay"><div class="copyrow"><div><span class="k">Order reference</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div></div>
+    </div>`;
+  $('shFoot').innerHTML = `
+    <button class="btn btn-primary btn-block" type="button" id="doneOrders">View my orders</button>
+    <button class="btn btn-ghost btn-block" type="button" id="doneClose" style="margin-top:10px">Back to market</button>`;
+  $('doneOrders').onclick = () => { closeSheet(); go('orders'); };
+  $('doneClose').onclick = closeSheet;
+}
+
+/* ===================================================================
+   MY ORDERS
+   =================================================================== */
+async function loadOrders() {
+  if (!authed) return;
+  try { S.orders = await api(mini('/orders')); } catch (e) { toast(e.message, 'error'); }
+  S.ordersLoaded = true;
+  if (S.view === 'orders') renderOrders();
+}
+
+function renderOrders() {
+  const rows = S.orders.map((o) => {
+    const st = STATUS[o.status] || STATUS.open;
+    const buy = o.side === 'buy';
+    return `
+      <div class="orow">
+        <div><div class="t">${esc(o.platform_name || 'Platform')}</div><div class="s">${esc(o.ref)} &middot; ${esc(when(o.created_at))}</div></div>
+        <div><span class="sidepill ${o.side}">${buy ? 'Buy' : 'Sell'}</span><div class="t" style="margin-top:4px">${fmtAmt(o.amount_usdt)} USDT</div></div>
+        <div><div class="t">${fmt(o.total_etb)} ETB</div><div class="s">at ${fmt(o.rate)}</div></div>
+        <div class="macts"><span class="pill ${st.cls}">${st.text}</span>
+          ${o.status === 'open' ? `<button class="btn btn-ghost sm" data-resume="${o.id}">Continue</button>` : ''}
+        </div>
+        ${o.status === 'rejected' && o.admin_note ? `<div class="reason">${esc(o.admin_note)}</div>` : ''}
+      </div>`;
+  }).join('');
+  $('view').innerHTML = `
+    <div class="wrap page">
+      <div class="page-head"><h1>My orders</h1><p>Your latest 30 orders across all platforms.</p></div>
+      <div class="list">${!S.ordersLoaded ? '<div class="skeleton"></div><div class="skeleton"></div>' : rows || '<div class="empty"><strong>No orders yet</strong>Pick a platform in the market to place your first order.</div>'}</div>
+    </div>`;
+  document.querySelectorAll('[data-resume]').forEach((b) => (b.onclick = () => resumeOrder(S.orders.find((o) => o.id === b.dataset.resume))));
+}
+
+/* ===================================================================
+   OPERATOR CONSOLE ("Switch to admin")
+   =================================================================== */
+let adminTimer = null;
+const stopAdminPoll = () => { clearInterval(adminTimer); adminTimer = null; };
+const curPlat = () => S.admin.list.find((p) => p.id === S.admin.pid) || null;
+
+async function loadAdmin() {
+  S.admin.loading = true; renderAdmin();
+  try {
+    S.admin.list = await api(mini('/admin/platforms'));
+    if (!S.admin.list.find((p) => p.id === S.admin.pid)) S.admin.pid = S.admin.list[0] ? S.admin.list[0].id : null;
+  } catch (e) { toast(e.message, 'error'); }
+  S.admin.loading = false;
+  renderAdmin();
+  await loadAdminOrders();
+  stopAdminPoll();
+  adminTimer = setInterval(() => { if (S.view === 'admin' && S.admin.tab === 'orders') refreshAdmin(); }, 15000);
+}
+
+async function refreshAdmin() {
+  try {
+    const list = await api(mini('/admin/platforms'));
+    S.admin.list = list;
+    await loadAdminOrders(true);
+    renderSide();
+  } catch (_) {}
+}
+
+async function loadAdminOrders(silent) {
+  const p = curPlat(); if (!p) return;
+  try {
+    const rows = await api(mini(`/admin/platforms/${p.id}/orders?status=${S.admin.filter}`));
+    const sig = rows.map((o) => o.id + o.status).join('|');
+    // Proof links last 10 minutes, so re-render at least every 8 even if nothing changed.
+    const stale = Date.now() - (S.admin.renderedAt || 0) > 8 * 60 * 1000;
+    if (silent && sig === S.admin.sig && !stale) return;
+    S.admin.orders = rows; S.admin.sig = sig; S.admin.renderedAt = Date.now();
+  } catch (e) { if (!silent) toast(e.message, 'error'); }
+  if (S.view === 'admin' && S.admin.tab === 'orders') renderAdminPane();
+}
+
+function renderAdmin() {
+  const p = curPlat();
+  if (S.admin.loading && !p) { $('view').innerHTML = '<div class="wrap admin"><div class="skeleton" style="border-radius:22px"></div></div>'; return; }
+  if (!p) {
+    $('view').innerHTML = `<div class="wrap"><div class="login-card"><div class="lock">${ic('lock')}</div><h1>No platform to manage</h1><p>Your Telegram account is not set as an operator of any platform.</p></div></div>`;
+    return;
+  }
+  $('view').innerHTML = `
+    <div class="wrap admin">
+      <div class="admin-head">
+        <div><h1>Operator console</h1><p>Manage rates, payment accounts and customer orders.</p></div>
+        ${S.admin.list.length > 1 ? `<select id="aPlat" aria-label="Platform">${S.admin.list.map((x) => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : ''}
+      </div>
+      <div class="shell">
+        <nav class="side" id="side" aria-label="Admin sections"></nav>
+        <div id="adminPane"></div>
+      </div>
+    </div>`;
+  renderSide();
+  renderAdminPane();
+  const sel = $('aPlat');
+  if (sel) sel.onchange = () => { S.admin.pid = Number(sel.value); S.admin.orders = []; renderAdmin(); loadAdminOrders(); };
+}
+
+function renderSide() {
+  const side = $('side'); if (!side) return;
+  const p = curPlat();
+  const tab = (id, icon, label, count) =>
+    `<button type="button" data-tab="${id}" ${S.admin.tab === id ? 'aria-current="page"' : ''}>${ic(icon)}${label}${count ? `<span class="count">${count}</span>` : ''}</button>`;
+  side.innerHTML = tab('orders', 'list', 'Orders', p ? p.pending_orders : 0) + tab('rates', 'sliders', 'Rates and profile') + tab('accounts', 'wallet', 'Payment accounts');
+  side.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { S.admin.tab = b.dataset.tab; renderSide(); renderAdminPane(); if (S.admin.tab === 'orders') loadAdminOrders(); }));
+}
+
+function renderAdminPane() {
+  const pane = $('adminPane'); if (!pane) return;
+  if (S.admin.tab === 'rates') return renderRates(pane);
+  if (S.admin.tab === 'accounts') return renderAccounts(pane);
+  renderAdminOrders(pane);
+}
+
+/* ---------- Orders ---------- */
+const FILTERS = [['review', 'Needs review'], ['open', 'Awaiting proof'], ['completed', 'Completed'], ['closed', 'Rejected or cancelled']];
+
+function orderCard(o) {
+  const buy = o.side === 'buy';
+  const st = STATUS[o.status] || STATUS.open;
+  const who = o.customer.username ? '@' + o.customer.username : (o.customer.first_name || 'Customer');
+  const todo = o.status === 'submitted'
+    ? (buy ? `Confirm the ${fmt(o.total_etb)} ETB arrived, then send ${fmtAmt(o.amount_usdt)} USDT to the address below.`
+           : `Confirm the ${fmtAmt(o.amount_usdt)} USDT arrived, then pay ${fmt(o.total_etb)} ETB to the account below.`) : '';
+  return `
+    <article class="ocard">
+      <div class="ohead">
+        <span class="sidepill ${o.side}">${buy ? 'Customer buys' : 'Customer sells'}</span>
+        <b>${esc(o.ref)}</b>
+        <span class="pill ${st.cls}">${st.text}</span>
+        <time>${esc(when(o.created_at))}</time>
+      </div>
+      <div class="obody">
+        <div class="ogrid">
+          <div><span class="k">Customer</span><span class="v">${esc(who)}<small>ID ${esc(o.customer.id)}</small></span></div>
+          <div><span class="k">Amount</span><span class="v">${fmtAmt(o.amount_usdt)} USDT</span></div>
+          <div><span class="k">Rate</span><span class="v">${fmt(o.rate)} ETB</span></div>
+          <div><span class="k">Total</span><span class="v">${fmt(o.total_etb)} ETB</span></div>
+        </div>
+        ${todo ? `<div class="todo">${esc(todo)}</div>` : ''}
+        <div class="pay copy-box" style="margin:0">
+          <div class="copyrow"><div><span class="k">${buy ? 'Customer wallet' : 'Customer account'}${o.payout_method ? ' &middot; ' + esc(o.payout_method) : ''}</span><span class="v">${esc(o.payout_details)}</span></div>${copyBtn(o.payout_details)}</div>
+        </div>
+        ${o.proof_url ? `<div class="oproof"><button type="button" data-proof="${esc(o.proof_url)}" aria-label="View proof"><img src="${esc(o.proof_url)}" alt="Payment proof"></button><div><strong>Payment proof</strong><div class="s" style="color:var(--muted);font-size:13px">Uploaded ${esc(when(o.submitted_at))}. Tap to enlarge.</div></div></div>` : ''}
+        ${o.status === 'rejected' && o.admin_note ? `<div class="err" style="margin:0">${esc(o.admin_note)}</div>` : ''}
+        ${o.status === 'submitted' ? `<div class="oacts"><button class="btn btn-buy sm" data-complete="${o.id}">Mark completed</button><button class="btn btn-danger sm" data-reject="${o.id}">Reject</button></div>`
+          : o.status === 'open' ? `<div class="oacts"><button class="btn btn-danger sm" data-reject="${o.id}">Reject</button></div>` : ''}
+      </div>
+    </article>`;
+}
+
+function renderAdminOrders(pane) {
+  pane.innerHTML = `
+    <div class="panel">
+      <h2>Orders</h2>
+      <p class="sub">New proofs appear here automatically and you also get a Telegram message.</p>
+      <div class="filters">${FILTERS.map(([k, l]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${S.admin.filter === k}">${l}</button>`).join('')}</div>
+      <div id="oList">${S.admin.orders.length ? S.admin.orders.map(orderCard).join('') : '<div class="empty"><strong>Nothing here</strong>No orders match this filter.</div>'}</div>
+    </div>`;
+  pane.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { S.admin.filter = b.dataset.f; S.admin.orders = []; renderAdminOrders(pane); loadAdminOrders(); }));
+  pane.querySelectorAll('[data-proof]').forEach((b) => (b.onclick = () => { $('proofImg').src = b.dataset.proof; $('proofDlg').showModal(); }));
+  pane.querySelectorAll('[data-complete]').forEach((b) => (b.onclick = () => completeOrder(b.dataset.complete, b)));
+  pane.querySelectorAll('[data-reject]').forEach((b) => (b.onclick = () => askReject(b.dataset.reject)));
+}
+
+$('proofClose').onclick = () => $('proofDlg').close();
+$('proofDlg').addEventListener('click', (e) => { if (e.target === $('proofDlg')) $('proofDlg').close(); });
+
+async function completeOrder(id, btn) {
+  if (!confirm('Confirm you have received the payment and sent the funds to the customer?')) return;
+  btn.disabled = true;
+  try { await api(mini(`/admin/orders/${id}/complete`), { method: 'POST', body: {} }); toast('Order completed'); await refreshAdmin(); }
+  catch (e) { toast(e.message, 'error'); btn.disabled = false; }
+}
+
+let rejectId = null;
+function askReject(id) { rejectId = id; $('rejectNote').value = ''; $('rejectDlg').showModal(); $('rejectNote').focus(); }
+$('rejectCancel').onclick = () => $('rejectDlg').close();
+$('rejectOk').onclick = async () => {
+  const note = $('rejectNote').value.trim();
+  if (!note) return toast('Write a short reason for the customer.', 'error');
+  $('rejectOk').disabled = true;
+  try { await api(mini(`/admin/orders/${rejectId}/reject`), { method: 'POST', body: { note } }); $('rejectDlg').close(); toast('Order rejected'); await refreshAdmin(); }
+  catch (e) { toast(e.message, 'error'); }
+  $('rejectOk').disabled = false;
+};
+
+/* ---------- Rates and profile ---------- */
+function renderRates(pane) {
+  const p = curPlat();
+  pane.innerHTML = `
+    <div class="panel">
+      <h2>Rates and limits</h2>
+      <p class="sub">Rates are birr per 1 USDT. Leave a rate at 0 to stop offering that side. Customers see changes immediately.</p>
+      <div class="row2">
+        <div class="field"><label for="rBuy">Buy rate (customer pays)</label><div class="inwrap"><input type="number" id="rBuy" step="0.01" min="0" inputmode="decimal" value="${p.buy_rate || ''}"><span class="suffix">ETB</span></div></div>
+        <div class="field"><label for="rSell">Sell rate (customer receives)</label><div class="inwrap"><input type="number" id="rSell" step="0.01" min="0" inputmode="decimal" value="${p.sell_rate || ''}"><span class="suffix">ETB</span></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="rMin">Minimum order</label><div class="inwrap"><input type="number" id="rMin" step="0.01" min="0" inputmode="decimal" value="${p.min_usdt}"><span class="suffix">USDT</span></div></div>
+        <div class="field"><label for="rMax">Maximum order</label><div class="inwrap"><input type="number" id="rMax" step="0.01" min="0" inputmode="decimal" value="${p.max_usdt}"><span class="suffix">USDT</span></div></div>
+      </div>
+      <div class="field"><label class="switch"><input type="checkbox" id="rLive" ${p.paused ? '' : 'checked'}><span class="track"></span><span>Accepting orders</span></label>
+        <div class="hint">Turn this off to pause the platform. It stays in the market as paused.</div></div>
+    </div>
+    <div class="panel">
+      <h2>Profile</h2>
+      <p class="sub">What customers see in the market list.</p>
+      <div class="logo-row">
+        ${avatar(p, 'lg')}
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label class="btn btn-ghost sm" for="logoFile" style="cursor:pointer">${ic('image', 'sm')}Upload logo</label>
+          ${p.logo_url ? '<button class="btn btn-danger sm" type="button" id="logoDel">Remove</button>' : ''}
+        </div>
+        <input type="file" id="logoFile" accept="image/*" hidden>
+      </div>
+      <div class="field"><label for="rTg">Contact Telegram username</label><input type="text" id="rTg" maxlength="33" placeholder="@username" value="${esc(p.tg_username ? '@' + p.tg_username : '')}"></div>
+      <div class="field"><label for="rNote">Short note (optional)</label><input type="text" id="rNote" maxlength="120" placeholder="Fast payouts, open daily" value="${esc(p.note)}"></div>
+      <div style="margin-top:22px"><button class="btn btn-primary" type="button" id="rSave">Save changes</button></div>
+    </div>`;
+
+  $('rSave').onclick = async (e) => {
+    const btn = e.currentTarget; btn.disabled = true;
+    try {
+      await api(mini(`/admin/platforms/${p.id}`), { method: 'PATCH', body: {
+        buy_rate: Number($('rBuy').value) || 0, sell_rate: Number($('rSell').value) || 0,
+        min_usdt: Number($('rMin').value), max_usdt: Number($('rMax').value),
+        paused: !$('rLive').checked, tg_username: $('rTg').value.trim(), note: $('rNote').value.trim(),
+      } });
+      toast('Saved');
+      await refreshAdmin(); loadMarket();
+    } catch (err) { toast(err.message, 'error'); }
+    btn.disabled = false;
+  };
+  $('logoFile').onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const blob = await toJpeg(f, 384, 0.88);
+      await api(mini(`/admin/platforms/${p.id}/logo`), { method: 'PUT', blob });
+      toast('Logo updated'); await refreshAdmin(); loadMarket(); renderAdminPane();
+    } catch (err) { toast(err.message, 'error'); }
+  };
+  const del = $('logoDel');
+  if (del) del.onclick = async () => {
+    try { await api(mini(`/admin/platforms/${p.id}/logo`), { method: 'DELETE' }); toast('Logo removed'); await refreshAdmin(); loadMarket(); renderAdminPane(); }
+    catch (err) { toast(err.message, 'error'); }
+  };
+}
+
+/* ---------- Payment accounts ---------- */
+function renderAccounts(pane) {
+  const p = curPlat();
+  pane.innerHTML = `
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        <div><h2>Payment accounts</h2><p class="sub" style="margin-bottom:0">Birr accounts are shown to customers who buy USDT. USDT wallets are shown to customers who sell.</p></div>
+        <button class="btn btn-primary sm" type="button" id="mAdd">${ic('plus', 'sm')}Add account</button>
+      </div>
+      <div class="mlist" style="margin-top:20px">
+        ${p.methods.length ? p.methods.map((m) => `
+          <div class="mitem" data-off="${!m.active}">
+            <span class="logo-chip ${esc(m.kind)}">${esc(KIND_ABBR[m.kind] || 'PAY')}</span>
+            <div class="grow"><strong>${esc(m.label)}${m.network ? ' &middot; ' + esc(m.network) : ''}${m.active ? '' : ' (hidden)'}</strong><span>${esc(m.account_name ? m.account_name + ' - ' : '')}${esc(m.account_number)}</span></div>
+            <button class="icon-btn" type="button" data-edit="${m.id}" aria-label="Edit account">${ic('edit')}</button>
+          </div>`).join('') : '<div class="empty"><strong>No accounts yet</strong>Add a birr account and a USDT wallet so customers can pay you.</div>'}
+      </div>
+    </div>`;
+  $('mAdd').onclick = () => openMethod(null);
+  pane.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => openMethod(Number(b.dataset.edit))));
+}
+
+let editMethod = null;
+function syncMethodForm() {
+  const usdt = $('mKind').value === 'usdt';
+  $('mNetWrap').hidden = !usdt;
+  $('mNameLbl').textContent = usdt ? 'Wallet name (optional)' : 'Account holder name';
+  $('mNumberLbl').textContent = usdt ? 'Wallet address' : 'Account number or phone';
+}
+$('mKind').onchange = () => {
+  syncMethodForm();
+  const sel = $('mKind');
+  if (!$('mLabel').value.trim() || $('mLabel').dataset.auto === '1') { $('mLabel').value = sel.options[sel.selectedIndex].text.replace(' (for sell orders)', ''); $('mLabel').dataset.auto = '1'; }
+};
+$('mLabel').oninput = () => ($('mLabel').dataset.auto = '0');
+
+function openMethod(id) {
+  const p = curPlat();
+  const m = id ? p.methods.find((x) => x.id === id) : null;
+  editMethod = m;
+  $('mErr').hidden = true;
+  $('mTitle').textContent = m ? 'Edit payment account' : 'Add payment account';
+  $('mKind').value = m ? m.kind : 'telebirr';
+  $('mLabel').value = m ? m.label : 'Telebirr'; $('mLabel').dataset.auto = m ? '0' : '1';
+  $('mName').value = m ? m.account_name : '';
+  $('mNumber').value = m ? m.account_number : '';
+  $('mNet').value = m && m.network ? m.network : 'TRC20';
+  $('mActive').checked = m ? m.active : true;
+  $('mDelete').hidden = !m;
+  syncMethodForm();
+  $('methodDlg').showModal();
+}
+$('mCancel').onclick = () => $('methodDlg').close();
+$('mSave').onclick = async () => {
+  const p = curPlat();
+  const usdt = $('mKind').value === 'usdt';
+  const body = { kind: $('mKind').value, label: $('mLabel').value.trim(), account_name: $('mName').value.trim(), account_number: $('mNumber').value.trim(), network: usdt ? $('mNet').value : '', active: $('mActive').checked };
+  $('mSave').disabled = true;
+  try {
+    if (editMethod) await api(mini(`/admin/platforms/${p.id}/methods/${editMethod.id}`), { method: 'PATCH', body });
+    else await api(mini(`/admin/platforms/${p.id}/methods`), { method: 'POST', body });
+    $('methodDlg').close(); toast('Saved'); await refreshAdmin(); renderAdminPane();
+  } catch (e) { $('mErr').textContent = e.message; $('mErr').hidden = false; }
+  $('mSave').disabled = false;
+};
+$('mDelete').onclick = async () => {
+  if (!editMethod || !confirm('Delete this payment account?')) return;
+  const p = curPlat();
+  try { await api(mini(`/admin/platforms/${p.id}/methods/${editMethod.id}`), { method: 'DELETE' }); $('methodDlg').close(); toast('Deleted'); await refreshAdmin(); renderAdminPane(); }
+  catch (e) { $('mErr').textContent = e.message; $('mErr').hidden = false; }
+};
+
+/* ===================================================================
+   Boot
+   =================================================================== */
+(async function init() {
+  render();
+  const marketReq = loadMarket();
+  if (authed) {
+    try { S.me = await api(mini('/me')); } catch (_) { S.me = null; }
+    renderNav();
+    if (qs.get('admin') === '1' && isOperator()) { go('admin'); }
+    else if (qs.get('tab') === 'orders') { go('orders'); }
+  }
+  await marketReq;
+  setInterval(() => { if (S.view === 'market' && !$('sheet').open) loadMarket(); }, 30000);
+})();
+</script>
+</body>
+</html>
