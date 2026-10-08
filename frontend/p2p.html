@@ -5,9 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cross P2P</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/* Apply the saved theme and language before first paint (no flash). */
+(function(){try{
+  var t=localStorage.getItem('cp_theme');
+  document.documentElement.dataset.theme=(t==='dark')?'dark':'light';
+  document.documentElement.lang=(localStorage.getItem('cp_lang')==='am')?'am':'en';
+}catch(e){document.documentElement.dataset.theme='light';}})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -18,8 +26,8 @@
   --sell:#C46108; --sell-soft:#FCEEDB;
   --danger:#D13B3B; --danger-soft:#FCE8E8;
   --r-xl:26px; --r-lg:18px; --r-md:12px; --r-sm:8px;
-  --display:"Bricolage Grotesque","Plus Jakarta Sans",system-ui,sans-serif;
-  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Bricolage Grotesque","Plus Jakarta Sans","Noto Sans Ethiopic",system-ui,sans-serif;
+  --body:"Plus Jakarta Sans","Noto Sans Ethiopic",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
@@ -379,6 +387,68 @@ dialog::backdrop{background:rgba(11,18,32,.56);-webkit-backdrop-filter:blur(3px)
   .panel{padding:20px 16px}
   .rate .n{font-size:25px}
 }
+
+/* ---------- Settings page ---------- */
+.set-wrap{max-width:680px}
+.opts{display:flex;gap:12px;flex-wrap:wrap}
+.opt{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 22px;border-radius:14px;border:1.5px solid var(--line);background:var(--paper);font-weight:700;font-size:15px;color:var(--text);transition:border-color .15s,background .15s,color .15s}
+.opt:hover{border-color:var(--cobalt)}
+.opt[aria-pressed="true"]{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
+:root[lang="am"] h1,:root[lang="am"] h2,:root[lang="am"] h3,:root[lang="am"] .brand,:root[lang="am"] .sect{letter-spacing:0}
+
+/* ---------- Dark theme ---------- */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ink:#070C16; --ink-2:#1B2A47; --paper:#0A101D; --card:#121B2D;
+  --line:#25324B; --line-2:#1C2840; --text:#E6EBF5; --muted:#9BA9C2; --faint:#74839F;
+  --cobalt:#6B86FF; --cobalt-dk:#5775F5; --cobalt-soft:#1A2750;
+  --buy:#1DB984; --buy-dk:#3DDBA4; --buy-soft:#0E2F27;
+  --sell:#F3A05A; --sell-soft:#38260F;
+  --danger:#F57878; --danger-soft:#3C1C20;
+}
+:root[data-theme="dark"] body{background:radial-gradient(900px 480px at 88% -8%,#16224A 0%,transparent 62%),radial-gradient(700px 400px at -6% 12%,#0F2A27 0%,transparent 60%),var(--paper)}
+:root[data-theme="dark"] ::placeholder{color:#6F7E99}
+:root[data-theme="dark"] .top{background:rgba(10,16,29,.84);border-bottom-color:rgba(37,50,75,.9)}
+:root[data-theme="dark"] .nav button:hover{background:#1B2640}
+:root[data-theme="dark"] .nav button[aria-current="page"]{background:#18233B;color:var(--cobalt)}
+:root[data-theme="dark"] .nav .admin-switch{background:#1B2A47;color:#fff}
+:root[data-theme="dark"] .nav .admin-switch:hover{background:#243759}
+:root[data-theme="dark"] .btn-buy:hover:not(:disabled){background:#17A074}
+:root[data-theme="dark"] .btn-sell{background:transparent;border-color:#7A5326}
+:root[data-theme="dark"] .btn-sell:hover:not(:disabled){background:var(--sell-soft)}
+:root[data-theme="dark"] .btn-ghost{background:#16213A;border-color:var(--line);color:var(--text)}
+:root[data-theme="dark"] .btn-ghost:hover:not(:disabled){background:#1B2845;border-color:#34466A}
+:root[data-theme="dark"] .btn-danger:hover:not(:disabled){background:#4A2227}
+:root[data-theme="dark"] .icon-btn:hover{background:#1B2640}
+:root[data-theme="dark"] .facts .ico,:root[data-theme="dark"] .notice,:root[data-theme="dark"] .search input,:root[data-theme="dark"] .login-card,:root[data-theme="dark"] .proof-ok,:root[data-theme="dark"] .ocard{background:#16213A}
+:root[data-theme="dark"] select{background-color:#16213A}
+:root[data-theme="dark"] .field input[type=text],:root[data-theme="dark"] .field input[type=number],:root[data-theme="dark"] .field input[type=tel],:root[data-theme="dark"] .field select,:root[data-theme="dark"] .field textarea{background:#16213A}
+:root[data-theme="dark"] .pill.gray{background:#1B2640}
+:root[data-theme="dark"] .tg:hover{background:#223165}
+:root[data-theme="dark"] .mrow:hover{background:#16213A}
+:root[data-theme="dark"] .state.off::before{background:#4B5A78;box-shadow:0 0 0 3px rgba(75,90,120,.3)}
+:root[data-theme="dark"] .skeleton{background-image:linear-gradient(90deg,#121B2D 25%,#1A2640 37%,#121B2D 63%)}
+:root[data-theme="dark"] .sh-foot{background:linear-gradient(180deg,#121B2D,#0F1727)}
+:root[data-theme="dark"] .chip{background:#16213A}
+:root[data-theme="dark"] .chip:hover,:root[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--cobalt-soft)}
+:root[data-theme="dark"] .pay{background:#16213A}
+:root[data-theme="dark"] .pay-head,:root[data-theme="dark"] .ohead,:root[data-theme="dark"] .oproof button{background:#1B2845}
+:root[data-theme="dark"] .copy{background:#16213A}
+:root[data-theme="dark"] .copy:hover{background:var(--cobalt-soft);border-color:#3A4F96}
+:root[data-theme="dark"] .copy.copied{background:var(--buy-soft);border-color:#1B5A47}
+:root[data-theme="dark"] .drop{background:#0F1727;border-color:#33446A}
+:root[data-theme="dark"] .drop:hover,:root[data-theme="dark"] .drop.over{background:var(--cobalt-soft);border-color:var(--cobalt)}
+:root[data-theme="dark"] .seg-light{background:#1B2640}
+:root[data-theme="dark"] .seg-light .thumb{background:#2B3C60}
+:root[data-theme="dark"] .seg-light button[aria-selected="true"]{color:#fff}
+:root[data-theme="dark"] .side button:hover{background:#1B2640}
+:root[data-theme="dark"] .side button[aria-current="page"]{background:#18233B;color:var(--cobalt)}
+:root[data-theme="dark"] .switch .track{background:#33446A}
+:root[data-theme="dark"] .switch input:checked+.track{background:var(--buy)}
+:root[data-theme="dark"] .av{background:hsl(var(--h) 40% 22%);color:hsl(var(--h) 75% 82%);border-color:hsl(var(--h) 35% 32%)}
+:root[data-theme="dark"] .instruct,:root[data-theme="dark"] .todo{color:#B7C4FF}
+:root[data-theme="dark"] .err,:root[data-theme="dark"] .orow .reason{color:#FFB4B4}
+:root[data-theme="dark"] .toast{background:#25324B;box-shadow:0 18px 30px -12px rgba(0,0,0,.7)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -406,6 +476,9 @@ dialog::backdrop{background:rgba(11,18,32,.56);-webkit-backdrop-filter:blur(3px)
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M10 6l-6 6 6 6M4 12h16"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></symbol>
 </svg>
 
 <header class="top">
@@ -419,7 +492,7 @@ dialog::backdrop{background:rgba(11,18,32,.56);-webkit-backdrop-filter:blur(3px)
 
 <main id="view"></main>
 
-<footer class="site"><div class="wrap">Cross P2P. Rates are set by each platform and can change at any time.</div></footer>
+<footer class="site"><div class="wrap" id="footTxt">Cross P2P. Rates are set by each platform and can change at any time.</div></footer>
 
 <!-- Order sheet -->
 <dialog id="sheet" class="sheet" aria-label="Order">
@@ -510,6 +583,112 @@ const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: 'short', d
 const hue = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
 const initials = (s) => String(s).replace(/[^A-Za-z0-9 ]/g, '').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || 'P';
 
+/* ---------- Language and theme ---------- */
+let LANG = (() => { try { return localStorage.getItem('cp_lang') === 'am' ? 'am' : 'en'; } catch (_) { return 'en'; } })();
+let THEME = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+
+const AM = {
+  'Market': 'ገበያ', 'My orders': 'ትዕዛዞቼ', 'Settings': 'ቅንብሮች', 'Switch to admin': 'ወደ አስተዳዳሪ ቀይር',
+  'Buy USDT': 'USDT ግዛ', 'Sell USDT': 'USDT ሽጥ', 'Buy': 'ግዛ', 'Sell': 'ሽጥ',
+  'Amount in USDT': 'የ USDT መጠን', 'You pay': 'ይከፍላሉ', 'You receive': 'ያገኛሉ', 'You get paid': 'ይከፈልዎታል', 'ETB to pay': 'የሚከፍሉት ብር (ETB)',
+  'Best rate': 'ምርጥ ዋጋ', 'Best rate {r} ETB from {n}': 'ምርጥ ዋጋ {r} ETB ከ{n}', 'No live rate available': 'ወቅታዊ ዋጋ የለም',
+  'Buy with {n}': 'ከ{n} ግዛ', 'Sell with {n}': 'ለ{n} ሽጥ', 'Unavailable': 'አይገኝም',
+  'Buy and sell USDT for birr, without the guesswork.': 'USDT በብር ይግዙ ይሽጡ፣ ያለ ግምት።',
+  'Compare live rates from independent platforms, pay with the account details copied in one tap, and get notified in Telegram the moment your order is confirmed.':
+    'ከተለያዩ ነጻ ፕላትፎርሞች የቀጥታ ዋጋዎችን ያወዳድሩ፣ የክፍያ መረጃውን በአንድ ንክኪ ገልብጠው ይክፈሉ፣ ትዕዛዝዎ እንደተረጋገጠ በቴሌግራም ማሳወቂያ ያግኙ።',
+  'Live rates': 'የቀጥታ ዋጋዎች', 'Every platform sets its own price and limits.': 'እያንዳንዱ ፕላትፎርም የራሱን ዋጋና ገደብ ያወጣል።',
+  'One-tap copy': 'በአንድ ንክኪ ቅዳ', 'Account names, numbers and wallet addresses copy instantly.': 'የመለያ ስሞች፣ ቁጥሮች እና የዋሌት አድራሻዎች ወዲያውኑ ይገለበጣሉ።',
+  'Proof on every order': 'በእያንዳንዱ ትዕዛዝ ማስረጃ', 'Upload your payment screenshot and track the review.': 'የክፍያ ስክሪንሾትዎን ይጫኑ እና ግምገማውን ይከታተሉ።',
+  'You are browsing as a guest. Open this page from the bot inside Telegram to place orders.': 'እንደ እንግዳ እየተመለከቱ ነው። ትዕዛዝ ለማስያዝ ይህንን ገጽ በቴሌግራም ውስጥ ከቦቱ ይክፈቱ።',
+  'Live market': 'የቀጥታ ገበያ', '{n} platform listed': '{n} ፕላትፎርም ተዘርዝሯል', '{n} platforms listed': '{n} ፕላትፎርሞች ተዘርዝረዋል',
+  'Platforms and their current prices': 'ፕላትፎርሞች እና ወቅታዊ ዋጋዎቻቸው',
+  'Search platforms': 'ፕላትፎርም ፈልግ', 'Best price to buy': 'ለመግዛት ምርጥ ዋጋ', 'Best price to sell': 'ለመሸጥ ምርጥ ዋጋ', 'Name': 'ስም',
+  'You buy USDT at': 'USDT የሚገዙበት ዋጋ', 'You sell USDT at': 'USDT የሚሸጡበት ዋጋ', 'Not offered': 'አይቀርብም',
+  'Paused': 'ቆሟል', 'Online': 'ንቁ', '{a} to {b} USDT': 'ከ{a} እስከ {b} USDT',
+  'No platforms listed yet': 'ገና ምንም ፕላትፎርም አልተዘረዘረም', 'Check back soon.': 'በቅርቡ ተመልሰው ይመልከቱ።',
+  'No match': 'ምንም አልተገኘም', 'Try a different name.': 'ሌላ ስም ይሞክሩ።', 'Could not load the market': 'ገበያውን መጫን አልተቻለም',
+  'Cross P2P. Rates are set by each platform and can change at any time.': 'Cross P2P። ዋጋዎች በእያንዳንዱ ፕላትፎርም የሚወሰኑ ሲሆን በማንኛውም ጊዜ ሊቀየሩ ይችላሉ።',
+  /* order form */
+  'Rate': 'ዋጋ', '{x} ETB per USDT': '{x} ETB ለ1 USDT', 'Limits': 'ገደብ',
+  'Your Binance UID': 'የእርስዎ Binance UID',
+  'We send your USDT to this Binance UID after your payment is approved. Double check it.': 'ክፍያዎ ከጸደቀ በኋላ USDT ወደዚህ Binance UID እንልካለን። በደንብ ያረጋግጡ።',
+  'Your Telebirr phone number': 'የእርስዎ የቴሌብር ስልክ ቁጥር', 'Your full name': 'ሙሉ ስምዎ', 'Name on your Telebirr account': 'በቴሌብር መለያዎ ላይ ያለ ስም',
+  'We send your birr to this Telebirr number after your USDT arrives.': 'USDT ከደረሰን በኋላ ብርዎን ወደዚህ የቴሌብር ቁጥር እንልካለን።',
+  'Continue': 'ቀጥል', 'Creating order...': 'ትዕዛዝ እየተፈጠረ ነው...',
+  'Enter the amount of USDT.': 'የ USDT መጠን ያስገቡ።', 'Amount must be between {a} and {b} USDT.': 'መጠኑ ከ{a} እስከ {b} USDT መካከል መሆን አለበት።',
+  'Enter your Binance UID (numbers only).': 'Binance UID ያስገቡ (ቁጥሮች ብቻ)።', 'Enter a valid Telebirr phone number.': 'ትክክለኛ የቴሌብር ስልክ ቁጥር ያስገቡ።', 'Enter your full name.': 'ሙሉ ስምዎን ያስገቡ።',
+  'Open this page from the bot in Telegram to place an order.': 'ትዕዛዝ ለማስያዝ ይህንን ገጽ በቴሌግራም ውስጥ ከቦቱ ይክፈቱ።',
+  'This platform is not available right now.': 'ይህ ፕላትፎርም አሁን አይገኝም።',
+  /* pay step */
+  'Send exactly {amt} USDT to the Binance UID below, then upload your Binance transfer screenshot.': 'በትክክል {amt} USDT ከታች ወዳለው Binance UID ይላኩ፣ ከዚያ የ Binance ዝውውር ስክሪንሾት ይጫኑ።',
+  'Send exactly {amt} ETB to Telebirr or CBE below, then upload your payment screenshot.': 'በትክክል {amt} ብር (ETB) ከታች ወዳለው ቴሌብር ወይም ንግድ ባንክ ይላኩ፣ ከዚያ የክፍያ ስክሪንሾት ይጫኑ።',
+  'Exact amount to send': 'በትክክል የሚላክ መጠን', 'Order reference': 'የትዕዛዝ ቁጥር', 'Send USDT to': 'USDT ወደዚህ ይላኩ', 'Pay to': 'ክፍያ ወደ',
+  'No payment account yet': 'ገና የክፍያ መለያ የለም', 'No Binance UID yet': 'ገና Binance UID የለም',
+  'This platform has not added a Telebirr or bank account. Contact them before paying.': 'ይህ ፕላትፎርም ገና የቴሌብር ወይም የባንክ መለያ አላስገባም። ከመክፈልዎ በፊት ያነጋግሯቸው።',
+  'This platform has not added its Binance UID. Contact them before paying.': 'ይህ ፕላትፎርም ገና Binance UID አላስገባም። ከመክፈልዎ በፊት ያነጋግሯቸው።',
+  'Wallet name': 'የዋሌት ስም', 'Account name': 'የመለያ ስም', 'Wallet address': 'የዋሌት አድራሻ', 'Account number': 'የመለያ ቁጥር',
+  'Payment proof': 'የክፍያ ማስረጃ',
+  'Upload a screenshot of your Telebirr or bank payment. Images are compressed before upload.': 'የቴሌብር ወይም የባንክ ክፍያዎን ስክሪንሾት ይጫኑ። ምስሎች ከመጫናቸው በፊት ይጨመቃሉ።',
+  'Upload a screenshot of your Binance transfer. Images are compressed before upload.': 'የ Binance ዝውውርዎን ስክሪንሾት ይጫኑ። ምስሎች ከመጫናቸው በፊት ይጨመቃሉ።',
+  'Upload Binance transfer screenshot': 'የ Binance ዝውውር ስክሪንሾት ይጫኑ', 'Upload payment screenshot': 'የክፍያ ስክሪንሾት ይጫኑ',
+  'Tap to choose, or drop an image here': 'ለመምረጥ ይንኩ ወይም ምስል እዚህ ይጣሉ',
+  'Screenshot ready': 'ስክሪንሾት ዝግጁ ነው', '{n} KB after compression': 'ከመጭመቅ በኋላ {n} KB', 'Change': 'ቀይር',
+  'I have paid, submit proof': 'ከፍያለሁ፣ ማስረጃ አስገባ', 'Uploading...': 'እየተጫነ ነው...', 'Cancel this order': 'ይህን ትዕዛዝ ሰርዝ',
+  'Copy': 'ቅዳ', 'Copied': 'ተገልብጧል', 'Could not copy. Select the text and copy it manually.': 'መቅዳት አልተቻለም። ጽሑፉን መርጠው በእጅ ይቅዱ።',
+  'Choose an image file.': 'የምስል ፋይል ይምረጡ።', 'Image is too large.': 'ምስሉ በጣም ትልቅ ነው።',
+  'This image format is not supported. Use a JPG or PNG screenshot.': 'ይህ የምስል አይነት አይደገፍም። JPG ወይም PNG ስክሪንሾት ይጠቀሙ።', 'Could not process this image.': 'ምስሉን ማስተናገድ አልተቻለም።',
+  'Order cancelled': 'ትዕዛዙ ተሰርዟል',
+  'Proof submitted': 'ማስረጃ ገብቷል', 'The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.': 'ፕላትፎርሙ ክፍያዎን ይገመግማል። ትዕዛዙ እንደተረጋገጠ የቴሌግራም መልዕክት ይደርስዎታል።',
+  'View my orders': 'ትዕዛዞቼን እይ', 'Back to market': 'ወደ ገበያ ተመለስ',
+  /* my orders */
+  'Your latest 30 orders across all platforms.': 'በሁሉም ፕላትፎርሞች የእርስዎ የቅርብ ጊዜ 30 ትዕዛዞች።', 'Platform': 'ፕላትፎርም', 'at {x}': '@ {x}',
+  'No orders yet': 'ገና ምንም ትዕዛዝ የለም', 'Pick a platform in the market to place your first order.': 'የመጀመሪያ ትዕዛዝዎን ለማስያዝ ከገበያው ፕላትፎርም ይምረጡ።',
+  'Awaiting proof': 'ማስረጃ በመጠበቅ ላይ', 'Pending': 'በመጠባበቅ ላይ', 'Approved': 'ጸድቋል', 'Rejected': 'ውድቅ ሆኗል', 'Cancelled': 'ተሰርዟል',
+  /* settings */
+  'Choose the language and look of the app.': 'የመተግበሪያውን ቋንቋ እና ገጽታ ይምረጡ።', 'Language': 'ቋንቋ', 'The app will show in the language you choose.': 'መተግበሪያው በመረጡት ቋንቋ ይታያል።',
+  'Theme': 'ገጽታ', 'Switch between a light and a dark look.': 'በብሩህ እና በጨለማ ገጽታ መካከል ይቀያይሩ።', 'Light': 'ብሩህ', 'Dark': 'ጨለማ',
+  /* server messages */
+  'Something went wrong. Please try again.': 'የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።',
+  'This platform is not available.': 'ይህ ፕላትፎርም አሁን አይገኝም።', 'This platform is paused right now.': 'ይህ ፕላትፎርም ለጊዜው ቆሟል።',
+  'You have too many unfinished orders. Complete or cancel one first.': 'ብዙ ያልተጠናቀቁ ትዕዛዞች አሉዎት። መጀመሪያ አንዱን ያጠናቅቁ ወይም ይሰርዙ።',
+  'This platform has not set its Binance UID yet. Please try again later.': 'ይህ ፕላትፎርም ገና Binance UID አላስቀመጠም። እባክዎ በኋላ ይሞክሩ።',
+  'Enter a valid USDT amount.': 'ትክክለኛ የ USDT መጠን ያስገቡ።', 'Upload a JPG, PNG or WEBP image.': 'JPG፣ PNG ወይም WEBP ምስል ይጫኑ።',
+  'Image is too large (max 4 MB).': 'ምስሉ በጣም ትልቅ ነው (ቢበዛ 4 MB)።', 'This order can no longer be cancelled.': 'ይህ ትዕዛዝ ከዚህ በኋላ ሊሰረዝ አይችልም።',
+  'This order is already closed.': 'ይህ ትዕዛዝ ቀድሞውኑ ተዘግቷል።', 'Order not found.': 'ትዕዛዙ አልተገኘም።',
+};
+
+// Translate an English source string. {name} placeholders are filled from vars.
+function T(str, vars) {
+  let out = (LANG === 'am' && AM[str]) || str;
+  if (vars) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+  return out;
+}
+const emptyBox = (a, b) => `<div class="empty"><strong>${T(a)}</strong>${T(b)}</div>`;
+
+function applyStatic() {
+  document.documentElement.lang = LANG;
+  const f = $('footTxt'); if (f) f.textContent = T('Cross P2P. Rates are set by each platform and can change at any time.');
+}
+function applyTheme() {
+  document.documentElement.dataset.theme = THEME;
+  try {
+    if (tg) {
+      const c = THEME === 'dark' ? '#0A101D' : '#F3F5F9';
+      tg.setHeaderColor(c); tg.setBackgroundColor(c);
+    }
+  } catch (_) {}
+}
+function setLang(l) {
+  LANG = l === 'am' ? 'am' : 'en';
+  try { localStorage.setItem('cp_lang', LANG); } catch (_) {}
+  applyStatic(); render();
+}
+function setTheme(t) {
+  THEME = t === 'dark' ? 'dark' : 'light';
+  try { localStorage.setItem('cp_theme', THEME); } catch (_) {}
+  applyTheme(); render();
+}
+
 const KIND_ABBR = { telebirr: 'TB', cbe: 'CBE', awash: 'AWB', abyssinia: 'BOA', dashen: 'DSH', bank: 'BANK', usdt: 'USDT', other: 'PAY' };
 const STATUS = {
   open:      { text: 'Awaiting proof', cls: 'warn' },
@@ -528,7 +707,7 @@ async function api(path, opt = {}) {
   else if (opt.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(opt.body); }
   const res = await fetch(API_URL + path, { method: opt.method || 'GET', headers, body });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  if (!res.ok) throw new Error(T(data.error || 'Something went wrong. Please try again.'));
   return data;
 }
 const mini = (p) => `/api/mini/${encodeURIComponent(BOT)}/p2p${p}`;
@@ -559,11 +738,11 @@ document.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-copy]');
   if (btn) {
     const ok = await copyText(btn.dataset.copy);
-    if (!ok) return toast('Could not copy. Select the text and copy it manually.', 'error');
+    if (!ok) return toast(T('Could not copy. Select the text and copy it manually.'), 'error');
     const label = btn.querySelector('.cl');
     btn.classList.add('copied');
-    if (label) label.textContent = 'Copied';
-    setTimeout(() => { btn.classList.remove('copied'); if (label) label.textContent = 'Copy'; }, 1600);
+    if (label) label.textContent = T('Copied');
+    setTimeout(() => { btn.classList.remove('copied'); if (label) label.textContent = T('Copy'); }, 1600);
     return;
   }
   const link = e.target.closest('a.tg');
@@ -571,7 +750,7 @@ document.addEventListener('click', async (e) => {
 });
 
 const copyBtn = (value, cls = '') =>
-  `<button type="button" class="copy ${cls}" data-copy="${esc(value)}">${ic('copy', 'sm')}<span class="cl">Copy</span></button>`;
+  `<button type="button" class="copy ${cls}" data-copy="${esc(value)}">${ic('copy', 'sm')}<span class="cl">${T('Copy')}</span></button>`;
 
 /* ---------- State ---------- */
 const S = {
@@ -593,9 +772,10 @@ function renderNav() {
   if (S.view === 'admin') {
     h += `<button type="button" class="keep" data-nav="market">${ic('back')}<span class="lbl">Back to market</span></button>`;
   } else {
-    h += item('market', 'store', 'Market');
-    if (authed) h += item('orders', 'list', 'My orders');
-    if (isOperator()) h += `<button type="button" class="admin-switch" data-nav="admin">${ic('sliders')}<span class="lbl">Switch to admin</span></button>`;
+    h += item('market', 'store', T('Market'));
+    if (authed) h += item('orders', 'list', T('My orders'));
+    h += item('settings', 'gear', T('Settings'));
+    if (isOperator()) h += `<button type="button" class="admin-switch" data-nav="admin">${ic('sliders')}<span class="lbl">${T('Switch to admin')}</span></button>`;
   }
   $('nav').innerHTML = h;
 }
@@ -621,6 +801,7 @@ function render() {
   renderNav();
   if (S.view === 'orders') return renderOrders();
   if (S.view === 'admin') return renderAdmin();
+  if (S.view === 'settings') return renderSettings();
   renderMarket();
 }
 
@@ -673,25 +854,25 @@ function marketRow(p) {
   const rate = (cls, label, val, hint) => `
     <div class="rate ${cls} ${val > 0 ? '' : 'na'}">
       <div class="k">${label}</div>
-      <div class="n">${val > 0 ? fmt(val) : 'Not offered'}${val > 0 ? '<small>ETB</small>' : ''}</div>
+      <div class="n">${val > 0 ? fmt(val) : T('Not offered')}${val > 0 ? '<small>ETB</small>' : ''}</div>
       <div class="lim">${val > 0 ? hint : ''}</div>
     </div>`;
-  const lim = `${fmtAmt(p.min_usdt)} to ${fmtAmt(p.max_usdt)} USDT`;
+  const lim = T('{a} to {b} USDT', { a: fmtAmt(p.min_usdt), b: fmtAmt(p.max_usdt) });
   return `
     <article class="mrow" data-paused="${p.paused}">
       <div class="ident">
         ${avatar(p)}
         <div class="ident-text">
-          <strong>${esc(p.name)}<span class="state ${p.paused ? 'off' : ''}">${p.paused ? 'Paused' : 'Online'}</span></strong>
+          <strong>${esc(p.name)}<span class="state ${p.paused ? 'off' : ''}">${T(p.paused ? 'Paused' : 'Online')}</span></strong>
           ${p.note ? `<div class="note-line">${esc(p.note)}</div>` : ''}
           ${tgChip(p)}
         </div>
       </div>
-      ${rate('buy', 'You buy USDT at', p.buy_rate, lim)}
-      ${rate('sell', 'You sell USDT at', p.sell_rate, lim)}
+      ${rate('buy', T('You buy USDT at'), p.buy_rate, lim)}
+      ${rate('sell', T('You sell USDT at'), p.sell_rate, lim)}
       <div class="macts">
-        <button class="btn btn-buy sm" data-trade="buy" data-id="${p.id}" ${p.paused || !(p.buy_rate > 0) ? 'disabled' : ''}>Buy</button>
-        <button class="btn btn-sell sm" data-trade="sell" data-id="${p.id}" ${p.paused || !(p.sell_rate > 0) ? 'disabled' : ''}>Sell</button>
+        <button class="btn btn-buy sm" data-trade="buy" data-id="${p.id}" ${p.paused || !(p.buy_rate > 0) ? 'disabled' : ''}>${T('Buy')}</button>
+        <button class="btn btn-sell sm" data-trade="sell" data-id="${p.id}" ${p.paused || !(p.sell_rate > 0) ? 'disabled' : ''}>${T('Sell')}</button>
       </div>
     </article>`;
 }
@@ -700,37 +881,37 @@ function renderMarket() {
   const rows = sortedMarket();
   let list;
   if (!S.marketLoaded) list = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-  else if (S.marketErr) list = `<div class="empty"><strong>Could not load the market</strong>${esc(S.marketErr)}</div>`;
-  else if (!S.market.length) list = '<div class="empty"><strong>No platforms listed yet</strong>Check back soon.</div>';
-  else if (!rows.length) list = '<div class="empty"><strong>No match</strong>Try a different name.</div>';
+  else if (S.marketErr) list = `<div class="empty"><strong>${T('Could not load the market')}</strong>${esc(S.marketErr)}</div>`;
+  else if (!S.market.length) list = emptyBox('No platforms listed yet', 'Check back soon.');
+  else if (!rows.length) list = emptyBox('No match', 'Try a different name.');
   else list = rows.map(marketRow).join('');
 
   $('view').innerHTML = `
     <div class="wrap">
       <section class="hero">
         <div class="hero-copy">
-          <h1>Buy and sell USDT for birr, without the guesswork.</h1>
-          <p class="lead">Compare live rates from independent platforms, pay with the account details copied in one tap, and get notified in Telegram the moment your order is confirmed.</p>
+          <h1>${T('Buy and sell USDT for birr, without the guesswork.')}</h1>
+          <p class="lead">${T('Compare live rates from independent platforms, pay with the account details copied in one tap, and get notified in Telegram the moment your order is confirmed.')}</p>
           <ul class="facts">
-            <li><span class="ico">${ic('bolt')}</span><div><strong>Live rates</strong><span>Every platform sets its own price and limits.</span></div></li>
-            <li><span class="ico">${ic('copy')}</span><div><strong>One-tap copy</strong><span>Account names, numbers and wallet addresses copy instantly.</span></div></li>
-            <li><span class="ico">${ic('shield')}</span><div><strong>Proof on every order</strong><span>Upload your payment screenshot and track the review.</span></div></li>
+            <li><span class="ico">${ic('bolt')}</span><div><strong>${T('Live rates')}</strong><span>${T('Every platform sets its own price and limits.')}</span></div></li>
+            <li><span class="ico">${ic('copy')}</span><div><strong>${T('One-tap copy')}</strong><span>${T('Account names, numbers and wallet addresses copy instantly.')}</span></div></li>
+            <li><span class="ico">${ic('shield')}</span><div><strong>${T('Proof on every order')}</strong><span>${T('Upload your payment screenshot and track the review.')}</span></div></li>
           </ul>
         </div>
         <div class="conv" id="conv"></div>
       </section>
 
-      ${authed ? '' : `<div class="notice">${ic('info')}<span>You are browsing as a guest. Open this page from the bot inside Telegram to place orders.</span></div>`}
+      ${authed ? '' : `<div class="notice">${ic('info')}<span>${T('You are browsing as a guest. Open this page from the bot inside Telegram to place orders.')}</span></div>`}
 
       <section>
         <div class="market-head">
-          <div><h2>Live market</h2><p>${S.market.length ? `${S.market.length} platform${S.market.length === 1 ? '' : 's'} listed` : 'Platforms and their current prices'}</p></div>
+          <div><h2>${T('Live market')}</h2><p>${S.market.length ? T(S.market.length === 1 ? '{n} platform listed' : '{n} platforms listed', { n: S.market.length }) : T('Platforms and their current prices')}</p></div>
           <div class="tools">
-            <label class="search">${ic('search')}<input id="q" type="search" placeholder="Search platforms" value="${esc(S.q)}" aria-label="Search platforms"></label>
+            <label class="search">${ic('search')}<input id="q" type="search" placeholder="${T('Search platforms')}" value="${esc(S.q)}" aria-label="${T('Search platforms')}"></label>
             <select id="sort" aria-label="Sort">
-              <option value="buy" ${S.sort === 'buy' ? 'selected' : ''}>Best price to buy</option>
-              <option value="sell" ${S.sort === 'sell' ? 'selected' : ''}>Best price to sell</option>
-              <option value="name" ${S.sort === 'name' ? 'selected' : ''}>Name</option>
+              <option value="buy" ${S.sort === 'buy' ? 'selected' : ''}>${T('Best price to buy')}</option>
+              <option value="sell" ${S.sort === 'sell' ? 'selected' : ''}>${T('Best price to sell')}</option>
+              <option value="name" ${S.sort === 'name' ? 'selected' : ''}>${T('Name')}</option>
             </select>
           </div>
         </div>
@@ -745,8 +926,8 @@ function renderMarket() {
 
 function marketBody() {
   const rows = sortedMarket();
-  if (!S.market.length) return '<div class="empty"><strong>No platforms listed yet</strong>Check back soon.</div>';
-  return rows.length ? rows.map(marketRow).join('') : '<div class="empty"><strong>No match</strong>Try a different name.</div>';
+  if (!S.market.length) return emptyBox('No platforms listed yet', 'Check back soon.');
+  return rows.length ? rows.map(marketRow).join('') : emptyBox('No match', 'Try a different name.');
 }
 
 /* ---------- Converter ---------- */
@@ -759,20 +940,20 @@ function renderConv() {
   $('conv').innerHTML = `
     <div class="seg" data-mode="${m}" role="tablist">
       <span class="thumb"></span>
-      <button type="button" role="tab" data-cm="buy" aria-selected="${m === 'buy'}">Buy USDT</button>
-      <button type="button" role="tab" data-cm="sell" aria-selected="${m === 'sell'}">Sell USDT</button>
+      <button type="button" role="tab" data-cm="buy" aria-selected="${m === 'buy'}">${T('Buy USDT')}</button>
+      <button type="button" role="tab" data-cm="sell" aria-selected="${m === 'sell'}">${T('Sell USDT')}</button>
     </div>
-    <label class="clabel" for="convAmt">Amount in USDT</label>
+    <label class="clabel" for="convAmt">${T('Amount in USDT')}</label>
     <div class="cfield"><input id="convAmt" inputmode="decimal" autocomplete="off" value="${esc(S.conv.amt)}"><span class="unit">USDT</span></div>
     <div class="cresult">
-      <span>${m === 'buy' ? 'You pay' : 'You receive'}</span>
+      <span>${T(m === 'buy' ? 'You pay' : 'You receive')}</span>
       <div><strong id="convOut">${rate ? fmt(amt * rate) : '0.00'}</strong><span class="unit">ETB</span></div>
     </div>
     <div class="crate">
-      <span>${p ? `Best rate <b>${fmt(rate)}</b> ETB from <b>${esc(p.name)}</b>` : 'No live rate available'}</span>
-      ${p ? '<span class="pill">Best rate</span>' : ''}
+      <span>${p ? T('Best rate {r} ETB from {n}', { r: `<b>${fmt(rate)}</b>`, n: `<b>${esc(p.name)}</b>` }) : T('No live rate available')}</span>
+      ${p ? `<span class="pill">${T('Best rate')}</span>` : ''}
     </div>
-    <button class="btn btn-primary btn-block" id="convGo" ${p ? '' : 'disabled'}>${p ? `${m === 'buy' ? 'Buy' : 'Sell'} with ${esc(p.name)}` : 'Unavailable'}</button>`;
+    <button class="btn btn-primary btn-block" id="convGo" ${p ? '' : 'disabled'}>${p ? T(m === 'buy' ? 'Buy with {n}' : 'Sell with {n}', { n: esc(p.name) }) : T('Unavailable')}</button>`;
 
   document.querySelectorAll('[data-cm]').forEach((b) => (b.onclick = () => { S.conv.mode = b.dataset.cm; renderConv(); }));
   $('convAmt').oninput = (e) => {
@@ -796,7 +977,7 @@ const BUY_NETWORKS = ['TRC20', 'BEP20', 'ERC20', 'Other'];
 const SELL_BANKS = ['Telebirr', 'Commercial Bank of Ethiopia', 'Awash Bank', 'Bank of Abyssinia', 'Dashen Bank', 'Other bank'];
 
 function openOrder(pid, side, amt = '') {
-  if (!authed) return toast('Open this page from the bot in Telegram to place an order.', 'error');
+  if (!authed) return toast(T('Open this page from the bot in Telegram to place an order.'), 'error');
   const p = S.market.find((x) => x.id === pid);
   if (!p) return;
   Object.assign(SH, { p, side, amt: amt ? String(amt) : '', details: '', name: '', binanceUid: '', order: null, methods: [], step: 'form', busy: false, err: '', proof: null, proofUrl: '' });
@@ -806,7 +987,7 @@ function openOrder(pid, side, amt = '') {
 
 async function resumeOrder(o) {
   const p = S.market.find((x) => x.id === o.platform_id);
-  if (!p) return toast('This platform is not available right now.', 'error');
+  if (!p) return toast(T('This platform is not available right now.'), 'error');
   Object.assign(SH, { p, side: o.side, amt: String(o.amount_usdt), order: o, binanceUid: '', step: 'pay', busy: false, err: '', proof: null, proofUrl: '' });
   renderSheet();
   if (!$('sheet').open) $('sheet').showModal();
@@ -826,7 +1007,7 @@ function renderSheet() {
   const p = SH.p;
   $('shHead').innerHTML = `
     ${avatar(p)}
-    <div class="ident-text"><h2>${esc(p.name)}</h2><span class="state ${p.paused ? 'off' : ''}">${p.paused ? 'Paused' : 'Online'}</span></div>
+    <div class="ident-text"><h2>${esc(p.name)}</h2><span class="state ${p.paused ? 'off' : ''}">${T(p.paused ? 'Paused' : 'Online')}</span></div>
     <button class="icon-btn" type="button" id="shClose" aria-label="Close">${ic('x')}</button>`;
   $('shClose').onclick = closeSheet;
 
@@ -842,37 +1023,37 @@ function renderForm() {
   $('shBody').innerHTML = `
     <div class="seg seg-light" data-mode="${SH.side}" role="tablist">
       <span class="thumb"></span>
-      <button type="button" role="tab" data-side="buy" aria-selected="${buy}" ${canBuy ? '' : 'disabled'}>Buy USDT</button>
-      <button type="button" role="tab" data-side="sell" aria-selected="${!buy}" ${canSell ? '' : 'disabled'}>Sell USDT</button>
+      <button type="button" role="tab" data-side="buy" aria-selected="${buy}" ${canBuy ? '' : 'disabled'}>${T('Buy USDT')}</button>
+      <button type="button" role="tab" data-side="sell" aria-selected="${!buy}" ${canSell ? '' : 'disabled'}>${T('Sell USDT')}</button>
     </div>
     <div class="summary">
-      <div><span>Rate</span><b>${fmt(shRate())} ETB per USDT</b></div>
-      <div><span>Limits</span><b>${fmtAmt(p.min_usdt)} to ${fmtAmt(p.max_usdt)} USDT</b></div>
+      <div><span>${T('Rate')}</span><b>${T('{x} ETB per USDT', { x: fmt(shRate()) })}</b></div>
+      <div><span>${T('Limits')}</span><b>${T('{a} to {b} USDT', { a: fmtAmt(p.min_usdt), b: fmtAmt(p.max_usdt) })}</b></div>
     </div>
     <div class="field">
-      <label for="shAmt">Amount in USDT</label>
+      <label for="shAmt">${T('Amount in USDT')}</label>
       <div class="inwrap"><input type="text" id="shAmt" inputmode="decimal" autocomplete="off" value="${esc(SH.amt)}" placeholder="0.00"><span class="suffix">USDT</span></div>
       ${quick.length ? `<div class="chips">${quick.map((n) => `<button type="button" class="chip" data-q="${n}">${n}</button>`).join('')}<button type="button" class="chip" data-q="${p.max_usdt}">Max</button></div>` : ''}
     </div>
     ${buy ? `
     <div class="field">
-      <label for="shDetails">Your Binance UID</label>
+      <label for="shDetails">${T('Your Binance UID')}</label>
       <input type="text" id="shDetails" inputmode="numeric" autocomplete="off" value="${esc(SH.details)}" placeholder="e.g. 123456789">
-      <div class="hint">We send your USDT to this Binance UID after your payment is approved. Double check it.</div>
+      <div class="hint">${T('We send your USDT to this Binance UID after your payment is approved. Double check it.')}</div>
     </div>` : `
     <div class="field">
-      <label for="shDetails">Your Telebirr phone number</label>
+      <label for="shDetails">${T('Your Telebirr phone number')}</label>
       <input type="tel" id="shDetails" inputmode="tel" autocomplete="off" value="${esc(SH.details)}" placeholder="09xxxxxxxx">
     </div>
     <div class="field">
-      <label for="shName">Your full name</label>
-      <input type="text" id="shName" autocomplete="off" maxlength="80" value="${esc(SH.name)}" placeholder="Name on your Telebirr account">
-      <div class="hint">We send your birr to this Telebirr number after your USDT arrives.</div>
+      <label for="shName">${T('Your full name')}</label>
+      <input type="text" id="shName" autocomplete="off" maxlength="80" value="${esc(SH.name)}" placeholder="${T('Name on your Telebirr account')}">
+      <div class="hint">${T('We send your birr to this Telebirr number after your USDT arrives.')}</div>
     </div>`}`;
   $('shFoot').innerHTML = `
     <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
-    <div class="foot-total"><span>${buy ? 'ETB to pay' : 'You receive'}</span><strong id="shTotal">${fmt(shTotal())} ETB</strong></div>
-    <button class="btn btn-primary btn-block" type="button" id="shNext" ${SH.busy ? 'disabled' : ''}>${SH.busy ? 'Creating order...' : 'Continue'}</button>`;
+    <div class="foot-total"><span>${T(buy ? 'ETB to pay' : 'You receive')}</span><strong id="shTotal">${fmt(shTotal())} ETB</strong></div>
+    <button class="btn btn-primary btn-block" type="button" id="shNext" ${SH.busy ? 'disabled' : ''}>${SH.busy ? T('Creating order...') : T('Continue')}</button>`;
 
   $('shBody').querySelectorAll('[data-side]').forEach((b) => (b.onclick = () => {
     if (b.disabled || SH.side === b.dataset.side) return;
@@ -893,13 +1074,13 @@ function renderForm() {
 async function createOrder() {
   const amount = Number(SH.amt);
   const fail = (msg, field) => { SH.err = msg; renderForm(); if (field) { const f = $(field); if (f) { f.setAttribute('aria-invalid', 'true'); f.focus(); } } };
-  if (!(amount > 0)) return fail('Enter the amount of USDT.', 'shAmt');
-  if (amount < SH.p.min_usdt || amount > SH.p.max_usdt) return fail(`Amount must be between ${fmtAmt(SH.p.min_usdt)} and ${fmtAmt(SH.p.max_usdt)} USDT.`, 'shAmt');
+  if (!(amount > 0)) return fail(T('Enter the amount of USDT.'), 'shAmt');
+  if (amount < SH.p.min_usdt || amount > SH.p.max_usdt) return fail(T('Amount must be between {a} and {b} USDT.', { a: fmtAmt(SH.p.min_usdt), b: fmtAmt(SH.p.max_usdt) }), 'shAmt');
   if (SH.side === 'buy') {
-    if (!/^\d{5,15}$/.test(SH.details.trim())) return fail('Enter your Binance UID (numbers only).', 'shDetails');
+    if (!/^\d{5,15}$/.test(SH.details.trim())) return fail(T('Enter your Binance UID (numbers only).'), 'shDetails');
   } else {
-    if (!/^\+?\d{9,13}$/.test(SH.details.replace(/[\s-]/g, ''))) return fail('Enter a valid Telebirr phone number.', 'shDetails');
-    if (SH.name.trim().length < 2) return fail('Enter your full name.', 'shName');
+    if (!/^\+?\d{9,13}$/.test(SH.details.replace(/[\s-]/g, ''))) return fail(T('Enter a valid Telebirr phone number.'), 'shDetails');
+    if (SH.name.trim().length < 2) return fail(T('Enter your full name.'), 'shName');
   }
 
   SH.busy = true; SH.err = ''; renderForm();
@@ -924,8 +1105,8 @@ function methodCard(m) {
   return `
     <div class="pay">
       <div class="pay-head"><span class="logo-chip ${esc(m.kind)}">${esc(KIND_ABBR[m.kind] || 'PAY')}</span>${esc(m.label)}${m.network ? `<span class="pill blue">${esc(m.network)}</span>` : ''}</div>
-      ${m.account_name ? `<div class="copyrow"><div><span class="k">${isUsdt ? 'Wallet name' : 'Account name'}</span><span class="v">${esc(m.account_name)}</span></div>${copyBtn(m.account_name)}</div>` : ''}
-      <div class="copyrow"><div><span class="k">${isUsdt ? 'Wallet address' : 'Account number'}</span><span class="v">${esc(m.account_number)}</span></div>${copyBtn(m.account_number)}</div>
+      ${m.account_name ? `<div class="copyrow"><div><span class="k">${T(isUsdt ? 'Wallet name' : 'Account name')}</span><span class="v">${esc(m.account_name)}</span></div>${copyBtn(m.account_name)}</div>` : ''}
+      <div class="copyrow"><div><span class="k">${T(isUsdt ? 'Wallet address' : 'Account number')}</span><span class="v">${esc(m.account_number)}</span></div>${copyBtn(m.account_number)}</div>
     </div>`;
 }
 
@@ -941,29 +1122,29 @@ function renderPay() {
     </div>` : '';
   const methods = SH.methods.length
     ? SH.methods.map(methodCard).join('')
-    : (uidCard ? '' : `<div class="empty" style="padding:24px 8px"><strong>${buy ? 'No payment account yet' : 'No Binance UID yet'}</strong>This platform has not added ${buy ? 'a Telebirr or bank account' : 'its Binance UID'}. Contact them before paying.</div>`);
+    : (uidCard ? '' : `<div class="empty" style="padding:24px 8px"><strong>${T(buy ? 'No payment account yet' : 'No Binance UID yet')}</strong>${T(buy ? 'This platform has not added a Telebirr or bank account. Contact them before paying.' : 'This platform has not added its Binance UID. Contact them before paying.')}</div>`);
 
   $('shBody').innerHTML = `
-    <div class="instruct">${buy ? `Send exactly ${fmt(o.total_etb)} ETB to Telebirr or CBE below, then upload your payment screenshot.` : `Send exactly ${fmtAmt(o.amount_usdt)} USDT to the Binance UID below, then upload your Binance transfer screenshot.`}</div>
+    <div class="instruct">${buy ? T('Send exactly {amt} ETB to Telebirr or CBE below, then upload your payment screenshot.', { amt: fmt(o.total_etb) }) : T('Send exactly {amt} USDT to the Binance UID below, then upload your Binance transfer screenshot.', { amt: fmtAmt(o.amount_usdt) })}</div>
     <div class="pay">
-      <div class="copyrow"><div><span class="k">Exact amount to send</span><span class="v">${buy ? fmt(payAmount) : fmtAmt(payAmount)} ${payUnit}</span></div>${copyBtn(buy ? payAmount.toFixed(2) : String(payAmount))}</div>
-      <div class="copyrow"><div><span class="k">Order reference</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div>
+      <div class="copyrow"><div><span class="k">${T('Exact amount to send')}</span><span class="v">${buy ? fmt(payAmount) : fmtAmt(payAmount)} ${payUnit}</span></div>${copyBtn(buy ? payAmount.toFixed(2) : String(payAmount))}</div>
+      <div class="copyrow"><div><span class="k">${T('Order reference')}</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div>
     </div>
-    <div class="sect">${buy ? 'Pay to' : 'Send USDT to'}</div>
+    <div class="sect">${T(buy ? 'Pay to' : 'Send USDT to')}</div>
     ${uidCard}${methods}
     <div class="summary">
-      <div><span>${buy ? 'You receive' : 'You get paid'}</span><b>${buy ? `${fmtAmt(o.amount_usdt)} USDT` : `${fmt(o.total_etb)} ETB`}</b></div>
-      <div><span>Rate</span><b>${fmt(o.rate)} ETB per USDT</b></div>
+      <div><span>${T(buy ? 'You receive' : 'You get paid')}</span><b>${buy ? `${fmtAmt(o.amount_usdt)} USDT` : `${fmt(o.total_etb)} ETB`}</b></div>
+      <div><span>${T('Rate')}</span><b>${T('{x} ETB per USDT', { x: fmt(o.rate) })}</b></div>
     </div>
-    <div class="sect">Payment proof</div>
+    <div class="sect">${T('Payment proof')}</div>
     <div id="proofBox"></div>
-    <div class="hint" style="margin:8px 0 18px;font-size:12.5px;color:var(--muted)">Upload a screenshot of your ${buy ? 'Telebirr or bank payment' : 'Binance transfer'}. Images are compressed before upload.</div>`;
+    <div class="hint" style="margin:8px 0 18px;font-size:12.5px;color:var(--muted)">${T(buy ? 'Upload a screenshot of your Telebirr or bank payment. Images are compressed before upload.' : 'Upload a screenshot of your Binance transfer. Images are compressed before upload.')}</div>`;
   renderProofBox();
 
   $('shFoot').innerHTML = `
     <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
-    <button class="btn btn-primary btn-block" type="button" id="shSubmit" ${SH.proof && !SH.busy ? '' : 'disabled'}>${SH.busy ? 'Uploading...' : 'I have paid, submit proof'}</button>
-    ${o.status === 'open' ? '<button class="btn btn-ghost btn-block" type="button" id="shCancel" style="margin-top:10px">Cancel this order</button>' : ''}`;
+    <button class="btn btn-primary btn-block" type="button" id="shSubmit" ${SH.proof && !SH.busy ? '' : 'disabled'}>${SH.busy ? T('Uploading...') : T('I have paid, submit proof')}</button>
+    ${o.status === 'open' ? `<button class="btn btn-ghost btn-block" type="button" id="shCancel" style="margin-top:10px">${T('Cancel this order')}</button>` : ''}`;
   $('shSubmit').onclick = submitProof;
   const c = $('shCancel'); if (c) c.onclick = cancelCurrent;
 }
@@ -972,12 +1153,12 @@ function renderProofBox() {
   const box = $('proofBox'); if (!box) return;
   if (SH.proof) {
     box.innerHTML = `
-      <div class="proof-ok"><img src="${esc(SH.proofUrl)}" alt="Selected proof"><div><strong>Screenshot ready</strong><span>${Math.round(SH.proof.size / 1024)} KB after compression</span></div>
-      <button class="btn btn-ghost sm" type="button" id="proofChange">Change</button></div>`;
+      <div class="proof-ok"><img src="${esc(SH.proofUrl)}" alt="Selected proof"><div><strong>${T('Screenshot ready')}</strong><span>${T('{n} KB after compression', { n: Math.round(SH.proof.size / 1024) })}</span></div>
+      <button class="btn btn-ghost sm" type="button" id="proofChange">${T('Change')}</button></div>`;
     $('proofChange').onclick = () => $('proofFile').click();
   } else {
     box.innerHTML = `
-      <label class="drop" id="drop" for="proofFile">${ic('upload')}<strong>${SH.side === 'sell' ? 'Upload Binance transfer screenshot' : 'Upload payment screenshot'}</strong><span>Tap to choose, or drop an image here</span></label>`;
+      <label class="drop" id="drop" for="proofFile">${ic('upload')}<strong>${T(SH.side === 'sell' ? 'Upload Binance transfer screenshot' : 'Upload payment screenshot')}</strong><span>${T('Tap to choose, or drop an image here')}</span></label>`;
     const drop = $('drop');
     drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
     drop.ondragleave = () => drop.classList.remove('over');
@@ -1004,14 +1185,14 @@ async function toJpeg(file, maxDim, quality) {
 }
 
 async function pickProof(file) {
-  if (!file.type.startsWith('image/')) return toast('Choose an image file.', 'error');
+  if (!file.type.startsWith('image/')) return toast(T('Choose an image file.'), 'error');
   try {
     const blob = await toJpeg(file, 1400, 0.82);
     if (blob.size > 4 * 1024 * 1024) throw new Error('Image is too large.');
     if (SH.proofUrl) URL.revokeObjectURL(SH.proofUrl);
     SH.proof = blob; SH.proofUrl = URL.createObjectURL(blob); SH.err = '';
     renderPay();
-  } catch (e) { toast(e.message, 'error'); }
+  } catch (e) { toast(T(e.message), 'error'); }
 }
 
 async function submitProof() {
@@ -1028,7 +1209,7 @@ async function submitProof() {
 async function cancelCurrent() {
   try {
     await api(mini(`/orders/${SH.order.id}/cancel`), { method: 'POST' });
-    toast('Order cancelled');
+    toast(T('Order cancelled'));
     S.ordersLoaded = false;
     closeSheet();
     if (S.view === 'orders') loadOrders();
@@ -1040,13 +1221,13 @@ function renderDone() {
   $('shBody').innerHTML = `
     <div class="done">
       <svg class="badge" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-23"/></svg>
-      <h2>Proof submitted</h2>
-      <p>The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.</p>
-      <div class="pay"><div class="copyrow"><div><span class="k">Order reference</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div></div>
+      <h2>${T('Proof submitted')}</h2>
+      <p>${T('The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.')}</p>
+      <div class="pay"><div class="copyrow"><div><span class="k">${T('Order reference')}</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div></div>
     </div>`;
   $('shFoot').innerHTML = `
-    <button class="btn btn-primary btn-block" type="button" id="doneOrders">View my orders</button>
-    <button class="btn btn-ghost btn-block" type="button" id="doneClose" style="margin-top:10px">Back to market</button>`;
+    <button class="btn btn-primary btn-block" type="button" id="doneOrders">${T('View my orders')}</button>
+    <button class="btn btn-ghost btn-block" type="button" id="doneClose" style="margin-top:10px">${T('Back to market')}</button>`;
   $('doneOrders').onclick = () => { closeSheet(); go('orders'); };
   $('doneClose').onclick = closeSheet;
 }
@@ -1067,19 +1248,19 @@ function renderOrders() {
     const buy = o.side === 'buy';
     return `
       <div class="orow">
-        <div><div class="t">${esc(o.platform_name || 'Platform')}</div><div class="s">${esc(o.ref)} &middot; ${esc(when(o.created_at))}</div></div>
-        <div><span class="sidepill ${o.side}">${buy ? 'Buy' : 'Sell'}</span><div class="t" style="margin-top:4px">${fmtAmt(o.amount_usdt)} USDT</div></div>
-        <div><div class="t">${fmt(o.total_etb)} ETB</div><div class="s">at ${fmt(o.rate)}</div></div>
-        <div class="macts"><span class="pill ${st.cls}">${st.text}</span>
-          ${o.status === 'open' ? `<button class="btn btn-ghost sm" data-resume="${o.id}">Continue</button>` : ''}
+        <div><div class="t">${esc(o.platform_name || T('Platform'))}</div><div class="s">${esc(o.ref)} &middot; ${esc(when(o.created_at))}</div></div>
+        <div><span class="sidepill ${o.side}">${T(buy ? 'Buy' : 'Sell')}</span><div class="t" style="margin-top:4px">${fmtAmt(o.amount_usdt)} USDT</div></div>
+        <div><div class="t">${fmt(o.total_etb)} ETB</div><div class="s">${T('at {x}', { x: fmt(o.rate) })}</div></div>
+        <div class="macts"><span class="pill ${st.cls}">${T(st.text)}</span>
+          ${o.status === 'open' ? `<button class="btn btn-ghost sm" data-resume="${o.id}">${T('Continue')}</button>` : ''}
         </div>
         ${o.status === 'rejected' && o.admin_note ? `<div class="reason">${esc(o.admin_note)}</div>` : ''}
       </div>`;
   }).join('');
   $('view').innerHTML = `
     <div class="wrap page">
-      <div class="page-head"><h1>My orders</h1><p>Your latest 30 orders across all platforms.</p></div>
-      <div class="list">${!S.ordersLoaded ? '<div class="skeleton"></div><div class="skeleton"></div>' : rows || '<div class="empty"><strong>No orders yet</strong>Pick a platform in the market to place your first order.</div>'}</div>
+      <div class="page-head"><h1>${T('My orders')}</h1><p>${T('Your latest 30 orders across all platforms.')}</p></div>
+      <div class="list">${!S.ordersLoaded ? '<div class="skeleton"></div><div class="skeleton"></div>' : rows || emptyBox('No orders yet', 'Pick a platform in the market to place your first order.')}</div>
     </div>`;
   document.querySelectorAll('[data-resume]').forEach((b) => (b.onclick = () => resumeOrder(S.orders.find((o) => o.id === b.dataset.resume))));
 }
@@ -1376,10 +1557,41 @@ $('mDelete').onclick = async () => {
   catch (e) { $('mErr').textContent = e.message; $('mErr').hidden = false; }
 };
 
+
+/* ===================================================================
+   SETTINGS (language and theme)
+   =================================================================== */
+function renderSettings() {
+  $('view').innerHTML = `
+    <div class="wrap page set-wrap">
+      <div class="page-head"><h1>${T('Settings')}</h1><p>${T('Choose the language and look of the app.')}</p></div>
+      <div class="panel">
+        <h2>${T('Language')}</h2>
+        <p class="sub">${T('The app will show in the language you choose.')}</p>
+        <div class="opts" role="group" aria-label="${T('Language')}">
+          <button type="button" class="opt" data-lang="en" aria-pressed="${LANG === 'en'}">English</button>
+          <button type="button" class="opt" data-lang="am" aria-pressed="${LANG === 'am'}">አማርኛ</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>${T('Theme')}</h2>
+        <p class="sub">${T('Switch between a light and a dark look.')}</p>
+        <div class="opts" role="group" aria-label="${T('Theme')}">
+          <button type="button" class="opt" data-theme-set="light" aria-pressed="${THEME === 'light'}">${ic('sun')}${T('Light')}</button>
+          <button type="button" class="opt" data-theme-set="dark" aria-pressed="${THEME === 'dark'}">${ic('moon')}${T('Dark')}</button>
+        </div>
+      </div>
+    </div>`;
+  document.querySelectorAll('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang)));
+  document.querySelectorAll('[data-theme-set]').forEach((b) => (b.onclick = () => setTheme(b.dataset.themeSet)));
+}
+
 /* ===================================================================
    Boot
    =================================================================== */
 (async function init() {
+  applyStatic();
+  applyTheme();
   render();
   const marketReq = loadMarket();
   if (authed) {
