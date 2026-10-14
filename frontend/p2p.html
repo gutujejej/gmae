@@ -5,64 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cross P2P</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-/* Apply the saved theme and language before first paint (no flash). */
-(function(){try{
-  var t=localStorage.getItem('cp_theme');
-  document.documentElement.dataset.theme=(t==='dark')?'dark':'light';
-  document.documentElement.lang=(localStorage.getItem('cp_lang')==='am')?'am':'en';
-}catch(e){document.documentElement.dataset.theme='light';}})();
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --ink:#0B1220; --ink-2:#17233C; --paper:#F3F5F9; --card:#FFFFFF;
-  --line:#E2E7EF; --line-2:#EEF1F6; --text:#142033; --muted:#5D6B83; --faint:#8C98AD;
+  --ink:#0B1220; --paper:#F3F5F9; --card:#fff; --line:#E2E7EF; --line-2:#EEF1F6;
+  --text:#142033; --muted:#5D6B83; --faint:#8C98AD;
   --cobalt:#2340E8; --cobalt-dk:#1A31BD; --cobalt-soft:#E8ECFF;
   --buy:#0E9F6E; --buy-dk:#0B805A; --buy-soft:#E1F5EC;
   --sell:#C46108; --sell-soft:#FCEEDB;
   --danger:#D13B3B; --danger-soft:#FCE8E8;
-  --r-xl:26px; --r-lg:18px; --r-md:12px; --r-sm:8px;
-  --display:"Bricolage Grotesque","Plus Jakarta Sans","Noto Sans Ethiopic",system-ui,sans-serif;
-  --body:"Plus Jakarta Sans","Noto Sans Ethiopic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Bricolage Grotesque","Plus Jakarta Sans",system-ui,sans-serif;
+  --body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-body{
-  font-family:var(--body);font-size:15px;line-height:1.55;color:var(--text);
-  background:
-    radial-gradient(900px 480px at 88% -8%,#DCE3FF 0%,transparent 62%),
-    radial-gradient(700px 400px at -6% 12%,#E3F3EC 0%,transparent 60%),
-    var(--paper);
-  min-height:100vh;font-variant-numeric:tabular-nums;
-}
-button,input,select,textarea{font:inherit;color:inherit}
+body{font-family:var(--body);font-size:15px;line-height:1.55;color:var(--text);min-height:100vh;font-variant-numeric:tabular-nums;
+  background:radial-gradient(800px 420px at 90% -10%,#DCE3FF 0%,transparent 62%),radial-gradient(600px 360px at -8% 10%,#E3F3EC 0%,transparent 60%),var(--paper)}
+button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 a{color:inherit}
 .ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ic.sm{width:16px;height:16px}
 :focus-visible{outline:3px solid #7C91FF;outline-offset:2px;border-radius:6px}
-.wrap{width:min(1120px,100% - 40px);margin-inline:auto}
+.wrap{width:min(760px,100% - 28px);margin-inline:auto}
 
-/* ---------- Header ---------- */
-.top{position:sticky;top:0;z-index:20;background:rgba(243,245,249,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(226,231,239,.9)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:12px}
-.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em}
-.brand-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(145deg,#2F4DFF,#1A2FB5);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -4px rgba(35,64,232,.55),inset 0 1px 0 rgba(255,255,255,.28)}
-.brand-mark .ic{width:20px;height:20px;stroke-width:2.1}
-.nav{display:flex;align-items:center;gap:4px}
-.nav button{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);transition:background .15s,color .15s;white-space:nowrap}
-.nav button:hover{background:#E9EDF5;color:var(--text)}
-.nav button[aria-current="page"]{background:#fff;color:var(--cobalt);box-shadow:0 0 0 1px var(--line)}
-.nav .admin-switch{background:var(--ink);color:#fff}
-.nav .admin-switch:hover{background:var(--ink-2);color:#fff}
+/* header */
+.top{position:sticky;top:0;z-index:20;background:rgba(243,245,249,.82);backdrop-filter:blur(14px);border-bottom:1px solid rgba(226,231,239,.9)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#2F4DFF,#1A2FB5);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -4px rgba(35,64,232,.55),inset 0 1px 0 rgba(255,255,255,.28)}
+.brand-mark .ic{width:19px;height:19px;stroke-width:2.1}
+.deskbtn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:11px;background:var(--ink);color:#fff;font-weight:700;font-size:13.5px}
+.deskbtn .badge{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#FFB84D;color:#2A1A00;font-size:12px;font-weight:800;display:grid;place-items:center}
+.backbtn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:11px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:13.5px}
 
-/* ---------- Buttons ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:46px;padding:0 20px;border-radius:12px;font-weight:700;font-size:14.5px;transition:transform .12s,background .15s,box-shadow .15s,border-color .15s;white-space:nowrap}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:46px;padding:0 20px;border-radius:12px;font-weight:700;font-size:14.5px;transition:transform .12s,background .15s;white-space:nowrap}
 .btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-block{width:100%}
@@ -72,1529 +53,661 @@ a{color:inherit}
 .btn-buy:hover:not(:disabled){background:var(--buy-dk)}
 .btn-sell{background:#fff;color:var(--sell);border:1.5px solid #E7B987}
 .btn-sell:hover:not(:disabled){background:var(--sell-soft)}
-.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
-.btn-ghost:hover:not(:disabled){background:#F7F9FC;border-color:#CFD7E4}
+.btn-sell.solid{background:var(--sell);color:#fff;border-color:var(--sell)}
+.btn-ghost{background:#fff;border:1px solid var(--line)}
 .btn-danger{background:var(--danger-soft);color:var(--danger)}
-.btn-danger:hover:not(:disabled){background:#F8D5D5}
-.btn.sm{height:36px;padding:0 14px;font-size:13px;border-radius:10px}
-.icon-btn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
+.btn.sm{height:38px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.icon-btn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--muted)}
 .icon-btn:hover{background:#EAEEF6;color:var(--text)}
 
-/* ---------- Hero ---------- */
-.hero{display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:center;padding:64px 0 56px}
-.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5.2vw,58px);line-height:1.03;letter-spacing:-.035em;max-width:11.5em}
-.lead{margin-top:20px;font-size:17px;color:var(--muted);max-width:30em}
-.facts{list-style:none;margin-top:32px;display:grid;gap:18px}
-.facts li{display:flex;gap:14px;align-items:flex-start}
-.facts .ico{width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--cobalt);flex:none}
-.facts strong{display:block;font-size:15px}
-.facts span{font-size:14px;color:var(--muted)}
-@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.hero-copy{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
-.conv{animation:rise .7s .12s cubic-bezier(.2,.7,.2,1) both}
-
-.conv{position:relative;isolation:isolate;overflow:hidden;color:#fff;border-radius:var(--r-xl);padding:26px;
+/* hero + best rates */
+.intro{padding:30px 0 6px}
+.intro h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,8vw,42px);line-height:1.04;letter-spacing:-.035em}
+.intro p{margin-top:10px;color:var(--muted);max-width:30em}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.best{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.best{position:relative;isolation:isolate;overflow:hidden;margin-top:22px;border-radius:24px;color:#fff;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:18px;
   background:linear-gradient(160deg,#16213A 0%,#0B1220 70%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 40px 70px -28px rgba(11,18,32,.6),0 16px 30px -18px rgba(35,64,232,.5)}
-.conv::before{content:"";position:absolute;inset:0;z-index:-1;
-  background:repeating-linear-gradient(135deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px),repeating-linear-gradient(45deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px);
-  -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 85%);mask-image:linear-gradient(180deg,#000 0%,transparent 85%)}
-.conv::after{content:"";position:absolute;width:320px;height:320px;right:-110px;top:-130px;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(70,100,255,.55),transparent 68%)}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 34px 60px -28px rgba(11,18,32,.6),0 14px 26px -18px rgba(35,64,232,.5)}
+.best::before{content:"";position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(135deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px),repeating-linear-gradient(45deg,rgba(255,255,255,.038) 0 1px,transparent 1px 16px);mask-image:linear-gradient(180deg,#000,transparent 90%);-webkit-mask-image:linear-gradient(180deg,#000,transparent 90%)}
+.best::after{content:"";position:absolute;width:260px;height:260px;right:-90px;top:-110px;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(70,100,255,.5),transparent 68%)}
+.best .k{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.68)}
+.best .n{font-family:var(--display);font-weight:700;font-size:clamp(28px,8vw,40px);letter-spacing:-.03em;line-height:1.1;margin-top:4px}
+.best .n small{font-family:var(--body);font-size:13px;font-weight:600;color:rgba(255,255,255,.55);margin-left:6px;letter-spacing:0}
+.best .who{margin-top:4px;font-size:13px;font-weight:600;color:rgba(255,255,255,.82)}
+.best .buyc .n{color:#6EE7B7}
+.best .sellc .n{color:#FFC27A}
+.notice{margin-top:16px;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.notice .ic{color:var(--cobalt);margin-top:2px}
 
-.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:rgba(255,255,255,.08)}
-.seg .thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:10px;background:#fff;box-shadow:0 4px 10px -4px rgba(0,0,0,.4);transition:transform .28s cubic-bezier(.3,.8,.3,1)}
-.seg[data-mode="sell"] .thumb{transform:translateX(100%)}
-.seg button{position:relative;z-index:1;height:40px;border-radius:10px;font-weight:700;font-size:14px;color:rgba(255,255,255,.7);transition:color .2s}
-.seg button[aria-selected="true"]{color:var(--ink)}
-.seg-light{background:#EDF0F6}
-.seg-light .thumb{box-shadow:0 3px 8px -3px rgba(11,18,32,.35)}
-.seg-light button{color:var(--muted)}
-.seg-light button[aria-selected="true"]{color:var(--ink)}
-.seg button:disabled{opacity:.4;cursor:not-allowed}
-
-.clabel{display:block;margin:20px 0 8px;font-size:13px;font-weight:600;color:rgba(255,255,255,.7)}
-.cfield{display:flex;align-items:center;height:62px;padding:0 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);transition:border-color .15s,background .15s}
-.cfield:focus-within{border-color:#7C91FF;background:rgba(255,255,255,.1)}
-.cfield input{flex:1;min-width:0;background:none;border:0;outline:0;font-family:var(--display);font-size:30px;font-weight:600;letter-spacing:-.02em;color:#fff}
-.unit{font-weight:700;font-size:14px;color:rgba(255,255,255,.6)}
-.cresult{margin-top:18px;padding:18px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.1);display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.cresult>span{font-size:13px;font-weight:600;color:rgba(255,255,255,.7)}
-.cresult strong{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:-.02em;margin-right:8px}
-.cresult div{text-align:right}
-.crate{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 2px 18px;font-size:13.5px;color:rgba(255,255,255,.7)}
-.crate b{color:#fff;font-weight:700}
-.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--buy-soft);color:var(--buy-dk);white-space:nowrap}
-.conv .pill{background:rgba(52,211,153,.16);color:#6EE7B7}
-.pill.warn{background:var(--sell-soft);color:var(--sell)}
-.pill.blue{background:var(--cobalt-soft);color:var(--cobalt)}
-.pill.gray{background:#EDF0F6;color:var(--muted)}
-.pill.red{background:var(--danger-soft);color:var(--danger)}
-
-/* ---------- Notice ---------- */
-.notice{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:14px;background:#fff;border:1px solid var(--line);margin-bottom:20px;color:var(--muted);font-size:14px}
-.notice .ic{color:var(--cobalt);margin-top:1px}
-
-/* ---------- Market ---------- */
-.market-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px}
-.market-head h2{font-family:var(--display);font-size:32px;letter-spacing:-.03em;line-height:1.1}
-.market-head p{color:var(--muted);margin-top:6px}
-.tools{display:flex;gap:10px;flex-wrap:wrap}
-.search{position:relative}
-.search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
-.search input{height:46px;width:260px;max-width:100%;padding:0 14px 0 42px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:0;transition:border-color .15s,box-shadow .15s}
-select{appearance:none;-webkit-appearance:none;width:100%;height:50px;padding:0 44px 0 16px;border-radius:12px;font-weight:600;border:1px solid var(--line);background-color:#fff;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238C98AD' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;outline:0}
-.tools select{width:232px;height:46px}
-.search input:focus,select:focus,.field input:focus,.field textarea:focus{border-color:var(--cobalt);box-shadow:0 0 0 4px rgba(35,64,232,.12)}
-
-.market{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(11,18,32,.04)}
-.mrow{display:grid;grid-template-columns:minmax(230px,1.35fr) 1fr 1fr auto;gap:28px;align-items:center;padding:22px 28px;transition:background .15s}
+/* platform list */
+.sect{margin:26px 0 12px;font-family:var(--display);font-size:20px;font-weight:650;letter-spacing:-.02em}
+.market{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-bottom:40px}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;padding:20px}
 .mrow+.mrow{border-top:1px solid var(--line-2)}
-.mrow:hover{background:#FAFBFD}
-.mrow[data-paused="true"]{opacity:.62}
-.ident{display:flex;align-items:center;gap:14px;min-width:0}
-.av{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;overflow:hidden;
-  background:hsl(var(--h) 75% 93%);color:hsl(var(--h) 55% 30%);border:1px solid hsl(var(--h) 55% 86%)}
-.av img{width:100%;height:100%;object-fit:cover}
-.av.lg{width:72px;height:72px;border-radius:20px;font-size:24px}
-.ident-text{min-width:0}
-.ident-text strong{display:flex;align-items:center;gap:9px;font-size:16.5px;font-family:var(--display);font-weight:650;letter-spacing:-.01em;flex-wrap:wrap}
-.state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--buy-dk);font-family:var(--body);letter-spacing:0}
-.state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--buy);box-shadow:0 0 0 3px rgba(14,159,110,.2)}
-.state.off{color:var(--faint)}
-.state.off::before{background:#B3BCCB;box-shadow:0 0 0 3px rgba(179,188,203,.25)}
-.tg{display:inline-flex;align-items:center;gap:6px;margin-top:5px;max-width:100%;padding:3px 10px 3px 8px;border-radius:99px;background:var(--cobalt-soft);color:var(--cobalt);font-size:12.5px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tg:hover{background:#DAE0FF}
-.note-line{margin-top:5px;font-size:13px;color:var(--muted)}
-.rate .k{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:2px}
-.rate .n{font-family:var(--display);font-size:29px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
-.rate .n small{font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:5px}
-.rate .lim{font-size:12.5px;color:var(--faint);margin-top:2px}
-.rate.buy .n{color:var(--buy-dk)}
-.rate.sell .n{color:var(--sell)}
-.rate.na .n{color:var(--faint);font-size:18px;font-weight:600;letter-spacing:0;line-height:2.1}
-.macts{display:flex;gap:10px}
-.empty{padding:56px 24px;text-align:center;color:var(--muted)}
+.mrow[data-paused="true"]{opacity:.6}
+.ident{grid-column:1/-1;display:flex;align-items:center;gap:13px;min-width:0}
+.av{width:44px;height:44px;border-radius:13px;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;background:hsl(var(--h) 75% 93%);color:hsl(var(--h) 55% 30%);border:1px solid hsl(var(--h) 55% 86%)}
+.ident-text{min-width:0;flex:1}
+.ident-text strong{display:flex;align-items:center;gap:9px;font-size:16.5px;font-family:var(--display);font-weight:650;letter-spacing:-.01em}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:var(--buy-soft);color:var(--buy-dk)}
+.pill.blue{background:var(--cobalt-soft);color:var(--cobalt)}
+.tg{display:inline-flex;align-items:center;gap:6px;margin-top:4px;max-width:100%;padding:3px 10px 3px 8px;border-radius:99px;background:var(--cobalt-soft);color:var(--cobalt);font-size:12.5px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rate .k{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.rate .n{font-family:var(--display);font-size:27px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+.rate .n small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:4px}
+.rate.buy .n{color:var(--buy-dk)}.rate.sell .n{color:var(--sell)}
+.macts{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.empty{padding:50px 24px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
-.skeleton{height:96px;margin:0;background:linear-gradient(90deg,#F3F5F9 25%,#EAEEF5 37%,#F3F5F9 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
-.skeleton+.skeleton{border-top:1px solid var(--line-2)}
-@keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
-footer.site{padding:56px 0 48px;color:var(--faint);font-size:13.5px;text-align:center}
+.skeleton{height:92px;margin:14px 20px;border-radius:14px;background:linear-gradient(90deg,#EEF1F6,#F7F9FC,#EEF1F6);background-size:200% 100%;animation:shine 1.3s infinite linear}
+@keyframes shine{to{background-position:-200% 0}}
 
-/* ---------- Dialogs / sheet ---------- */
+/* sheet */
 dialog{border:0;padding:0;color:var(--text);background:var(--card);font-family:var(--body)}
-dialog::backdrop{background:rgba(11,18,32,.56);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-@keyframes popIn{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
-.sheet{margin:0 0 0 auto;height:100dvh;max-height:none;max-width:none;width:min(540px,100%);border-radius:26px 0 0 26px;box-shadow:-30px 0 60px -30px rgba(11,18,32,.45)}
-.sheet[open]{display:flex;flex-direction:column;animation:slideIn .32s cubic-bezier(.2,.8,.2,1)}
-.sh-head{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid var(--line-2)}
-.sh-head .ident-text{flex:1}
-.sh-head h2{font-family:var(--display);font-size:20px;letter-spacing:-.02em;line-height:1.2}
-.sh-main{flex:1;min-height:0;display:flex;flex-direction:column}
-.sh-body{flex:1;overflow:auto;padding:22px 24px 8px}
-.sh-foot{padding:16px 24px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line-2);background:linear-gradient(180deg,#fff,#FAFBFD)}
+dialog::backdrop{background:rgba(11,18,32,.56);backdrop-filter:blur(3px)}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.sheet{margin:auto 0 0;width:100%;max-width:none;max-height:94dvh;border-radius:26px 26px 0 0;box-shadow:0 -30px 60px -30px rgba(11,18,32,.45)}
+.sheet[open]{display:flex;flex-direction:column;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.sh-head{display:flex;align-items:center;gap:13px;padding:18px 20px;border-bottom:1px solid var(--line-2)}
+.sh-head h2{font-family:var(--display);font-size:19px;letter-spacing:-.02em;line-height:1.2}
+.sh-form{flex:1;min-height:0;display:flex;flex-direction:column}
+.sh-body{flex:1;overflow:auto;padding:20px 20px 6px}
+.sh-foot{padding:14px 20px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line-2)}
 .foot-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
 .foot-total span{color:var(--muted);font-weight:600;font-size:14px}
-.foot-total strong{font-family:var(--display);font-size:24px;letter-spacing:-.02em}
+.foot-total strong{font-family:var(--display);font-size:23px;letter-spacing:-.02em}
 .err{margin-bottom:12px;padding:10px 14px;border-radius:10px;background:var(--danger-soft);color:#A52A2A;font-size:13.5px;font-weight:600}
-.modal{margin:auto;width:min(480px,calc(100% - 32px));border-radius:22px;box-shadow:0 40px 80px -30px rgba(11,18,32,.6)}
-.modal[open]{animation:popIn .25s ease both}
-.modal-in{padding:24px}
-.modal-in h3{font-family:var(--display);font-size:21px;letter-spacing:-.02em;margin-bottom:4px}
-.modal-in .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
-.modal-actions{display:flex;gap:10px;margin-top:20px}
-.modal-actions .btn{flex:1}
-.proof-view{width:min(720px,calc(100% - 24px));border-radius:20px;background:#0B1220}
-.proof-view img{display:block;width:100%;max-height:82vh;object-fit:contain}
-.proof-view .close{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.16);color:#fff}
-
-.field{margin-top:18px}
-.field:first-child{margin-top:0}
-.field>label,.lbl{display:block;font-size:13.5px;font-weight:700;margin-bottom:7px}
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:#EDF0F6;margin-bottom:20px}
+.seg .thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:10px;background:#fff;box-shadow:0 3px 8px -3px rgba(11,18,32,.35);transition:transform .28s cubic-bezier(.3,.8,.3,1)}
+.seg[data-mode="sell"] .thumb{transform:translateX(100%)}
+.seg button{position:relative;z-index:1;height:40px;border-radius:10px;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-selected="true"]{color:var(--ink)}
+.field{margin-top:16px}.field:first-child{margin-top:0}
+.field>label{display:block;font-size:13.5px;font-weight:700;margin-bottom:7px}
 .field .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
-.field input[type=text],.field input[type=number],.field input[type=tel],.field select,.field textarea{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:0;transition:border-color .15s,box-shadow .15s}
-.field textarea{height:96px;padding:12px 14px;resize:vertical;line-height:1.45}
-.field select{height:48px}
+.field input[type=text],.field input[type=number],.field input[type=tel]{width:100%;height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;outline:0;font-size:16px;transition:border-color .15s,box-shadow .15s}
+.field input:focus{border-color:var(--cobalt);box-shadow:0 0 0 4px rgba(35,64,232,.12)}
 .field input[aria-invalid="true"]{border-color:var(--danger);box-shadow:0 0 0 4px rgba(209,59,59,.1)}
 .inwrap{position:relative}
 .inwrap .suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--faint);pointer-events:none}
-.inwrap input{padding-right:64px!important}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.chip{height:32px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--muted);transition:all .15s}
-.chip:hover{border-color:var(--cobalt);color:var(--cobalt);background:var(--cobalt-soft)}
-.chip[aria-pressed="true"]{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
-.sect{margin:26px 0 10px;font-family:var(--display);font-size:16px;font-weight:650;letter-spacing:-.01em}
-.sect:first-child{margin-top:0}
-.summary{display:grid;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:18px}
-.summary div{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;font-size:14px}
-.summary div+div{border-top:1px solid var(--line-2)}
-.summary span{color:var(--muted)}
-.summary b{font-weight:700;text-align:right;word-break:break-word}
-.instruct{padding:14px 16px;border-radius:14px;background:var(--cobalt-soft);color:#1B2E9E;font-size:14px;font-weight:600;margin-bottom:14px}
-
-/* Payment accounts with copy */
+.chip{height:32px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--muted)}
+.chip:active{background:var(--cobalt-soft);color:var(--cobalt)}
+.ssect{margin:24px 0 10px;font-family:var(--display);font-size:16px;font-weight:650;letter-spacing:-.01em}
+.ssect:first-child{margin-top:0}
 .pay{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;margin-bottom:12px}
-.pay-head{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#F7F9FC;border-bottom:1px solid var(--line-2);font-weight:700;font-size:13.5px}
-.logo-chip{height:24px;min-width:34px;padding:0 7px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;letter-spacing:.02em;color:#fff;background:#44546F}
-.logo-chip.telebirr{background:#1E8E3E}
-.logo-chip.cbe{background:#7A1F5C}
-.logo-chip.awash{background:#E0A800;color:#241A00}
-.logo-chip.abyssinia{background:#B8860B}
-.logo-chip.dashen{background:#0E4DA4}
-.logo-chip.usdt{background:#0E9F6E}
-.logo-chip.binance{background:#F0B90B;color:#201800}
-.copyrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px}
+.pay-head{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#F7F9FC;border-bottom:1px solid var(--line-2);font-weight:700;font-size:13.5px}
+.logo-chip{height:24px;min-width:34px;padding:0 7px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff}
+.logo-chip.tb{background:#1E8E3E}.logo-chip.cbe{background:#7A1F5C}.logo-chip.bn{background:#E0A800;color:#241A00}
+.copyrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
 .copyrow+.copyrow{border-top:1px solid var(--line-2)}
-.copyrow>div{min-width:0}
 .copyrow .k{display:block;font-size:12px;font-weight:600;color:var(--muted)}
 .copyrow .v{display:block;font-size:17px;font-weight:700;letter-spacing:.01em;word-break:break-all}
-.copy{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:700;color:var(--cobalt);flex:none;transition:all .15s}
-.copy:hover{background:var(--cobalt-soft);border-color:#C5CEFF}
+.copy{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:700;color:var(--cobalt);flex:none;transition:all .15s}
 .copy.copied{background:var(--buy-soft);border-color:#B8E5D1;color:var(--buy-dk)}
-.copy.xs{height:28px;padding:0 9px;font-size:12px}
-
-.drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;text-align:center;border:1.5px dashed #C3CCDC;border-radius:16px;background:#FAFBFD;cursor:pointer;transition:all .15s;color:var(--muted)}
-.drop:hover,.drop.over{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
-.drop strong{color:var(--text);font-size:14px}
-.drop .ic{width:26px;height:26px}
+.copy.xs{height:28px;padding:0 9px;font-size:12px;border-radius:8px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 16px;text-align:center;border:1.5px dashed #C3CCDC;border-radius:16px;background:#FAFBFD;cursor:pointer;color:var(--muted)}
+.drop strong{color:var(--text);font-size:14px}.drop .ic{width:26px;height:26px}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
-.proof-ok{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}
-.proof-ok img{width:68px;height:68px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
-.proof-ok div{flex:1;min-width:0}
-.proof-ok strong{display:block;font-size:14px}
-.proof-ok span{font-size:12.5px;color:var(--muted)}
-
-.done{padding:30px 4px;text-align:center}
-.done .badge{width:84px;height:84px;margin:0 auto 22px;display:block}
+.proof-ok{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--line);border-radius:16px}
+.proof-ok img{width:64px;height:64px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.proof-ok div{flex:1;min-width:0}.proof-ok strong{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proof-ok span{font-size:12.5px;color:var(--muted)}
+.done{padding:38px 22px calc(26px + env(safe-area-inset-bottom));text-align:center;overflow:auto}
+.done .badge{width:80px;height:80px;margin:0 auto 20px;display:block}
 .done .badge circle{fill:var(--buy-soft);stroke:var(--buy);stroke-width:2.5;stroke-dasharray:240;stroke-dashoffset:240;animation:draw .6s .1s ease forwards}
 .done .badge path{fill:none;stroke:var(--buy-dk);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:44;stroke-dashoffset:44;animation:draw .4s .55s ease forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
-.done h2{font-family:var(--display);font-size:26px;letter-spacing:-.02em}
-.done p{color:var(--muted);margin:8px auto 22px;max-width:28em}
-.done .pay{text-align:left}
+.done h2{font-family:var(--display);font-size:25px;letter-spacing:-.02em}
+.done p{color:var(--muted);margin:8px auto 20px;max-width:28em}
+.done .pay{text-align:left}.done .btn+.btn{margin-top:10px}
+.loadbox{padding:46px 20px;text-align:center;color:var(--muted)}
 
-/* ---------- Toast ---------- */
-.toasts{position:fixed;z-index:100;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;gap:8px;justify-items:center;pointer-events:none;width:max-content;max-width:calc(100% - 32px)}
-.toast{display:flex;align-items:center;gap:10px;padding:11px 18px 11px 14px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:14px;box-shadow:0 18px 30px -12px rgba(11,18,32,.6);animation:popIn .25s ease both}
-.toast .ic{color:#6EE7B7}
-.toast.error .ic{color:#FCA5A5}
-.toast.out{opacity:0;transform:translateY(8px);transition:all .25s}
+/* toast */
+.toasts{position:fixed;z-index:100;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;gap:8px;justify-items:center;pointer-events:none;width:max-content;max-width:calc(100% - 28px)}
+.toast{display:flex;align-items:center;gap:10px;padding:11px 16px 11px 13px;border-radius:12px;background:var(--ink);color:#fff;font-weight:600;font-size:14px;box-shadow:0 18px 30px -12px rgba(11,18,32,.6);animation:up .25s ease both}
+.toast .ic{color:#6EE7B7}.toast.error .ic{color:#FCA5A5}
+.toast.out{opacity:0;transition:opacity .25s}
 
-/* ---------- My orders ---------- */
-.page{padding:40px 0 24px}
-.page-head{margin-bottom:22px}
-.page-head h1{font-family:var(--display);font-size:34px;letter-spacing:-.03em;line-height:1.1}
-.page-head p{color:var(--muted);margin-top:6px}
-.list{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden}
-.orow{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:20px;align-items:center;padding:18px 24px}
-.orow+.orow{border-top:1px solid var(--line-2)}
-.orow .t{font-weight:700}
-.orow .s{font-size:13px;color:var(--muted)}
-.orow .reason{grid-column:1/-1;font-size:13.5px;color:#A52A2A;background:var(--danger-soft);padding:8px 12px;border-radius:10px}
-.sidepill{display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:7px;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
-.sidepill.buy{background:var(--buy-soft);color:var(--buy-dk)}
-.sidepill.sell{background:var(--sell-soft);color:var(--sell)}
+/* desk admin */
+.desk{padding:22px 0 60px}
+.desk h1{font-family:var(--display);font-size:28px;letter-spacing:-.03em;line-height:1.1}
+.desk .sub{color:var(--muted);margin:6px 0 18px}
+.tabs{display:inline-flex;padding:4px;border-radius:12px;background:#E6EAF2;gap:2px;margin-bottom:14px;max-width:100%}
+.tabs button{height:36px;padding:0 16px;border-radius:9px;font-weight:700;font-size:13.5px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+.tabs button[aria-pressed="true"]{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(11,18,32,.12)}
+.tabs .n{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--cobalt);color:#fff;font-size:12px;display:grid;place-items:center}
+.list{display:grid;gap:12px}
+.ord{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 16px 16px 20px;overflow:hidden}
+.ord::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--faint)}
+.ord[data-status="pending"]::before{background:#E5A100}.ord[data-status="approved"]::before{background:var(--buy)}.ord[data-status="rejected"]::before{background:var(--danger)}
+.ord-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+.ord-head strong{font-family:var(--display);font-size:16px}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:700}
+.tag.buy{background:var(--buy-soft);color:var(--buy-dk)}.tag.sell{background:var(--sell-soft);color:var(--sell)}
+.st{font-size:12.5px;font-weight:700}.st.pending{color:#A87500}.st.approved{color:var(--buy-dk)}.st.rejected{color:var(--danger)}
+.ord-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.ord-grid .k{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.ord-grid .v{display:block;font-weight:700;word-break:break-word}
+.ord-grid .full{grid-column:1/-1}
+.ord-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.thumb-btn{width:76px;height:76px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#F3F5F9;display:grid;place-items:center;color:var(--faint)}
+.thumb-btn img{width:100%;height:100%;object-fit:cover}
+.ord-acts{display:flex;gap:8px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+.panel h3{font-family:var(--display);font-size:18px;letter-spacing:-.01em}
+.panel .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;border-radius:12px;background:#F7F9FC;border:1px solid var(--line-2);font-weight:600;font-size:14px}
+.switch{position:relative;width:44px;height:26px;flex:none;display:inline-block}
+.switch input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1;margin:0}
+.switch span{position:absolute;inset:0;border-radius:99px;background:#CBD3E1;transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.switch input:checked+span{background:var(--buy)}.switch input:checked+span::after{transform:translateX(18px)}
+.divider{height:1px;background:var(--line-2);margin:18px 0}
+.proof-dialog{width:min(720px,calc(100% - 28px));margin:auto;border-radius:20px;overflow:hidden;background:#0B1220}
+.proof-dialog img{display:block;max-width:100%;max-height:82vh;margin:auto}
+.proof-dialog .icon-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.92)}
 
-/* ---------- Operator console ---------- */
-.admin{padding:34px 0 40px}
-.admin-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
-.admin-head h1{font-family:var(--display);font-size:32px;letter-spacing:-.03em;line-height:1.1}
-.admin-head p{color:var(--muted);margin-top:4px}
-.admin-head select{width:240px;height:46px}
-.shell{display:grid;grid-template-columns:236px 1fr;gap:34px;align-items:start}
-.side{position:sticky;top:92px;display:grid;gap:4px}
-.side button{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:12px;font-weight:600;color:var(--muted);text-align:left;position:relative;transition:background .15s,color .15s;white-space:nowrap}
-.side button:hover{background:#E9EDF5;color:var(--text)}
-.side button[aria-current="page"]{background:#fff;color:var(--cobalt);box-shadow:0 1px 2px rgba(11,18,32,.06),0 0 0 1px var(--line)}
-.side button[aria-current="page"]::before{content:"";position:absolute;left:-1px;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--cobalt)}
-.side .count{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:var(--cobalt);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}
-.panel+.panel{margin-top:18px}
-.panel h2{font-family:var(--display);font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
-.panel .sub{color:var(--muted);margin-bottom:20px;font-size:14px}
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-
-.ocard{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
-.ocard+.ocard{margin-top:14px}
-.ohead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;background:#F7F9FC;border-bottom:1px solid var(--line-2)}
-.ohead b{font-family:var(--display);font-size:16px;letter-spacing:.01em}
-.ohead time{margin-left:auto;font-size:12.5px;color:var(--muted)}
-.obody{padding:16px 18px;display:grid;gap:14px}
-.ogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.ogrid .k{display:block;font-size:12px;font-weight:600;color:var(--muted)}
-.ogrid .v{display:block;font-weight:700;font-size:15px;word-break:break-word}
-.ogrid .v small{display:block;font-weight:500;color:var(--muted);font-size:12px}
-.todo{padding:12px 14px;border-radius:12px;background:var(--cobalt-soft);color:#1B2E9E;font-size:14px;font-weight:600}
-.oproof{display:flex;align-items:center;gap:12px}
-.oproof button{border:1px solid var(--line);border-radius:12px;overflow:hidden;width:88px;height:88px;flex:none;background:#F7F9FC}
-.oproof img{width:100%;height:100%;object-fit:cover;display:block}
-.oacts{display:flex;gap:10px;flex-wrap:wrap}
-.copy-box{border:1px solid var(--line);border-radius:14px}
-
-.switch{position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;font-weight:700;font-size:14px}
-.switch input{position:absolute;opacity:0;width:0;height:0}
-.switch .track{width:46px;height:27px;border-radius:99px;background:#CBD3E1;position:relative;transition:background .2s;flex:none}
-.switch .track::after{content:"";position:absolute;left:3px;top:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(11,18,32,.3);transition:transform .2s}
-.switch input:checked+.track{background:var(--buy)}
-.switch input:checked+.track::after{transform:translateX(19px)}
-.switch input:focus-visible+.track{outline:3px solid #7C91FF;outline-offset:2px}
-.logo-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.mlist{display:grid;gap:12px}
-.mitem{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px}
-.mitem[data-off="true"]{opacity:.55}
-.mitem .grow{flex:1;min-width:0}
-.mitem strong{display:block;font-size:15px}
-.mitem span{display:block;font-size:13px;color:var(--muted);word-break:break-all}
-
-.login-card{max-width:420px;margin:12vh auto 0;background:#fff;border:1px solid var(--line);border-radius:24px;padding:34px;text-align:center;box-shadow:0 30px 50px -30px rgba(11,18,32,.25)}
-.login-card .lock{width:56px;height:56px;border-radius:16px;background:var(--cobalt-soft);color:var(--cobalt);display:grid;place-items:center;margin:0 auto 18px}
-.login-card h1{font-family:var(--display);font-size:26px;letter-spacing:-.02em}
-.login-card p{color:var(--muted);margin-top:8px}
-
-/* ---------- Responsive ---------- */
-@media (max-width:900px){
-  .wrap{width:min(1120px,100% - 28px)}
-  .hero{grid-template-columns:1fr;gap:36px;padding:36px 0 36px}
-  .hero h1{max-width:none}
-  .mrow{grid-template-columns:1fr 1fr;gap:16px 20px;padding:20px}
-  .mrow .ident{grid-column:1/-1}
-  .mrow .macts{grid-column:1/-1}
-  .mrow .macts .btn{flex:1}
-  .orow{grid-template-columns:1fr 1fr;gap:12px 16px;padding:18px 20px}
-  .orow .macts{grid-column:1/-1}
-  .shell{grid-template-columns:1fr;gap:18px}
-  .side{position:static;display:flex;overflow-x:auto;gap:6px;padding-bottom:4px}
-  .side button{flex:none;padding:0 16px}
-  .side button[aria-current="page"]::before{display:none}
-  .ogrid{grid-template-columns:1fr 1fr}
-  .market-head h2,.page-head h1,.admin-head h1{font-size:28px}
-  .search input,.tools select{width:100%}
-  .tools{width:100%}
-  .tools .search{flex:1 1 100%}
-  .tools select{flex:1}
+@media (min-width:760px){
+  .mrow{grid-template-columns:minmax(220px,1.3fr) 1fr 1fr auto;gap:26px;padding:22px 26px;align-items:center}
+  .ident{grid-column:auto}.macts{grid-column:auto;display:flex}
+  .wrap{width:min(900px,100% - 40px)}
+  .sheet{margin:0 0 0 auto;height:100dvh;max-height:none;width:min(520px,100%);border-radius:26px 0 0 26px}
+  .sheet[open]{animation:none}
 }
-@media (max-width:560px){
-  .nav button:not(.admin-switch):not(.keep) span.lbl{display:none}
-  .nav button{padding:9px 11px}
-  .sheet{border-radius:0;width:100%}
-  .sh-head,.sh-body,.sh-foot{padding-left:18px;padding-right:18px}
-  .row2{grid-template-columns:1fr}
-  .conv{padding:20px}
-  .cfield input{font-size:26px}
-  .cresult strong{font-size:27px}
-  .panel{padding:20px 16px}
-  .rate .n{font-size:25px}
-}
-
-/* ---------- Settings page ---------- */
-.set-wrap{max-width:680px}
-.opts{display:flex;gap:12px;flex-wrap:wrap}
-.opt{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 22px;border-radius:14px;border:1.5px solid var(--line);background:var(--paper);font-weight:700;font-size:15px;color:var(--text);transition:border-color .15s,background .15s,color .15s}
-.opt:hover{border-color:var(--cobalt)}
-.opt[aria-pressed="true"]{border-color:var(--cobalt);background:var(--cobalt-soft);color:var(--cobalt)}
-:root[lang="am"] h1,:root[lang="am"] h2,:root[lang="am"] h3,:root[lang="am"] .brand,:root[lang="am"] .sect{letter-spacing:0}
-
-/* ---------- Dark theme ---------- */
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --ink:#070C16; --ink-2:#1B2A47; --paper:#0A101D; --card:#121B2D;
-  --line:#25324B; --line-2:#1C2840; --text:#E6EBF5; --muted:#9BA9C2; --faint:#74839F;
-  --cobalt:#6B86FF; --cobalt-dk:#5775F5; --cobalt-soft:#1A2750;
-  --buy:#1DB984; --buy-dk:#3DDBA4; --buy-soft:#0E2F27;
-  --sell:#F3A05A; --sell-soft:#38260F;
-  --danger:#F57878; --danger-soft:#3C1C20;
-}
-:root[data-theme="dark"] body{background:radial-gradient(900px 480px at 88% -8%,#16224A 0%,transparent 62%),radial-gradient(700px 400px at -6% 12%,#0F2A27 0%,transparent 60%),var(--paper)}
-:root[data-theme="dark"] ::placeholder{color:#6F7E99}
-:root[data-theme="dark"] .top{background:rgba(10,16,29,.84);border-bottom-color:rgba(37,50,75,.9)}
-:root[data-theme="dark"] .nav button:hover{background:#1B2640}
-:root[data-theme="dark"] .nav button[aria-current="page"]{background:#18233B;color:var(--cobalt)}
-:root[data-theme="dark"] .nav .admin-switch{background:#1B2A47;color:#fff}
-:root[data-theme="dark"] .nav .admin-switch:hover{background:#243759}
-:root[data-theme="dark"] .btn-buy:hover:not(:disabled){background:#17A074}
-:root[data-theme="dark"] .btn-sell{background:transparent;border-color:#7A5326}
-:root[data-theme="dark"] .btn-sell:hover:not(:disabled){background:var(--sell-soft)}
-:root[data-theme="dark"] .btn-ghost{background:#16213A;border-color:var(--line);color:var(--text)}
-:root[data-theme="dark"] .btn-ghost:hover:not(:disabled){background:#1B2845;border-color:#34466A}
-:root[data-theme="dark"] .btn-danger:hover:not(:disabled){background:#4A2227}
-:root[data-theme="dark"] .icon-btn:hover{background:#1B2640}
-:root[data-theme="dark"] .facts .ico,:root[data-theme="dark"] .notice,:root[data-theme="dark"] .search input,:root[data-theme="dark"] .login-card,:root[data-theme="dark"] .proof-ok,:root[data-theme="dark"] .ocard{background:#16213A}
-:root[data-theme="dark"] select{background-color:#16213A}
-:root[data-theme="dark"] .field input[type=text],:root[data-theme="dark"] .field input[type=number],:root[data-theme="dark"] .field input[type=tel],:root[data-theme="dark"] .field select,:root[data-theme="dark"] .field textarea{background:#16213A}
-:root[data-theme="dark"] .pill.gray{background:#1B2640}
-:root[data-theme="dark"] .tg:hover{background:#223165}
-:root[data-theme="dark"] .mrow:hover{background:#16213A}
-:root[data-theme="dark"] .state.off::before{background:#4B5A78;box-shadow:0 0 0 3px rgba(75,90,120,.3)}
-:root[data-theme="dark"] .skeleton{background-image:linear-gradient(90deg,#121B2D 25%,#1A2640 37%,#121B2D 63%)}
-:root[data-theme="dark"] .sh-foot{background:linear-gradient(180deg,#121B2D,#0F1727)}
-:root[data-theme="dark"] .chip{background:#16213A}
-:root[data-theme="dark"] .chip:hover,:root[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--cobalt-soft)}
-:root[data-theme="dark"] .pay{background:#16213A}
-:root[data-theme="dark"] .pay-head,:root[data-theme="dark"] .ohead,:root[data-theme="dark"] .oproof button{background:#1B2845}
-:root[data-theme="dark"] .copy{background:#16213A}
-:root[data-theme="dark"] .copy:hover{background:var(--cobalt-soft);border-color:#3A4F96}
-:root[data-theme="dark"] .copy.copied{background:var(--buy-soft);border-color:#1B5A47}
-:root[data-theme="dark"] .drop{background:#0F1727;border-color:#33446A}
-:root[data-theme="dark"] .drop:hover,:root[data-theme="dark"] .drop.over{background:var(--cobalt-soft);border-color:var(--cobalt)}
-:root[data-theme="dark"] .seg-light{background:#1B2640}
-:root[data-theme="dark"] .seg-light .thumb{background:#2B3C60}
-:root[data-theme="dark"] .seg-light button[aria-selected="true"]{color:#fff}
-:root[data-theme="dark"] .side button:hover{background:#1B2640}
-:root[data-theme="dark"] .side button[aria-current="page"]{background:#18233B;color:var(--cobalt)}
-:root[data-theme="dark"] .switch .track{background:#33446A}
-:root[data-theme="dark"] .switch input:checked+.track{background:var(--buy)}
-:root[data-theme="dark"] .av{background:hsl(var(--h) 40% 22%);color:hsl(var(--h) 75% 82%);border-color:hsl(var(--h) 35% 32%)}
-:root[data-theme="dark"] .instruct,:root[data-theme="dark"] .todo{color:#B7C4FF}
-:root[data-theme="dark"] .err,:root[data-theme="dark"] .orow .reason{color:#FFB4B4}
-:root[data-theme="dark"] .toast{background:#25324B;box-shadow:0 18px 30px -12px rgba(0,0,0,.7)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){.best{padding:18px;gap:12px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
-<!-- Icon sprite: all icons are drawn with CSS-styled SVG strokes, no emoji -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12M16 3l4 4-4 4M17 17H5M8 13l-4 4 4 4"/></symbol>
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
-  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 013-3h9"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
-  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L3 10.5l6.5 2.5L12 20z"/><path d="M9.5 13L21 3"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.6-3.3 7.8-8 9-4.7-1.2-8-4.4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
-  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
-  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
-  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
-  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h8M16 6h4M4 12h2M10 12h10M4 18h12M20 18h0"/><circle cx="14" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
-  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2M7 6l8-3v3"/></symbol>
-  <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3"/></symbol>
-  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
-  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol>
-  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></symbol>
-  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
-  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
-  <symbol id="i-back" viewBox="0 0 24 24"><path d="M10 6l-6 6 6 6M4 12h16"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></symbol>
-  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
-  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></symbol>
-</svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 4L3 11l6.5 2.5L12 20l2.5-5.5L21 4z"/><path d="M9.5 13.5L21 4"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13M13.5 4.5L17 8l-3.5 3.5M20 16H7M10.5 12.5L7 16l3.5 3.5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 9.5-4.1-1.9-7-5.3-7-9.5V6l7-3z"/><path d="M9 12l2.2 2.2L15 10.5"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4z"/><path d="M12 10v4M12 17h.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></symbol>
+</defs></svg>
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="" id="brand" aria-label="Cross P2P home">
-      <span class="brand-mark"><svg class="ic"><use href="#i-swap"/></svg></span>Cross P2P
-    </a>
-    <nav class="nav" id="nav" aria-label="Main"></nav>
+    <div class="brand"><span class="brand-mark"><svg class="ic"><use href="#i-swap"/></svg></span>Cross P2P</div>
+    <div id="navSlot"></div>
   </div>
 </header>
 
-<main id="view"></main>
+<!-- Customer view -->
+<main class="wrap" id="home">
+  <section class="intro">
+    <h1>Swap USDT and birr with a desk you choose</h1>
+    <p>Each platform sets its own rates, shown in ETB per 1 USDT. Pick a desk to buy or sell.</p>
+    <div id="best"></div>
+    <div id="notice"></div>
+  </section>
+  <h2 class="sect">Platforms</h2>
+  <div class="market" id="market"><div class="skeleton"></div><div class="skeleton"></div></div>
+</main>
 
-<footer class="site"><div class="wrap" id="footTxt">Cross P2P. Rates are set by each platform and can change at any time.</div></footer>
+<!-- Desk admin view: only filled in for verified desk admins -->
+<main class="wrap desk" id="desk" hidden></main>
 
-<!-- Order sheet -->
-<dialog id="sheet" class="sheet" aria-label="Order">
-  <div class="sh-head" id="shHead"></div>
-  <div class="sh-main">
-    <div class="sh-body" id="shBody"></div>
-    <div class="sh-foot" id="shFoot"></div>
-  </div>
-</dialog>
-
-<!-- Reject reason -->
-<dialog id="rejectDlg" class="modal">
-  <div class="modal-in">
-    <h3>Reject order</h3>
-    <p class="sub">The customer receives this reason in Telegram.</p>
-    <div class="field"><textarea id="rejectNote" maxlength="200" placeholder="Example: payment not received"></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" type="button" id="rejectCancel">Back</button>
-      <button class="btn btn-danger" type="button" id="rejectOk">Reject order</button>
-    </div>
-  </div>
-</dialog>
-
-<!-- Payment account editor -->
-<dialog id="methodDlg" class="modal">
-  <div class="modal-in">
-    <h3 id="mTitle">Payment account</h3>
-    <p class="sub">Customers see these details with a copy button.</p>
-    <div class="err" id="mErr" hidden></div>
-    <div class="field"><label for="mKind">Type</label>
-      <select id="mKind">
-        <option value="telebirr">Telebirr</option>
-        <option value="cbe">Commercial Bank of Ethiopia</option>
-        <option value="awash">Awash Bank</option>
-        <option value="abyssinia">Bank of Abyssinia</option>
-        <option value="dashen">Dashen Bank</option>
-        <option value="bank">Other bank</option>
-        <option value="usdt">USDT wallet (for sell orders)</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-    <div class="field"><label for="mLabel">Label shown to customers</label><input type="text" id="mLabel" maxlength="40" placeholder="Telebirr"></div>
-    <div class="field"><label for="mName" id="mNameLbl">Account holder name</label><input type="text" id="mName" maxlength="80"></div>
-    <div class="field"><label for="mNumber" id="mNumberLbl">Account number</label><input type="text" id="mNumber" maxlength="120" autocomplete="off"></div>
-    <div class="field" id="mNetWrap" hidden><label for="mNet">Network</label>
-      <select id="mNet"><option>TRC20</option><option>BEP20</option><option>ERC20</option><option>Other</option></select>
-    </div>
-    <div class="field"><label class="switch"><input type="checkbox" id="mActive" checked><span class="track"></span><span>Visible to customers</span></label></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger" type="button" id="mDelete" hidden>Delete</button>
-      <button class="btn btn-ghost" type="button" id="mCancel">Cancel</button>
-      <button class="btn btn-primary" type="button" id="mSave">Save</button>
-    </div>
-  </div>
-</dialog>
-
-<!-- Proof viewer -->
-<dialog id="proofDlg" class="proof-view">
-  <button class="icon-btn close" type="button" id="proofClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
-  <img id="proofImg" alt="Payment proof">
-</dialog>
-
+<dialog id="tradeSheet" class="sheet" aria-label="Trade"></dialog>
+<dialog id="proofDialog" class="proof-dialog"><button class="icon-btn" data-act="close-proof" aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button><img id="proofImg" alt="Payment proof"></dialog>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
-/* ===================================================================
-   Cross P2P client
-   - Anyone can browse the market (public endpoint).
-   - Trading and the operator console need Telegram: identity comes from
-     Telegram's signed initData, verified by the backend. The "Switch to
-     admin" button exists only when the backend says this Telegram ID is
-     an operator of at least one platform.
-   =================================================================== */
+// Set this to your backend URL (same as app.html and bingo.html)
 const API_URL = 'https://gmae-production-aa21.up.railway.app';
 
 const tg = window.Telegram && window.Telegram.WebApp;
-const qs = new URLSearchParams(location.search);
-const BOT = qs.get('b');
-const authed = !!(tg && tg.initData && BOT);
-if (tg) { try { tg.ready(); tg.expand(); } catch (_) {} }
+const params = new URLSearchParams(location.search);
+const BOT = params.get('b');
+// Orders and the admin panel need Telegram's signed login. Without it the page is a read-only price list.
+const signedIn = !!(tg && tg.initData && BOT);
+if (tg) { try { tg.ready(); tg.expand(); } catch {} }
 
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ic = (n, cls = '') => `<svg class="ic ${cls}"><use href="#i-${n}"/></svg>`;
-const fmt = (n, d = 2) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
-const fmtAmt = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
-const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-const hue = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
-const initials = (s) => String(s).replace(/[^A-Za-z0-9 ]/g, '').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || 'P';
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d=2) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits:d, maximumFractionDigits:d });
+const ic = (n, c='') => `<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const mono = n => n.trim().slice(0,2).toUpperCase();
+const when = iso => new Date(iso).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
-/* ---------- Language and theme ---------- */
-let LANG = (() => { try { return localStorage.getItem('cp_lang') === 'am' ? 'am' : 'en'; } catch (_) { return 'en'; } })();
-let THEME = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-
-const AM = {
-  'Market': 'ገበያ', 'My orders': 'ትዕዛዞቼ', 'Settings': 'ቅንብሮች', 'Switch to admin': 'ወደ አስተዳዳሪ ቀይር',
-  'Buy USDT': 'USDT ግዛ', 'Sell USDT': 'USDT ሽጥ', 'Buy': 'ግዛ', 'Sell': 'ሽጥ',
-  'Amount in USDT': 'የ USDT መጠን', 'You pay': 'ይከፍላሉ', 'You receive': 'ያገኛሉ', 'You get paid': 'ይከፈልዎታል', 'ETB to pay': 'የሚከፍሉት ብር (ETB)',
-  'Best rate': 'ምርጥ ዋጋ', 'Best rate {r} ETB from {n}': 'ምርጥ ዋጋ {r} ETB ከ{n}', 'No live rate available': 'ወቅታዊ ዋጋ የለም',
-  'Buy with {n}': 'ከ{n} ግዛ', 'Sell with {n}': 'ለ{n} ሽጥ', 'Unavailable': 'አይገኝም',
-  'Buy and sell USDT for birr, without the guesswork.': 'USDT በብር ይግዙ ይሽጡ፣ ያለ ግምት።',
-  'Compare live rates from independent platforms, pay with the account details copied in one tap, and get notified in Telegram the moment your order is confirmed.':
-    'ከተለያዩ ነጻ ፕላትፎርሞች የቀጥታ ዋጋዎችን ያወዳድሩ፣ የክፍያ መረጃውን በአንድ ንክኪ ገልብጠው ይክፈሉ፣ ትዕዛዝዎ እንደተረጋገጠ በቴሌግራም ማሳወቂያ ያግኙ።',
-  'Live rates': 'የቀጥታ ዋጋዎች', 'Every platform sets its own price and limits.': 'እያንዳንዱ ፕላትፎርም የራሱን ዋጋና ገደብ ያወጣል።',
-  'One-tap copy': 'በአንድ ንክኪ ቅዳ', 'Account names, numbers and wallet addresses copy instantly.': 'የመለያ ስሞች፣ ቁጥሮች እና የዋሌት አድራሻዎች ወዲያውኑ ይገለበጣሉ።',
-  'Proof on every order': 'በእያንዳንዱ ትዕዛዝ ማስረጃ', 'Upload your payment screenshot and track the review.': 'የክፍያ ስክሪንሾትዎን ይጫኑ እና ግምገማውን ይከታተሉ።',
-  'You are browsing as a guest. Open this page from the bot inside Telegram to place orders.': 'እንደ እንግዳ እየተመለከቱ ነው። ትዕዛዝ ለማስያዝ ይህንን ገጽ በቴሌግራም ውስጥ ከቦቱ ይክፈቱ።',
-  'Live market': 'የቀጥታ ገበያ', '{n} platform listed': '{n} ፕላትፎርም ተዘርዝሯል', '{n} platforms listed': '{n} ፕላትፎርሞች ተዘርዝረዋል',
-  'Platforms and their current prices': 'ፕላትፎርሞች እና ወቅታዊ ዋጋዎቻቸው',
-  'Search platforms': 'ፕላትፎርም ፈልግ', 'Best price to buy': 'ለመግዛት ምርጥ ዋጋ', 'Best price to sell': 'ለመሸጥ ምርጥ ዋጋ', 'Name': 'ስም',
-  'You buy USDT at': 'USDT የሚገዙበት ዋጋ', 'You sell USDT at': 'USDT የሚሸጡበት ዋጋ', 'Not offered': 'አይቀርብም',
-  'Paused': 'ቆሟል', 'Online': 'ንቁ', '{a} to {b} USDT': 'ከ{a} እስከ {b} USDT',
-  'No platforms listed yet': 'ገና ምንም ፕላትፎርም አልተዘረዘረም', 'Check back soon.': 'በቅርቡ ተመልሰው ይመልከቱ።',
-  'No match': 'ምንም አልተገኘም', 'Try a different name.': 'ሌላ ስም ይሞክሩ።', 'Could not load the market': 'ገበያውን መጫን አልተቻለም',
-  'Cross P2P. Rates are set by each platform and can change at any time.': 'Cross P2P። ዋጋዎች በእያንዳንዱ ፕላትፎርም የሚወሰኑ ሲሆን በማንኛውም ጊዜ ሊቀየሩ ይችላሉ።',
-  /* order form */
-  'Rate': 'ዋጋ', '{x} ETB per USDT': '{x} ETB ለ1 USDT', 'Limits': 'ገደብ',
-  'Your Binance UID': 'የእርስዎ Binance UID',
-  'We send your USDT to this Binance UID after your payment is approved. Double check it.': 'ክፍያዎ ከጸደቀ በኋላ USDT ወደዚህ Binance UID እንልካለን። በደንብ ያረጋግጡ።',
-  'Your Telebirr phone number': 'የእርስዎ የቴሌብር ስልክ ቁጥር', 'Your full name': 'ሙሉ ስምዎ', 'Name on your Telebirr account': 'በቴሌብር መለያዎ ላይ ያለ ስም',
-  'We send your birr to this Telebirr number after your USDT arrives.': 'USDT ከደረሰን በኋላ ብርዎን ወደዚህ የቴሌብር ቁጥር እንልካለን።',
-  'Continue': 'ቀጥል', 'Creating order...': 'ትዕዛዝ እየተፈጠረ ነው...',
-  'Enter the amount of USDT.': 'የ USDT መጠን ያስገቡ።', 'Amount must be between {a} and {b} USDT.': 'መጠኑ ከ{a} እስከ {b} USDT መካከል መሆን አለበት።',
-  'Enter your Binance UID (numbers only).': 'Binance UID ያስገቡ (ቁጥሮች ብቻ)።', 'Enter a valid Telebirr phone number.': 'ትክክለኛ የቴሌብር ስልክ ቁጥር ያስገቡ።', 'Enter your full name.': 'ሙሉ ስምዎን ያስገቡ።',
-  'Open this page from the bot in Telegram to place an order.': 'ትዕዛዝ ለማስያዝ ይህንን ገጽ በቴሌግራም ውስጥ ከቦቱ ይክፈቱ።',
-  'This platform is not available right now.': 'ይህ ፕላትፎርም አሁን አይገኝም።',
-  /* pay step */
-  'Send exactly {amt} USDT to the Binance UID below, then upload your Binance transfer screenshot.': 'በትክክል {amt} USDT ከታች ወዳለው Binance UID ይላኩ፣ ከዚያ የ Binance ዝውውር ስክሪንሾት ይጫኑ።',
-  'Send exactly {amt} ETB to Telebirr or CBE below, then upload your payment screenshot.': 'በትክክል {amt} ብር (ETB) ከታች ወዳለው ቴሌብር ወይም ንግድ ባንክ ይላኩ፣ ከዚያ የክፍያ ስክሪንሾት ይጫኑ።',
-  'Exact amount to send': 'በትክክል የሚላክ መጠን', 'Order reference': 'የትዕዛዝ ቁጥር', 'Send USDT to': 'USDT ወደዚህ ይላኩ', 'Pay to': 'ክፍያ ወደ',
-  'No payment account yet': 'ገና የክፍያ መለያ የለም', 'No Binance UID yet': 'ገና Binance UID የለም',
-  'This platform has not added a Telebirr or bank account. Contact them before paying.': 'ይህ ፕላትፎርም ገና የቴሌብር ወይም የባንክ መለያ አላስገባም። ከመክፈልዎ በፊት ያነጋግሯቸው።',
-  'This platform has not added its Binance UID. Contact them before paying.': 'ይህ ፕላትፎርም ገና Binance UID አላስገባም። ከመክፈልዎ በፊት ያነጋግሯቸው።',
-  'Wallet name': 'የዋሌት ስም', 'Account name': 'የመለያ ስም', 'Wallet address': 'የዋሌት አድራሻ', 'Account number': 'የመለያ ቁጥር',
-  'Payment proof': 'የክፍያ ማስረጃ',
-  'Upload a screenshot of your Telebirr or bank payment. Images are compressed before upload.': 'የቴሌብር ወይም የባንክ ክፍያዎን ስክሪንሾት ይጫኑ። ምስሎች ከመጫናቸው በፊት ይጨመቃሉ።',
-  'Upload a screenshot of your Binance transfer. Images are compressed before upload.': 'የ Binance ዝውውርዎን ስክሪንሾት ይጫኑ። ምስሎች ከመጫናቸው በፊት ይጨመቃሉ።',
-  'Upload Binance transfer screenshot': 'የ Binance ዝውውር ስክሪንሾት ይጫኑ', 'Upload payment screenshot': 'የክፍያ ስክሪንሾት ይጫኑ',
-  'Tap to choose, or drop an image here': 'ለመምረጥ ይንኩ ወይም ምስል እዚህ ይጣሉ',
-  'Screenshot ready': 'ስክሪንሾት ዝግጁ ነው', '{n} KB after compression': 'ከመጭመቅ በኋላ {n} KB', 'Change': 'ቀይር',
-  'I have paid, submit proof': 'ከፍያለሁ፣ ማስረጃ አስገባ', 'Uploading...': 'እየተጫነ ነው...', 'Cancel this order': 'ይህን ትዕዛዝ ሰርዝ',
-  'Copy': 'ቅዳ', 'Copied': 'ተገልብጧል', 'Could not copy. Select the text and copy it manually.': 'መቅዳት አልተቻለም። ጽሑፉን መርጠው በእጅ ይቅዱ።',
-  'Choose an image file.': 'የምስል ፋይል ይምረጡ።', 'Image is too large.': 'ምስሉ በጣም ትልቅ ነው።',
-  'This image format is not supported. Use a JPG or PNG screenshot.': 'ይህ የምስል አይነት አይደገፍም። JPG ወይም PNG ስክሪንሾት ይጠቀሙ።', 'Could not process this image.': 'ምስሉን ማስተናገድ አልተቻለም።',
-  'Order cancelled': 'ትዕዛዙ ተሰርዟል',
-  'Proof submitted': 'ማስረጃ ገብቷል', 'The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.': 'ፕላትፎርሙ ክፍያዎን ይገመግማል። ትዕዛዙ እንደተረጋገጠ የቴሌግራም መልዕክት ይደርስዎታል።',
-  'View my orders': 'ትዕዛዞቼን እይ', 'Back to market': 'ወደ ገበያ ተመለስ',
-  /* my orders */
-  'Your latest 30 orders across all platforms.': 'በሁሉም ፕላትፎርሞች የእርስዎ የቅርብ ጊዜ 30 ትዕዛዞች።', 'Platform': 'ፕላትፎርም', 'at {x}': '@ {x}',
-  'No orders yet': 'ገና ምንም ትዕዛዝ የለም', 'Pick a platform in the market to place your first order.': 'የመጀመሪያ ትዕዛዝዎን ለማስያዝ ከገበያው ፕላትፎርም ይምረጡ።',
-  'Awaiting proof': 'ማስረጃ በመጠበቅ ላይ', 'Pending': 'በመጠባበቅ ላይ', 'Approved': 'ጸድቋል', 'Rejected': 'ውድቅ ሆኗል', 'Cancelled': 'ተሰርዟል',
-  /* settings */
-  'Choose the language and look of the app.': 'የመተግበሪያውን ቋንቋ እና ገጽታ ይምረጡ።', 'Language': 'ቋንቋ', 'The app will show in the language you choose.': 'መተግበሪያው በመረጡት ቋንቋ ይታያል።',
-  'Theme': 'ገጽታ', 'Switch between a light and a dark look.': 'በብሩህ እና በጨለማ ገጽታ መካከል ይቀያይሩ።', 'Light': 'ብሩህ', 'Dark': 'ጨለማ',
-  /* server messages */
-  'Something went wrong. Please try again.': 'የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።',
-  'This platform is not available.': 'ይህ ፕላትፎርም አሁን አይገኝም።', 'This platform is paused right now.': 'ይህ ፕላትፎርም ለጊዜው ቆሟል።',
-  'You have too many unfinished orders. Complete or cancel one first.': 'ብዙ ያልተጠናቀቁ ትዕዛዞች አሉዎት። መጀመሪያ አንዱን ያጠናቅቁ ወይም ይሰርዙ።',
-  'This platform has not set its Binance UID yet. Please try again later.': 'ይህ ፕላትፎርም ገና Binance UID አላስቀመጠም። እባክዎ በኋላ ይሞክሩ።',
-  'Enter a valid USDT amount.': 'ትክክለኛ የ USDT መጠን ያስገቡ።', 'Upload a JPG, PNG or WEBP image.': 'JPG፣ PNG ወይም WEBP ምስል ይጫኑ።',
-  'Image is too large (max 4 MB).': 'ምስሉ በጣም ትልቅ ነው (ቢበዛ 4 MB)።', 'This order can no longer be cancelled.': 'ይህ ትዕዛዝ ከዚህ በኋላ ሊሰረዝ አይችልም።',
-  'This order is already closed.': 'ይህ ትዕዛዝ ቀድሞውኑ ተዘግቷል።', 'Order not found.': 'ትዕዛዙ አልተገኘም።',
-};
-
-// Translate an English source string. {name} placeholders are filled from vars.
-function T(str, vars) {
-  let out = (LANG === 'am' && AM[str]) || str;
-  if (vars) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
-  return out;
-}
-const emptyBox = (a, b) => `<div class="empty"><strong>${T(a)}</strong>${T(b)}</div>`;
-
-function applyStatic() {
-  document.documentElement.lang = LANG;
-  const f = $('footTxt'); if (f) f.textContent = T('Cross P2P. Rates are set by each platform and can change at any time.');
-}
-function applyTheme() {
-  document.documentElement.dataset.theme = THEME;
-  try {
-    if (tg) {
-      const c = THEME === 'dark' ? '#0A101D' : '#F3F5F9';
-      tg.setHeaderColor(c); tg.setBackgroundColor(c);
-    }
-  } catch (_) {}
-}
-function setLang(l) {
-  LANG = l === 'am' ? 'am' : 'en';
-  try { localStorage.setItem('cp_lang', LANG); } catch (_) {}
-  applyStatic(); render();
-}
-function setTheme(t) {
-  THEME = t === 'dark' ? 'dark' : 'light';
-  try { localStorage.setItem('cp_theme', THEME); } catch (_) {}
-  applyTheme(); render();
-}
-
-const KIND_ABBR = { telebirr: 'TB', cbe: 'CBE', awash: 'AWB', abyssinia: 'BOA', dashen: 'DSH', bank: 'BANK', usdt: 'USDT', other: 'PAY' };
-const STATUS = {
-  open:      { text: 'Awaiting proof', cls: 'warn' },
-  submitted: { text: 'Pending', cls: 'blue' },
-  completed: { text: 'Approved', cls: '' },
-  rejected:  { text: 'Rejected', cls: 'red' },
-  cancelled: { text: 'Cancelled', cls: 'gray' },
-};
-
-/* ---------- API ---------- */
-async function api(path, opt = {}) {
-  const headers = {};
-  if (authed) headers.Authorization = `tma ${tg.initData}`;
-  let body;
-  if (opt.blob) { headers['Content-Type'] = opt.blob.type; body = opt.blob; }
-  else if (opt.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(opt.body); }
-  const res = await fetch(API_URL + path, { method: opt.method || 'GET', headers, body });
+async function api(path, method='GET', body){
+  const res = await fetch(API_URL + path, {
+    method,
+    headers: { 'Content-Type':'application/json', ...(signedIn ? { Authorization:`tma ${tg.initData}` } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(T(data.error || 'Something went wrong. Please try again.'));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
   return data;
 }
-const mini = (p) => `/api/mini/${encodeURIComponent(BOT)}/p2p${p}`;
 
-/* ---------- Toasts and clipboard ---------- */
-function toast(text, type = 'ok') {
+function toast(msg, type='ok'){
   const el = document.createElement('div');
-  el.className = `toast ${type === 'error' ? 'error' : ''}`;
-  el.innerHTML = `${ic(type === 'error' ? 'info' : 'check', 'sm')}<span>${esc(text)}</span>`;
-  $('toasts').appendChild(el);
+  el.className = 'toast ' + type;
+  el.innerHTML = ic(type === 'error' ? 'alert' : 'check') + `<span>${esc(msg)}</span>`;
+  $('#toasts').appendChild(el);
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 260); }, 2600);
 }
+function confirmAsk(msg){
+  return new Promise(res => (tg && tg.showConfirm) ? tg.showConfirm(msg, ok => res(!!ok)) : res(confirm(msg)));
+}
 
-async function copyText(text) {
-  try { await navigator.clipboard.writeText(text); return true; }
-  catch (_) {
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch {
     const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    ta.value = t; ta.style.cssText = 'position:fixed;opacity:0';
     document.body.appendChild(ta); ta.select();
-    let ok = false;
-    try { ok = document.execCommand('copy'); } catch (_) {}
-    ta.remove();
-    return ok;
+    let ok = false; try { ok = document.execCommand('copy'); } catch {}
+    ta.remove(); return ok;
   }
 }
+const copyBtn = (val, label, xs) => `<button type="button" class="copy ${xs?'xs':''}" data-copy="${esc(val)}" data-label="${esc(label)}" aria-label="Copy ${esc(label)}">${ic('copy','sm')}<span>Copy</span></button>`;
+const copyRow = (label, value, raw, id) => `<div class="copyrow"><div><span class="k">${esc(label)}</span><span class="v" ${id?`id="${id}"`:''}>${esc(value)}</span></div>${copyBtn(raw ?? value, label)}</div>`;
 
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('[data-copy]');
-  if (btn) {
-    const ok = await copyText(btn.dataset.copy);
-    if (!ok) return toast(T('Could not copy. Select the text and copy it manually.'), 'error');
-    const label = btn.querySelector('.cl');
-    btn.classList.add('copied');
-    if (label) label.textContent = T('Copied');
-    setTimeout(() => { btn.classList.remove('copied'); if (label) label.textContent = T('Copy'); }, 1600);
-    return;
-  }
-  const link = e.target.closest('a.tg');
-  if (link && tg) { e.preventDefault(); tg.openTelegramLink(link.href); }
+// Chat link to a desk or customer. A username is preferred, the numeric ID is the fallback.
+function chatLink(username, id, text){
+  if (username) return `https://t.me/${username}` + (text ? `?text=${encodeURIComponent(text)}` : '');
+  return `tg://user?id=${id}`;
+}
+const chatLabel = (username, id) => username ? '@' + username : 'ID ' + id;
+const chip = (username, id, text) => `<a class="tg" data-tg href="${esc(chatLink(username, id, text))}" target="_blank" rel="noopener">${ic('send','sm')}${esc(chatLabel(username, id))}</a>`;
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-tg]');
+  if (a && tg && tg.openTelegramLink && /^https:\/\/t\.me\//.test(a.href)) { e.preventDefault(); tg.openTelegramLink(a.href); }
 });
 
-const copyBtn = (value, cls = '') =>
-  `<button type="button" class="copy ${cls}" data-copy="${esc(value)}">${ic('copy', 'sm')}<span class="cl">${T('Copy')}</span></button>`;
-
-/* ---------- State ---------- */
-const S = {
-  market: [], marketLoaded: false, marketErr: '',
-  me: null,
-  view: 'market',                      // market | orders | admin
-  q: '', sort: 'buy',
-  conv: { mode: 'buy', amt: '100' },
-  orders: [], ordersLoaded: false,
-  admin: { list: [], pid: null, tab: 'orders', filter: 'review', orders: [], loading: false },
-};
-const isOperator = () => !!(S.me && S.me.admin_platforms && S.me.admin_platforms.length);
-
-/* ---------- Header ---------- */
-function renderNav() {
-  const item = (v, icon, label) =>
-    `<button type="button" data-nav="${v}" ${S.view === v ? 'aria-current="page"' : ''}>${ic(icon)}<span class="lbl">${label}</span></button>`;
-  let h = '';
-  if (S.view === 'admin') {
-    h += `<button type="button" class="keep" data-nav="market">${ic('back')}<span class="lbl">Back to market</span></button>`;
-  } else {
-    h += item('market', 'store', T('Market'));
-    if (authed) h += item('orders', 'list', T('My orders'));
-    h += item('settings', 'gear', T('Settings'));
-    if (isOperator()) h += `<button type="button" class="admin-switch" data-nav="admin">${ic('sliders')}<span class="lbl">${T('Switch to admin')}</span></button>`;
-  }
-  $('nav').innerHTML = h;
-}
-
-document.addEventListener('click', (e) => {
-  const n = e.target.closest('[data-nav]');
-  if (n) go(n.dataset.nav);
-});
-$('brand').addEventListener('click', (e) => { e.preventDefault(); go('market'); });
-
-function go(v) {
-  if (v === 'admin' && !isOperator()) return;
-  if (v === 'orders' && !authed) return;
-  S.view = v;
-  stopAdminPoll();
-  render();
-  window.scrollTo({ top: 0 });
-  if (v === 'orders') loadOrders();
-  if (v === 'admin') loadAdmin();
-}
-
-function render() {
-  renderNav();
-  if (S.view === 'orders') return renderOrders();
-  if (S.view === 'admin') return renderAdmin();
-  if (S.view === 'settings') return renderSettings();
-  renderMarket();
-}
-
-/* ===================================================================
-   MARKET
-   =================================================================== */
-async function loadMarket() {
-  try {
-    S.market = await api('/api/p2p/market');
-    S.marketErr = '';
-  } catch (e) { S.marketErr = e.message; }
-  S.marketLoaded = true;
-  if (S.view !== 'market') return;
-  // Background refresh: update only the list (and the converter when it is not being typed in)
-  // so the search box and amount field keep focus.
-  if ($('marketList')) {
-    $('marketList').innerHTML = marketBody();
-    if (document.activeElement !== $('convAmt')) renderConv();
-  } else renderMarket();
-}
-
-function bestRates() {
-  const live = S.market.filter((p) => !p.paused);
-  const buy = live.filter((p) => p.buy_rate > 0).sort((a, b) => a.buy_rate - b.buy_rate)[0] || null;
-  const sell = live.filter((p) => p.sell_rate > 0).sort((a, b) => b.sell_rate - a.sell_rate)[0] || null;
-  return { buy, sell };
-}
-
-function sortedMarket() {
-  const q = S.q.trim().toLowerCase();
-  let rows = S.market.filter((p) => !q || p.name.toLowerCase().includes(q));
-  const live = (p) => (p.paused ? 1 : 0);
-  rows = rows.slice().sort((a, b) => {
-    if (live(a) !== live(b)) return live(a) - live(b);
-    if (S.sort === 'sell') return (b.sell_rate || 0) - (a.sell_rate || 0);
-    if (S.sort === 'name') return a.name.localeCompare(b.name);
-    return (a.buy_rate || Infinity) - (b.buy_rate || Infinity);
+function readImage(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onerror = rej;
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = rej;
+      img.onload = () => {
+        const s = Math.min(1, 1000 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        let q = .75, out = c.toDataURL('image/jpeg', q);
+        while (out.length > 700000 && q > .35) { q -= .1; out = c.toDataURL('image/jpeg', q); }
+        res(out);
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
   });
-  return rows;
 }
 
-const avatar = (p, cls = '') => p.logo_url
-  ? `<span class="av ${cls}" style="--h:${hue(p.name)}"><img src="${esc(p.logo_url)}" alt="" loading="lazy"></span>`
-  : `<span class="av ${cls}" style="--h:${hue(p.name)}">${esc(initials(p.name))}</span>`;
+/* ===================== Customer: price list ===================== */
+let platforms = [], botPlatformId = null, isAdmin = false;
 
-const tgChip = (p) => p.tg_username
-  ? `<a class="tg" href="https://t.me/${esc(p.tg_username)}" target="_blank" rel="noopener">${ic('send', 'sm')}@${esc(p.tg_username)}</a>` : '';
-
-function marketRow(p) {
-  const rate = (cls, label, val, hint) => `
-    <div class="rate ${cls} ${val > 0 ? '' : 'na'}">
-      <div class="k">${label}</div>
-      <div class="n">${val > 0 ? fmt(val) : T('Not offered')}${val > 0 ? '<small>ETB</small>' : ''}</div>
-      <div class="lim">${val > 0 ? hint : ''}</div>
-    </div>`;
-  const lim = T('{a} to {b} USDT', { a: fmtAmt(p.min_usdt), b: fmtAmt(p.max_usdt) });
-  return `
-    <article class="mrow" data-paused="${p.paused}">
-      <div class="ident">
-        ${avatar(p)}
-        <div class="ident-text">
-          <strong>${esc(p.name)}<span class="state ${p.paused ? 'off' : ''}">${T(p.paused ? 'Paused' : 'Online')}</span></strong>
-          ${p.note ? `<div class="note-line">${esc(p.note)}</div>` : ''}
-          ${tgChip(p)}
-        </div>
-      </div>
-      ${rate('buy', T('You buy USDT at'), p.buy_rate, lim)}
-      ${rate('sell', T('You sell USDT at'), p.sell_rate, lim)}
-      <div class="macts">
-        <button class="btn btn-buy sm" data-trade="buy" data-id="${p.id}" ${p.paused || !(p.buy_rate > 0) ? 'disabled' : ''}>${T('Buy')}</button>
-        <button class="btn btn-sell sm" data-trade="sell" data-id="${p.id}" ${p.paused || !(p.sell_rate > 0) ? 'disabled' : ''}>${T('Sell')}</button>
-      </div>
-    </article>`;
-}
-
-function renderMarket() {
-  const rows = sortedMarket();
-  let list;
-  if (!S.marketLoaded) list = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-  else if (S.marketErr) list = `<div class="empty"><strong>${T('Could not load the market')}</strong>${esc(S.marketErr)}</div>`;
-  else if (!S.market.length) list = emptyBox('No platforms listed yet', 'Check back soon.');
-  else if (!rows.length) list = emptyBox('No match', 'Try a different name.');
-  else list = rows.map(marketRow).join('');
-
-  $('view').innerHTML = `
-    <div class="wrap">
-      <section class="hero">
-        
-        <div class="conv" id="conv"></div>
-      </section>
-
-      ${authed ? '' : `<div class="notice">${ic('info')}<span>${T('You are browsing as a guest. Open this page from the bot inside Telegram to place orders.')}</span></div>`}
-
-      <section>
-        <div class="market-head">
-          <div><h2>${T('Live market')}</h2><p>${S.market.length ? T(S.market.length === 1 ? '{n} platform listed' : '{n} platforms listed', { n: S.market.length }) : T('Platforms and their current prices')}</p></div>
-          <div class="tools">
-            <label class="search">${ic('search')}<input id="q" type="search" placeholder="${T('Search platforms')}" value="${esc(S.q)}" aria-label="${T('Search platforms')}"></label>
-            <select id="sort" aria-label="Sort">
-              <option value="buy" ${S.sort === 'buy' ? 'selected' : ''}>${T('Best price to buy')}</option>
-              <option value="sell" ${S.sort === 'sell' ? 'selected' : ''}>${T('Best price to sell')}</option>
-              <option value="name" ${S.sort === 'name' ? 'selected' : ''}>${T('Name')}</option>
-            </select>
-          </div>
-        </div>
-        <div class="market" id="marketList">${list}</div>
-      </section>
-    </div>`;
-
-  renderConv();
-  $('q').oninput = (e) => { S.q = e.target.value; $('marketList').innerHTML = marketBody(); };
-  $('sort').onchange = (e) => { S.sort = e.target.value; $('marketList').innerHTML = marketBody(); };
-}
-
-function marketBody() {
-  const rows = sortedMarket();
-  if (!S.market.length) return emptyBox('No platforms listed yet', 'Check back soon.');
-  return rows.length ? rows.map(marketRow).join('') : emptyBox('No match', 'Try a different name.');
-}
-
-/* ---------- Converter ---------- */
-function renderConv() {
-  const best = bestRates();
-  const m = S.conv.mode;
-  const p = m === 'buy' ? best.buy : best.sell;
-  const amt = Number(S.conv.amt) || 0;
-  const rate = p ? (m === 'buy' ? p.buy_rate : p.sell_rate) : 0;
-  $('conv').innerHTML = `
-    <div class="seg" data-mode="${m}" role="tablist">
-      <span class="thumb"></span>
-      <button type="button" role="tab" data-cm="buy" aria-selected="${m === 'buy'}">${T('Buy USDT')}</button>
-      <button type="button" role="tab" data-cm="sell" aria-selected="${m === 'sell'}">${T('Sell USDT')}</button>
-    </div>
-    <label class="clabel" for="convAmt">${T('Amount in USDT')}</label>
-    <div class="cfield"><input id="convAmt" inputmode="decimal" autocomplete="off" value="${esc(S.conv.amt)}"><span class="unit">USDT</span></div>
-    <div class="cresult">
-      <span>${T(m === 'buy' ? 'You pay' : 'You receive')}</span>
-      <div><strong id="convOut">${rate ? fmt(amt * rate) : '0.00'}</strong><span class="unit">ETB</span></div>
-    </div>
-    <div class="crate">
-      <span>${p ? T('Best rate {r} ETB from {n}', { r: `<b>${fmt(rate)}</b>`, n: `<b>${esc(p.name)}</b>` }) : T('No live rate available')}</span>
-      ${p ? `<span class="pill">${T('Best rate')}</span>` : ''}
-    </div>
-    <button class="btn btn-primary btn-block" id="convGo" ${p ? '' : 'disabled'}>${p ? T(m === 'buy' ? 'Buy with {n}' : 'Sell with {n}', { n: esc(p.name) }) : T('Unavailable')}</button>`;
-
-  document.querySelectorAll('[data-cm]').forEach((b) => (b.onclick = () => { S.conv.mode = b.dataset.cm; renderConv(); }));
-  $('convAmt').oninput = (e) => {
-    S.conv.amt = e.target.value.replace(/[^\d.]/g, '');
-    const r = rate ? (Number(S.conv.amt) || 0) * rate : 0;
-    $('convOut').textContent = fmt(r);
-  };
-  $('convGo').onclick = () => { if (p) openOrder(p.id, m, Number(S.conv.amt) || ''); };
-}
-
-document.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-trade]');
-  if (b) openOrder(Number(b.dataset.id), b.dataset.trade);
-});
-
-/* ===================================================================
-   ORDER SHEET (create order, pay with copy, upload proof)
-   =================================================================== */
-const SH = { p: null, side: 'buy', amt: '', method: '', details: '', name: '', binanceUid: '', order: null, methods: [], step: 'form', busy: false, err: '', proof: null, proofUrl: '' };
-const BUY_NETWORKS = ['TRC20', 'BEP20', 'ERC20', 'Other'];
-const SELL_BANKS = ['Telebirr', 'Commercial Bank of Ethiopia', 'Awash Bank', 'Bank of Abyssinia', 'Dashen Bank', 'Other bank'];
-
-function openOrder(pid, side, amt = '') {
-  if (!authed) return toast(T('Open this page from the bot in Telegram to place an order.'), 'error');
-  const p = S.market.find((x) => x.id === pid);
-  if (!p) return;
-  Object.assign(SH, { p, side, amt: amt ? String(amt) : '', details: '', name: '', binanceUid: '', order: null, methods: [], step: 'form', busy: false, err: '', proof: null, proofUrl: '' });
-  renderSheet();
-  if (!$('sheet').open) $('sheet').showModal();
-}
-
-async function resumeOrder(o) {
-  const p = S.market.find((x) => x.id === o.platform_id);
-  if (!p) return toast(T('This platform is not available right now.'), 'error');
-  Object.assign(SH, { p, side: o.side, amt: String(o.amount_usdt), order: o, binanceUid: '', step: 'pay', busy: false, err: '', proof: null, proofUrl: '' });
-  renderSheet();
-  if (!$('sheet').open) $('sheet').showModal();
-  await loadMethods();
-}
-
-function closeSheet() {
-  if (SH.proofUrl) URL.revokeObjectURL(SH.proofUrl);
-  SH.proofUrl = ''; SH.proof = null;
-  $('sheet').close();
-}
-
-const shRate = () => (SH.side === 'buy' ? SH.p.buy_rate : SH.p.sell_rate);
-const shTotal = () => Math.round((Number(SH.amt) || 0) * shRate() * 100) / 100;
-
-function renderSheet() {
-  const p = SH.p;
-  $('shHead').innerHTML = `
-    ${avatar(p)}
-    <div class="ident-text"><h2>${esc(p.name)}</h2><span class="state ${p.paused ? 'off' : ''}">${T(p.paused ? 'Paused' : 'Online')}</span></div>
-    <button class="icon-btn" type="button" id="shClose" aria-label="Close">${ic('x')}</button>`;
-  $('shClose').onclick = closeSheet;
-
-  if (SH.step === 'form') return renderForm();
-  if (SH.step === 'pay') return renderPay();
-  renderDone();
-}
-
-function renderForm() {
-  const p = SH.p, buy = SH.side === 'buy';
-  const canBuy = p.buy_rate > 0, canSell = p.sell_rate > 0;
-  const quick = [25, 50, 100, 250, 500, 1000].filter((n) => n >= p.min_usdt && n <= p.max_usdt).slice(0, 4);
-  $('shBody').innerHTML = `
-    <div class="seg seg-light" data-mode="${SH.side}" role="tablist">
-      <span class="thumb"></span>
-      <button type="button" role="tab" data-side="buy" aria-selected="${buy}" ${canBuy ? '' : 'disabled'}>${T('Buy USDT')}</button>
-      <button type="button" role="tab" data-side="sell" aria-selected="${!buy}" ${canSell ? '' : 'disabled'}>${T('Sell USDT')}</button>
-    </div>
-    <div class="summary">
-      <div><span>${T('Rate')}</span><b>${T('{x} ETB per USDT', { x: fmt(shRate()) })}</b></div>
-      <div><span>${T('Limits')}</span><b>${T('{a} to {b} USDT', { a: fmtAmt(p.min_usdt), b: fmtAmt(p.max_usdt) })}</b></div>
-    </div>
-    <div class="field">
-      <label for="shAmt">${T('Amount in USDT')}</label>
-      <div class="inwrap"><input type="text" id="shAmt" inputmode="decimal" autocomplete="off" value="${esc(SH.amt)}" placeholder="0.00"><span class="suffix">USDT</span></div>
-      ${quick.length ? `<div class="chips">${quick.map((n) => `<button type="button" class="chip" data-q="${n}">${n}</button>`).join('')}<button type="button" class="chip" data-q="${p.max_usdt}">Max</button></div>` : ''}
-    </div>
-    ${buy ? `
-    <div class="field">
-      <label for="shDetails">${T('Your Binance UID')}</label>
-      <input type="text" id="shDetails" inputmode="numeric" autocomplete="off" value="${esc(SH.details)}" placeholder="e.g. 123456789">
-      <div class="hint">${T('We send your USDT to this Binance UID after your payment is approved. Double check it.')}</div>
-    </div>` : `
-    <div class="field">
-      <label for="shDetails">${T('Your Telebirr phone number')}</label>
-      <input type="tel" id="shDetails" inputmode="tel" autocomplete="off" value="${esc(SH.details)}" placeholder="09xxxxxxxx">
-    </div>
-    <div class="field">
-      <label for="shName">${T('Your full name')}</label>
-      <input type="text" id="shName" autocomplete="off" maxlength="80" value="${esc(SH.name)}" placeholder="${T('Name on your Telebirr account')}">
-      <div class="hint">${T('We send your birr to this Telebirr number after your USDT arrives.')}</div>
-    </div>`}`;
-  $('shFoot').innerHTML = `
-    <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
-    <div class="foot-total"><span>${T(buy ? 'ETB to pay' : 'You receive')}</span><strong id="shTotal">${fmt(shTotal())} ETB</strong></div>
-    <button class="btn btn-primary btn-block" type="button" id="shNext" ${SH.busy ? 'disabled' : ''}>${SH.busy ? T('Creating order...') : T('Continue')}</button>`;
-
-  $('shBody').querySelectorAll('[data-side]').forEach((b) => (b.onclick = () => {
-    if (b.disabled || SH.side === b.dataset.side) return;
-    SH.side = b.dataset.side; SH.details = ''; SH.name = ''; SH.err = '';
-    renderForm();
-  }));
-  $('shBody').querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { SH.amt = b.dataset.q; $('shAmt').value = SH.amt; $('shTotal').textContent = `${fmt(shTotal())} ETB`; }));
-  $('shAmt').oninput = (e) => { SH.amt = e.target.value.replace(/[^\d.]/g, ''); e.target.value = SH.amt; $('shTotal').textContent = `${fmt(shTotal())} ETB`; };
-  $('shDetails').oninput = (e) => {
-    if (SH.side === 'buy') e.target.value = e.target.value.replace(/\D/g, '');
-    SH.details = e.target.value; e.target.removeAttribute('aria-invalid');
-  };
-  const nm = $('shName');
-  if (nm) nm.oninput = (e) => { SH.name = e.target.value; e.target.removeAttribute('aria-invalid'); };
-  $('shNext').onclick = createOrder;
-}
-
-async function createOrder() {
-  const amount = Number(SH.amt);
-  const fail = (msg, field) => { SH.err = msg; renderForm(); if (field) { const f = $(field); if (f) { f.setAttribute('aria-invalid', 'true'); f.focus(); } } };
-  if (!(amount > 0)) return fail(T('Enter the amount of USDT.'), 'shAmt');
-  if (amount < SH.p.min_usdt || amount > SH.p.max_usdt) return fail(T('Amount must be between {a} and {b} USDT.', { a: fmtAmt(SH.p.min_usdt), b: fmtAmt(SH.p.max_usdt) }), 'shAmt');
-  if (SH.side === 'buy') {
-    if (!/^\d{5,15}$/.test(SH.details.trim())) return fail(T('Enter your Binance UID (numbers only).'), 'shDetails');
-  } else {
-    if (!/^\+?\d{9,13}$/.test(SH.details.replace(/[\s-]/g, ''))) return fail(T('Enter a valid Telebirr phone number.'), 'shDetails');
-    if (SH.name.trim().length < 2) return fail(T('Enter your full name.'), 'shName');
+async function loadHome(){
+  try {
+    const d = await api(signedIn ? `/api/p2p/${BOT}/home` : '/api/p2p/public');
+    platforms = d.platforms || []; botPlatformId = d.bot_platform_id || null; isAdmin = !!d.is_admin;
+    renderHome();
+    renderNav();
+    if (isAdmin && params.get('desk') === '1') openDesk();
+  } catch (e) {
+    $('#market').innerHTML = `<div class="empty"><strong>Could not load rates</strong>${esc(e.message)}<br><button class="btn btn-ghost sm" style="margin-top:14px" data-act="retry">Try again</button></div>`;
   }
-
-  SH.busy = true; SH.err = ''; renderForm();
-  try {
-    SH.order = await api(mini('/orders'), { method: 'POST', body: { platform_id: SH.p.id, side: SH.side, amount_usdt: amount, payout_method: SH.side === 'buy' ? 'binance' : 'telebirr', payout_details: SH.details.trim(), payout_name: SH.side === 'sell' ? SH.name.trim() : '' } });
-    SH.busy = false; SH.step = 'pay'; renderSheet();
-    await loadMethods();
-  } catch (e) { SH.busy = false; SH.err = e.message; renderForm(); }
 }
 
-async function loadMethods() {
-  try {
-    const r = await api(mini(`/platforms/${SH.p.id}/payment?side=${SH.side}`));
-    SH.methods = r.methods;
-    SH.binanceUid = r.binance_uid || '';
-  } catch (e) { SH.methods = []; SH.binanceUid = ''; SH.err = e.message; }
-  if (SH.step === 'pay') renderPay();
+function renderNav(){
+  // The Admin switch only exists in the page for verified desk admins.
+  $('#navSlot').innerHTML = isAdmin
+    ? `<button class="deskbtn" data-act="open-desk">${ic('shield','sm')}Admin<span class="badge" id="navBadge" hidden></span></button>` : '';
+  if (isAdmin) refreshBadge();
 }
 
-function methodCard(m) {
-  const isUsdt = m.kind === 'usdt';
-  return `
-    <div class="pay">
-      <div class="pay-head"><span class="logo-chip ${esc(m.kind)}">${esc(KIND_ABBR[m.kind] || 'PAY')}</span>${esc(m.label)}${m.network ? `<span class="pill blue">${esc(m.network)}</span>` : ''}</div>
-      ${m.account_name ? `<div class="copyrow"><div><span class="k">${T(isUsdt ? 'Wallet name' : 'Account name')}</span><span class="v">${esc(m.account_name)}</span></div>${copyBtn(m.account_name)}</div>` : ''}
-      <div class="copyrow"><div><span class="k">${T(isUsdt ? 'Wallet address' : 'Account number')}</span><span class="v">${esc(m.account_number)}</span></div>${copyBtn(m.account_number)}</div>
-    </div>`;
-}
-
-function renderPay() {
-  const o = SH.order, buy = o.side === 'buy';
-  const payAmount = buy ? o.total_etb : o.amount_usdt;
-  const payUnit = buy ? 'ETB' : 'USDT';
-  // SELL: show the operator's Binance UID. BUY: show Telebirr / bank accounts.
-  const uidCard = (!buy && SH.binanceUid) ? `
-    <div class="pay">
-      <div class="pay-head"><span class="logo-chip binance">BNB</span>Binance Pay</div>
-      <div class="copyrow"><div><span class="k">Binance UID</span><span class="v">${esc(SH.binanceUid)}</span></div>${copyBtn(SH.binanceUid)}</div>
+function renderHome(){
+  const act = platforms;
+  const bestBuy = act.length ? act.reduce((a,b) => b.buy_rate < a.buy_rate ? b : a) : null;
+  const bestSell = act.length ? act.reduce((a,b) => b.sell_rate > a.sell_rate ? b : a) : null;
+  $('#best').innerHTML = act.length ? `
+    <div class="best">
+      <div class="buyc"><div class="k">Lowest buy price</div><div class="n">${fmt(bestBuy.buy_rate)}<small>ETB</small></div><div class="who">${esc(bestBuy.name)}</div></div>
+      <div class="sellc"><div class="k">Highest sell price</div><div class="n">${fmt(bestSell.sell_rate)}<small>ETB</small></div><div class="who">${esc(bestSell.name)}</div></div>
     </div>` : '';
-  const methods = SH.methods.length
-    ? SH.methods.map(methodCard).join('')
-    : (uidCard ? '' : `<div class="empty" style="padding:24px 8px"><strong>${T(buy ? 'No payment account yet' : 'No Binance UID yet')}</strong>${T(buy ? 'This platform has not added a Telebirr or bank account. Contact them before paying.' : 'This platform has not added its Binance UID. Contact them before paying.')}</div>`);
+  $('#notice').innerHTML = signedIn ? '' : `<div class="notice">${ic('info')}<span>Open this page from the bot in Telegram to place an order. You can still compare rates here.</span></div>`;
 
-  $('shBody').innerHTML = `
-    <div class="instruct">${buy ? T('Send exactly {amt} ETB to Telebirr or CBE below, then upload your payment screenshot.', { amt: fmt(o.total_etb) }) : T('Send exactly {amt} USDT to the Binance UID below, then upload your Binance transfer screenshot.', { amt: fmtAmt(o.amount_usdt) })}</div>
-    <div class="pay">
-      <div class="copyrow"><div><span class="k">${T('Exact amount to send')}</span><span class="v">${buy ? fmt(payAmount) : fmtAmt(payAmount)} ${payUnit}</span></div>${copyBtn(buy ? payAmount.toFixed(2) : String(payAmount))}</div>
-      <div class="copyrow"><div><span class="k">${T('Order reference')}</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div>
-    </div>
-    <div class="sect">${T(buy ? 'Pay to' : 'Send USDT to')}</div>
-    ${uidCard}${methods}
-    <div class="summary">
-      <div><span>${T(buy ? 'You receive' : 'You get paid')}</span><b>${buy ? `${fmtAmt(o.amount_usdt)} USDT` : `${fmt(o.total_etb)} ETB`}</b></div>
-      <div><span>${T('Rate')}</span><b>${T('{x} ETB per USDT', { x: fmt(o.rate) })}</b></div>
-    </div>
-    <div class="sect">${T('Payment proof')}</div>
-    <div id="proofBox"></div>
-    <div class="hint" style="margin:8px 0 18px;font-size:12.5px;color:var(--muted)">${T(buy ? 'Upload a screenshot of your Telebirr or bank payment. Images are compressed before upload.' : 'Upload a screenshot of your Binance transfer. Images are compressed before upload.')}</div>`;
-  renderProofBox();
-
-  $('shFoot').innerHTML = `
-    <div class="err" id="shErr" ${SH.err ? '' : 'hidden'}>${esc(SH.err)}</div>
-    <button class="btn btn-primary btn-block" type="button" id="shSubmit" ${SH.proof && !SH.busy ? '' : 'disabled'}>${SH.busy ? T('Uploading...') : T('I have paid, submit proof')}</button>
-    ${o.status === 'open' ? `<button class="btn btn-ghost btn-block" type="button" id="shCancel" style="margin-top:10px">${T('Cancel this order')}</button>` : ''}`;
-  $('shSubmit').onclick = submitProof;
-  const c = $('shCancel'); if (c) c.onclick = cancelCurrent;
-}
-
-function renderProofBox() {
-  const box = $('proofBox'); if (!box) return;
-  if (SH.proof) {
-    box.innerHTML = `
-      <div class="proof-ok"><img src="${esc(SH.proofUrl)}" alt="Selected proof"><div><strong>${T('Screenshot ready')}</strong><span>${T('{n} KB after compression', { n: Math.round(SH.proof.size / 1024) })}</span></div>
-      <button class="btn btn-ghost sm" type="button" id="proofChange">${T('Change')}</button></div>`;
-    $('proofChange').onclick = () => $('proofFile').click();
-  } else {
-    box.innerHTML = `
-      <label class="drop" id="drop" for="proofFile">${ic('upload')}<strong>${T(SH.side === 'sell' ? 'Upload Binance transfer screenshot' : 'Upload payment screenshot')}</strong><span>${T('Tap to choose, or drop an image here')}</span></label>`;
-    const drop = $('drop');
-    drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
-    drop.ondragleave = () => drop.classList.remove('over');
-    drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) pickProof(e.dataTransfer.files[0]); };
-  }
-  if (!$('proofFile')) {
-    const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'proofFile'; inp.hidden = true;
-    inp.onchange = () => { if (inp.files[0]) pickProof(inp.files[0]); inp.value = ''; };
-    $('sheet').appendChild(inp);
-  }
-}
-
-async function toJpeg(file, maxDim, quality) {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('This image format is not supported. Use a JPG or PNG screenshot.')); i.src = url; });
-    const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
-    const w = Math.max(1, Math.round(img.naturalWidth * scale)), h = Math.max(1, Math.round(img.naturalHeight * scale));
-    const c = document.createElement('canvas'); c.width = w; c.height = h;
-    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
-    return await new Promise((ok, no) => c.toBlob((b) => (b ? ok(b) : no(new Error('Could not process this image.'))), 'image/jpeg', quality));
-  } finally { URL.revokeObjectURL(url); }
-}
-
-async function pickProof(file) {
-  if (!file.type.startsWith('image/')) return toast(T('Choose an image file.'), 'error');
-  try {
-    const blob = await toJpeg(file, 1400, 0.82);
-    if (blob.size > 4 * 1024 * 1024) throw new Error('Image is too large.');
-    if (SH.proofUrl) URL.revokeObjectURL(SH.proofUrl);
-    SH.proof = blob; SH.proofUrl = URL.createObjectURL(blob); SH.err = '';
-    renderPay();
-  } catch (e) { toast(T(e.message), 'error'); }
-}
-
-async function submitProof() {
-  if (!SH.proof || SH.busy) return;
-  SH.busy = true; SH.err = ''; renderPay();
-  try {
-    await api(mini(`/orders/${SH.order.id}/proof`), { method: 'PUT', blob: SH.proof });
-    SH.busy = false; SH.order.status = 'submitted'; SH.step = 'done';
-    S.ordersLoaded = false;
-    renderSheet();
-  } catch (e) { SH.busy = false; SH.err = e.message; renderPay(); }
-}
-
-async function cancelCurrent() {
-  try {
-    await api(mini(`/orders/${SH.order.id}/cancel`), { method: 'POST' });
-    toast(T('Order cancelled'));
-    S.ordersLoaded = false;
-    closeSheet();
-    if (S.view === 'orders') loadOrders();
-  } catch (e) { SH.err = e.message; renderPay(); }
-}
-
-function renderDone() {
-  const o = SH.order;
-  $('shBody').innerHTML = `
-    <div class="done">
-      <svg class="badge" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 21-23"/></svg>
-      <h2>${T('Proof submitted')}</h2>
-      <p>${T('The platform will review your payment. You will get a Telegram message as soon as the order is confirmed.')}</p>
-      <div class="pay"><div class="copyrow"><div><span class="k">${T('Order reference')}</span><span class="v">${esc(o.ref)}</span></div>${copyBtn(o.ref)}</div></div>
-    </div>`;
-  $('shFoot').innerHTML = `
-    <button class="btn btn-primary btn-block" type="button" id="doneOrders">${T('View my orders')}</button>
-    <button class="btn btn-ghost btn-block" type="button" id="doneClose" style="margin-top:10px">${T('Back to market')}</button>`;
-  $('doneOrders').onclick = () => { closeSheet(); go('orders'); };
-  $('doneClose').onclick = closeSheet;
-}
-
-/* ===================================================================
-   MY ORDERS
-   =================================================================== */
-async function loadOrders() {
-  if (!authed) return;
-  try { S.orders = await api(mini('/orders')); } catch (e) { toast(e.message, 'error'); }
-  S.ordersLoaded = true;
-  if (S.view === 'orders') renderOrders();
-}
-
-function renderOrders() {
-  const rows = S.orders.map((o) => {
-    const st = STATUS[o.status] || STATUS.open;
-    const buy = o.side === 'buy';
-    return `
-      <div class="orow">
-        <div><div class="t">${esc(o.platform_name || T('Platform'))}</div><div class="s">${esc(o.ref)} &middot; ${esc(when(o.created_at))}</div></div>
-        <div><span class="sidepill ${o.side}">${T(buy ? 'Buy' : 'Sell')}</span><div class="t" style="margin-top:4px">${fmtAmt(o.amount_usdt)} USDT</div></div>
-        <div><div class="t">${fmt(o.total_etb)} ETB</div><div class="s">${T('at {x}', { x: fmt(o.rate) })}</div></div>
-        <div class="macts"><span class="pill ${st.cls}">${T(st.text)}</span>
-          ${o.status === 'open' ? `<button class="btn btn-ghost sm" data-resume="${o.id}">${T('Continue')}</button>` : ''}
+  const list = [...act].sort((a,b) => (b.id === botPlatformId) - (a.id === botPlatformId) || a.buy_rate - b.buy_rate);
+  $('#market').innerHTML = list.length ? list.map(p => `
+    <article class="mrow">
+      <div class="ident">
+        <div class="av" style="--h:${hue(p.name)}">${esc(mono(p.name))}</div>
+        <div class="ident-text">
+          <strong>${esc(p.name)}${p.id === botPlatformId ? '<span class="pill blue">This bot</span>' : ''}</strong>
+          ${chip(p.contact_username, p.contact_id)}
         </div>
-        ${o.status === 'rejected' && o.admin_note ? `<div class="reason">${esc(o.admin_note)}</div>` : ''}
-      </div>`;
-  }).join('');
-  $('view').innerHTML = `
-    <div class="wrap page">
-      <div class="page-head"><h1>${T('My orders')}</h1><p>${T('Your latest 30 orders across all platforms.')}</p></div>
-      <div class="list">${!S.ordersLoaded ? '<div class="skeleton"></div><div class="skeleton"></div>' : rows || emptyBox('No orders yet', 'Pick a platform in the market to place your first order.')}</div>
+      </div>
+      <div class="rate buy"><span class="k">Buy USDT at ${p === bestBuy ? '<span class="pill">Best</span>' : ''}</span><div class="n">${fmt(p.buy_rate)}<small>ETB</small></div></div>
+      <div class="rate sell"><span class="k">Sell USDT at ${p === bestSell ? '<span class="pill">Best</span>' : ''}</span><div class="n">${fmt(p.sell_rate)}<small>ETB</small></div></div>
+      ${signedIn ? `<div class="macts">
+        <button class="btn btn-buy" data-act="trade" data-id="${p.id}" data-mode="buy">Buy</button>
+        <button class="btn btn-sell" data-act="trade" data-id="${p.id}" data-mode="sell">Sell</button>
+      </div>` : ''}
+    </article>`).join('')
+  : `<div class="empty"><strong>No platforms are open yet</strong>Check back soon.</div>`;
+}
+
+/* ===================== Customer: trade sheet ===================== */
+const trade = {};
+const getP = id => platforms.find(p => p.id === id);
+const tRate = () => { const p = getP(trade.pid); return trade.mode === 'buy' ? p.buy_rate : p.sell_rate; };
+const tTotal = () => (Number(trade.amount) || 0) * tRate();
+
+async function openTrade(pid, mode){
+  Object.assign(trade, { pid, mode, amount:'', uid:'', name:'', phone:'', proof:null, proofName:'', pay:null, payError:'', done:null, busy:false });
+  $('#tradeSheet').innerHTML = `<div class="loadbox">Loading payment details</div>`;
+  $('#tradeSheet').showModal();
+  try { trade.pay = await api(`/api/p2p/${BOT}/platforms/${pid}/payment`); }
+  catch (e) { trade.payError = e.message; }
+  renderTrade();
+}
+
+function proofBlock(){
+  return trade.proof ? `
+    <div class="proof-ok"><img src="${trade.proof}" alt="Payment proof preview"><div><strong>${esc(trade.proofName)}</strong><span>Ready to send</span></div>
+    <button type="button" class="btn btn-ghost sm" data-act="clear-proof">Replace</button></div>` : `
+    <label class="drop" id="drop">${ic('upload')}<strong>Choose a screenshot</strong><span>Your ${trade.mode==='buy'?'payment':'USDT transfer'} receipt, as an image</span><input type="file" id="proofInput" accept="image/*"></label>`;
+}
+
+function renderTrade(){
+  const p = getP(trade.pid), pay = trade.pay, buy = trade.mode === 'buy';
+  if (trade.done) return renderDone(p);
+  const missing = !pay ? trade.payError
+    : buy && !pay.telebirr_phone && !pay.cbe_account ? 'This platform has not set payment details yet.'
+    : !buy && !pay.binance_uid ? 'This platform has not set a Binance UID yet.' : '';
+
+  const buyBody = pay ? `
+    <div class="ssect">Pay this amount</div>
+    <div class="pay">${copyRow('Total to pay in ETB', fmt(tTotal()) + ' ETB', tTotal().toFixed(2), 'tPay')}</div>
+    <div class="ssect">Send it to</div>
+    ${pay.telebirr_phone ? `<div class="pay"><div class="pay-head"><span class="logo-chip tb">TB</span>Telebirr</div>
+      ${copyRow('Phone number', pay.telebirr_phone)}${pay.telebirr_name ? copyRow('Account name', pay.telebirr_name) : ''}</div>` : ''}
+    ${pay.cbe_account ? `<div class="pay"><div class="pay-head"><span class="logo-chip cbe">CBE</span>Commercial Bank of Ethiopia</div>
+      ${copyRow('Account number', pay.cbe_account)}${pay.cbe_name ? copyRow('Account name', pay.cbe_name) : ''}</div>` : ''}
+    <div class="field" style="margin-top:22px"><label for="fUid">Your Binance UID</label>
+      <input id="fUid" data-f="uid" type="text" inputmode="numeric" placeholder="Where we send your USDT" value="${esc(trade.uid)}" autocomplete="off"></div>` : '';
+
+  const sellBody = pay ? `
+    <div class="ssect">Send USDT to</div>
+    <div class="pay"><div class="pay-head"><span class="logo-chip bn">BN</span>Binance transfer</div>
+      ${copyRow('Binance UID', pay.binance_uid)}
+      ${copyRow('Exact amount', fmt(Number(trade.amount) || 0) + ' USDT', String(Number(trade.amount) || 0), 'tUsdt')}</div>
+    <div class="ssect">Where we pay you</div>
+    <div class="field"><label for="fName">Your full name</label><input id="fName" data-f="name" type="text" value="${esc(trade.name)}" autocomplete="name"></div>
+    <div class="field"><label for="fPhone">Your Telebirr number</label><input id="fPhone" data-f="phone" type="tel" placeholder="09XXXXXXXX" value="${esc(trade.phone)}" autocomplete="tel"></div>` : '';
+
+  $('#tradeSheet').innerHTML = `
+    <header class="sh-head">
+      <div class="av" style="--h:${hue(p.name)}">${esc(mono(p.name))}</div>
+      <div class="ident-text"><h2>${esc(p.name)}</h2>${chip(p.contact_username, p.contact_id)}</div>
+      <button type="button" class="icon-btn" data-act="close-sheet" aria-label="Close">${ic('close')}</button>
+    </header>
+    <form class="sh-form" id="tForm" novalidate>
+      <div class="sh-body">
+        <div class="seg" data-mode="${trade.mode}"><span class="thumb"></span>
+          <button type="button" data-act="set-mode" data-mode="buy" aria-selected="${buy}">Buy USDT</button>
+          <button type="button" data-act="set-mode" data-mode="sell" aria-selected="${!buy}">Sell USDT</button></div>
+        <div class="field"><label for="fAmount">USDT amount</label>
+          <div class="inwrap"><input id="fAmount" data-f="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="100" value="${esc(trade.amount)}"><span class="suffix">USDT</span></div>
+          <div class="chips">${[50,100,250,500].map(v => `<button type="button" class="chip" data-act="quick" data-v="${v}">${v}</button>`).join('')}</div>
+          <p class="hint">Rate: ${fmt(tRate())} ETB per USDT</p></div>
+        ${missing ? `<div class="notice" style="margin-top:18px">${ic('alert')}<span>${esc(missing)}</span></div>` : (buy ? buyBody : sellBody)}
+        ${missing ? '' : `<div class="ssect">${buy ? 'Upload payment proof' : 'Upload transfer proof'}</div><div id="proofSlot" style="margin-bottom:16px">${proofBlock()}</div>`}
+      </div>
+      <div class="sh-foot">
+        <p class="err" id="tErr" role="alert" hidden></p>
+        <div class="foot-total"><span>${buy ? 'You pay' : 'You receive'}</span><strong id="tTotal">${fmt(tTotal())} ETB</strong></div>
+        <button class="btn ${buy ? 'btn-buy' : 'btn-sell solid'} btn-block" type="submit" ${missing ? 'disabled' : ''}>Place ${buy ? 'buy' : 'sell'} order</button>
+      </div>
+    </form>`;
+}
+
+function updateTradeTotals(){
+  const t = tTotal(), amt = Number(trade.amount) || 0;
+  const set = (id, txt, raw) => { const el = $(id); if (!el) return; el.textContent = txt; const b = el.closest('.copyrow')?.querySelector('[data-copy]'); if (b) b.dataset.copy = raw; };
+  $('#tTotal').textContent = fmt(t) + ' ETB';
+  set('#tPay', fmt(t) + ' ETB', t.toFixed(2));
+  set('#tUsdt', fmt(amt) + ' USDT', String(amt));
+}
+
+function renderDone(p){
+  const o = trade.done, text = `Hi, I placed ${o.type} order ${o.code} for ${fmt(o.usdt_amount)} USDT on Cross P2P.`;
+  const pl = o.platform;
+  $('#tradeSheet').innerHTML = `
+    <div class="done">
+      <svg class="badge" viewBox="0 0 84 84"><circle cx="42" cy="42" r="38"/><path d="M27 43l10 10 20-22"/></svg>
+      <h2>Order placed</h2>
+      <p>${esc(p.name)} will check your proof. You will get a message in this chat when it is approved or rejected.</p>
+      <div class="pay">${copyRow('Order ID', o.code)}${copyRow(o.type === 'buy' ? 'You pay' : 'You receive', fmt(o.etb_total) + ' ETB', o.etb_total.toFixed(2))}</div>
+      <a class="btn btn-primary btn-block" data-tg href="${esc(chatLink(pl.contact_username, pl.contact_id, text))}" target="_blank" rel="noopener">${ic('send')}Message ${esc(chatLabel(pl.contact_username, pl.contact_id))}</a>
+      <button type="button" class="btn btn-ghost btn-block" data-act="close-sheet">Done</button>
     </div>`;
-  document.querySelectorAll('[data-resume]').forEach((b) => (b.onclick = () => resumeOrder(S.orders.find((o) => o.id === b.dataset.resume))));
 }
 
-/* ===================================================================
-   OPERATOR CONSOLE ("Switch to admin")
-   =================================================================== */
-let adminTimer = null;
-const stopAdminPoll = () => { clearInterval(adminTimer); adminTimer = null; };
-const curPlat = () => S.admin.list.find((p) => p.id === S.admin.pid) || null;
+async function attachProof(file){
+  if (!file || !file.type.startsWith('image/')) return toast('Choose an image file.', 'error');
+  try { trade.proof = await readImage(file); trade.proofName = file.name; $('#proofSlot').innerHTML = proofBlock(); }
+  catch { toast('That image could not be read.', 'error'); }
+}
 
-async function loadAdmin() {
-  S.admin.loading = true; renderAdmin();
+function tradeError(msg, field){
+  const e = $('#tErr'); e.textContent = msg; e.hidden = false;
+  $$('#tForm [aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'));
+  if (field){ const f = $(field); f?.setAttribute('aria-invalid', 'true'); f?.focus(); }
+}
+
+async function submitTrade(){
+  if (trade.busy) return;
+  const buy = trade.mode === 'buy', amt = Number(trade.amount);
+  $('#tErr').hidden = true;
+  if (!(amt >= 1)) return tradeError('Enter at least 1 USDT.', '#fAmount');
+  if (amt > 100000) return tradeError('The limit is 100,000 USDT per order.', '#fAmount');
+  if (buy){
+    if (!/^\d{5,15}$/.test(trade.uid.trim())) return tradeError('Enter your Binance UID using digits only.', '#fUid');
+  } else {
+    if (trade.name.trim().length < 2) return tradeError('Enter your full name.', '#fName');
+    if (!/^(?:\+?251|0)[79]\d{8}$/.test(trade.phone.replace(/\s/g,''))) return tradeError('Enter a valid Telebirr number, like 0911234567.', '#fPhone');
+  }
+  if (!trade.proof) return tradeError('Upload your proof of ' + (buy ? 'payment.' : 'transfer.'));
+
+  const btn = $('#tForm button[type=submit]'); trade.busy = true; btn.disabled = true; btn.textContent = 'Sending order';
   try {
-    S.admin.list = await api(mini('/admin/platforms'));
-    if (!S.admin.list.find((p) => p.id === S.admin.pid)) S.admin.pid = S.admin.list[0] ? S.admin.list[0].id : null;
-  } catch (e) { toast(e.message, 'error'); }
-  S.admin.loading = false;
-  renderAdmin();
-  await loadAdminOrders();
-  stopAdminPoll();
-  adminTimer = setInterval(() => { if (S.view === 'admin' && S.admin.tab === 'orders') refreshAdmin(); }, 15000);
+    trade.done = await api(`/api/p2p/${BOT}/orders`, 'POST', {
+      platform_id: trade.pid, type: trade.mode, amount: amt, proof: trade.proof,
+      ...(buy ? { binance_uid: trade.uid.trim() } : { name: trade.name.trim(), phone: trade.phone.replace(/\s/g,'') }),
+    });
+    renderTrade();
+  } catch (e) {
+    trade.busy = false; btn.disabled = false; btn.textContent = `Place ${buy ? 'buy' : 'sell'} order`;
+    tradeError(e.message);
+  }
 }
 
-async function refreshAdmin() {
+/* ===================== Desk admin ===================== */
+const D = { tab:'orders', filter:'pending', platforms:[], orders:[], timer:null };
+
+async function refreshBadge(){
   try {
-    const list = await api(mini('/admin/platforms'));
-    S.admin.list = list;
-    await loadAdminOrders(true);
-    renderSide();
-  } catch (_) {}
+    const d = await api(`/api/p2p/${BOT}/desk`);
+    D.platforms = d.platforms;
+    const n = d.platforms.reduce((s,p) => s + p.pending, 0), b = $('#navBadge');
+    if (b){ b.textContent = n; b.hidden = !n; }
+  } catch {}
 }
 
-async function loadAdminOrders(silent) {
-  const p = curPlat(); if (!p) return;
+async function openDesk(){
+  $('#home').hidden = true; $('#desk').hidden = false; window.scrollTo(0, 0);
+  if (tg && tg.BackButton){ tg.BackButton.show(); tg.BackButton.onClick(closeDesk); }
+  await loadDesk();
+  clearInterval(D.timer);
+  D.timer = setInterval(() => { if (D.tab === 'orders' && !document.hidden) loadDesk(true); }, 20000);
+}
+function closeDesk(){
+  clearInterval(D.timer);
+  if (tg && tg.BackButton){ tg.BackButton.hide(); tg.BackButton.offClick(closeDesk); }
+  $('#desk').hidden = true; $('#home').hidden = false; refreshBadge(); loadHome();
+}
+
+async function loadDesk(quiet){
   try {
-    const rows = await api(mini(`/admin/platforms/${p.id}/orders?status=${S.admin.filter}`));
-    const sig = rows.map((o) => o.id + o.status).join('|');
-    // Proof links last 10 minutes, so re-render at least every 8 even if nothing changed.
-    const stale = Date.now() - (S.admin.renderedAt || 0) > 8 * 60 * 1000;
-    if (silent && sig === S.admin.sig && !stale) return;
-    S.admin.orders = rows; S.admin.sig = sig; S.admin.renderedAt = Date.now();
-  } catch (e) { if (!silent) toast(e.message, 'error'); }
-  if (S.view === 'admin' && S.admin.tab === 'orders') renderAdminPane();
+    const [d, o] = await Promise.all([ api(`/api/p2p/${BOT}/desk`), api(`/api/p2p/${BOT}/desk/orders?status=${D.filter}`) ]);
+    D.platforms = d.platforms; D.orders = o;
+    if (!(quiet && D.tab === 'platforms')) renderDesk();
+  } catch (e) { if (!quiet) toast(e.message, 'error'); }
 }
 
-function renderAdmin() {
-  const p = curPlat();
-  if (S.admin.loading && !p) { $('view').innerHTML = '<div class="wrap admin"><div class="skeleton" style="border-radius:22px"></div></div>'; return; }
-  if (!p) {
-    $('view').innerHTML = `<div class="wrap"><div class="login-card"><div class="lock">${ic('lock')}</div><h1>No platform to manage</h1><p>Your Telegram account is not set as an operator of any platform.</p></div></div>`;
+function renderDesk(){
+  const pending = D.platforms.reduce((s,p) => s + p.pending, 0);
+  const names = D.platforms.map(p => p.name).join(', ');
+  $('#desk').innerHTML = `
+    <button class="backbtn" data-act="close-desk" style="margin-bottom:16px">${ic('back','sm')}Back to rates</button>
+    <h1>Admin</h1>
+    <p class="sub">${esc(names)}</p>
+    <div class="tabs" role="group" aria-label="Admin sections">
+      <button data-act="desk-tab" data-tab="orders" aria-pressed="${D.tab==='orders'}">Orders${pending ? `<span class="n">${pending}</span>` : ''}</button>
+      <button data-act="desk-tab" data-tab="platforms" aria-pressed="${D.tab==='platforms'}">My platform</button>
+    </div>
+    ${D.tab === 'orders' ? deskOrders() : deskPlatforms()}`;
+}
+
+function deskOrders(){
+  const f = [['pending','Pending'],['approved','Approved'],['rejected','Rejected']];
+  return `
+    <div class="tabs" role="group" aria-label="Filter orders" style="display:flex">${f.map(([k,l]) => `<button data-act="desk-filter" data-v="${k}" aria-pressed="${D.filter===k}">${l}</button>`).join('')}</div>
+    <div class="list">${D.orders.length ? D.orders.map(orderCard).join('') : `<div class="panel empty"><strong>No ${D.filter} orders</strong>New orders show up here and you also get a message from the bot.</div>`}</div>`;
+}
+
+function orderCard(o){
+  const buy = o.type === 'buy';
+  const cust = buy
+    ? `<span class="k">Binance UID to send USDT to</span><span class="v">${esc(o.binance_uid)} ${copyBtn(o.binance_uid,'Binance UID',true)}</span>`
+    : `<span class="k">${esc(o.payout_name)}, Telebirr to pay</span><span class="v">${esc(o.payout_phone)} ${copyBtn(o.payout_phone,'phone number',true)}</span>`;
+  return `
+  <article class="ord" data-status="${o.status}">
+    <div class="ord-head"><span class="tag ${buy?'buy':'sell'}">${buy?'Buy':'Sell'}</span><strong>${esc(o.code)}</strong><span class="st ${o.status}">${o.status[0].toUpperCase()+o.status.slice(1)}</span></div>
+    <div class="ord-grid">
+      <div><span class="k">Amount</span><span class="v">${fmt(o.usdt_amount)} USDT</span></div>
+      <div><span class="k">Rate</span><span class="v">${fmt(o.rate)} ETB</span></div>
+      <div class="full"><span class="k">${buy ? 'Customer paid' : 'Customer receives'}</span><span class="v">${fmt(o.etb_total)} ETB ${copyBtn(o.etb_total.toFixed(2),'total',true)}</span></div>
+      <div class="full">${cust}</div>
+      <div><span class="k">Customer</span><span class="v">${chip(o.customer_username, o.customer_telegram_id)}</span></div>
+      <div><span class="k">Placed</span><span class="v">${when(o.created_at)}</span></div>
+    </div>
+    <div class="ord-foot">
+      <button class="thumb-btn" data-act="proof" data-url="${esc(o.proof_url || '')}" aria-label="View proof">${o.proof_url ? `<img src="${esc(o.proof_url)}" alt="Payment proof">` : ic('image')}</button>
+      ${o.status === 'pending' ? `<div class="ord-acts"><button class="btn btn-danger sm" data-act="decide" data-do="reject" data-id="${o.id}" data-code="${esc(o.code)}">Reject</button><button class="btn btn-buy sm" data-act="decide" data-do="approve" data-id="${o.id}" data-code="${esc(o.code)}">Approve</button></div>` : ''}
+    </div>
+  </article>`;
+}
+
+function deskPlatforms(){
+  return D.platforms.map(p => `
+    <form class="panel" data-form="desk-platform" data-id="${p.id}" novalidate>
+      <div class="row"><h3>${esc(p.name)}</h3><span class="pill blue">Telegram ID ${esc(p.telegram_id)}</span></div>
+      <div class="two">
+        <div class="field"><label>Buy rate</label><div class="inwrap"><input name="buy_rate" type="number" step="0.01" min="0" value="${p.buy_rate}"><span class="suffix">ETB</span></div><p class="hint">Customer pays per USDT</p></div>
+        <div class="field"><label>Sell rate</label><div class="inwrap"><input name="sell_rate" type="number" step="0.01" min="0" value="${p.sell_rate}"><span class="suffix">ETB</span></div><p class="hint">Customer receives per USDT</p></div>
+      </div>
+      <div class="switchrow"><span>Open for trading</span><label class="switch"><input type="checkbox" name="active" ${p.active?'checked':''} aria-label="Open for trading"><span></span></label></div>
+      <div class="divider"></div>
+      <div class="two">
+        <div class="field"><label>Telebirr phone</label><input name="telebirr_phone" type="tel" value="${esc(p.telebirr_phone)}"></div>
+        <div class="field"><label>Telebirr name</label><input name="telebirr_name" type="text" value="${esc(p.telebirr_name)}"></div>
+        <div class="field"><label>CBE account</label><input name="cbe_account" type="text" inputmode="numeric" value="${esc(p.cbe_account)}"></div>
+        <div class="field"><label>CBE name</label><input name="cbe_name" type="text" value="${esc(p.cbe_name)}"></div>
+      </div>
+      <div class="field"><label>Binance UID</label><input name="binance_uid" type="text" inputmode="numeric" value="${esc(p.binance_uid)}"><p class="hint">Customers send USDT here when they sell.</p></div>
+      <p class="err" data-err hidden style="margin-top:14px"></p>
+      <button class="btn btn-primary btn-block" type="submit" style="margin-top:16px">Save changes</button>
+    </form>`).join('');
+}
+
+async function saveDeskPlatform(form){
+  const g = n => form.elements[n].value.trim(), er = $('[data-err]', form);
+  er.hidden = true;
+  const btn = $('button[type=submit]', form); btn.disabled = true;
+  try {
+    await api(`/api/p2p/${BOT}/desk/platforms/${form.dataset.id}`, 'PATCH', {
+      buy_rate: Number(g('buy_rate')), sell_rate: Number(g('sell_rate')), active: form.elements.active.checked,
+      telebirr_phone: g('telebirr_phone'), telebirr_name: g('telebirr_name'),
+      cbe_account: g('cbe_account'), cbe_name: g('cbe_name'), binance_uid: g('binance_uid'),
+    });
+    toast('Platform saved');
+    await loadDesk();
+  } catch (e) { er.textContent = e.message; er.hidden = false; }
+  btn.disabled = false;
+}
+
+/* ===================== Events ===================== */
+document.addEventListener('click', async e => {
+  const c = e.target.closest('[data-copy]');
+  if (c){
+    if (await copyText(c.dataset.copy)){
+      c.classList.add('copied'); const s = $('span', c);
+      c.firstElementChild.innerHTML = '<use href="#i-check"/>'; s.textContent = 'Copied';
+      toast(`${c.dataset.label || 'Value'} copied`);
+      setTimeout(() => { c.classList.remove('copied'); s.textContent = 'Copy'; c.firstElementChild.innerHTML = '<use href="#i-copy"/>'; }, 1700);
+    } else toast('Copy is blocked here. Press and hold the text to copy it.', 'error');
     return;
   }
-  $('view').innerHTML = `
-    <div class="wrap admin">
-      <div class="admin-head">
-        <div><h1>Operator console</h1><p>Manage rates, payment accounts and customer orders.</p></div>
-        ${S.admin.list.length > 1 ? `<select id="aPlat" aria-label="Platform">${S.admin.list.map((x) => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : ''}
-      </div>
-      <div class="shell">
-        <nav class="side" id="side" aria-label="Admin sections"></nav>
-        <div id="adminPane"></div>
-      </div>
-    </div>`;
-  renderSide();
-  renderAdminPane();
-  const sel = $('aPlat');
-  if (sel) sel.onchange = () => { S.admin.pid = Number(sel.value); S.admin.orders = []; renderAdmin(); loadAdminOrders(); };
-}
-
-function renderSide() {
-  const side = $('side'); if (!side) return;
-  const p = curPlat();
-  const tab = (id, icon, label, count) =>
-    `<button type="button" data-tab="${id}" ${S.admin.tab === id ? 'aria-current="page"' : ''}>${ic(icon)}${label}${count ? `<span class="count">${count}</span>` : ''}</button>`;
-  side.innerHTML = tab('orders', 'list', 'Orders', p ? p.pending_orders : 0) + tab('rates', 'sliders', 'Rates and profile') + tab('accounts', 'wallet', 'Payment accounts');
-  side.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { S.admin.tab = b.dataset.tab; renderSide(); renderAdminPane(); if (S.admin.tab === 'orders') loadAdminOrders(); }));
-}
-
-function renderAdminPane() {
-  const pane = $('adminPane'); if (!pane) return;
-  if (S.admin.tab === 'rates') return renderRates(pane);
-  if (S.admin.tab === 'accounts') return renderAccounts(pane);
-  renderAdminOrders(pane);
-}
-
-/* ---------- Orders ---------- */
-const FILTERS = [['review', 'Pending'], ['open', 'Awaiting proof'], ['completed', 'Approved'], ['closed', 'Rejected or cancelled']];
-
-function orderCard(o) {
-  const buy = o.side === 'buy';
-  const st = STATUS[o.status] || STATUS.open;
-  const who = o.customer.username ? '@' + o.customer.username : (o.customer.first_name || 'Customer');
-  const todo = o.status === 'submitted'
-    ? (buy ? `Check the ${fmt(o.total_etb)} ETB payment arrived, then send ${fmtAmt(o.amount_usdt)} USDT to the customer's Binance UID below.`
-           : `Check the ${fmtAmt(o.amount_usdt)} USDT arrived on Binance, then send ${fmt(o.total_etb)} ETB to the customer's Telebirr below.`) : '';
-  const row = (k, v) => `<div class="copyrow"><div><span class="k">${k}</span><span class="v">${esc(v)}</span></div>${copyBtn(v)}</div>`;
-  const details = buy
-    ? row('Customer Binance UID', o.payout_details)
-    : row('Customer Telebirr', o.payout_details) + (o.payout_name ? row('Customer name', o.payout_name) : '') + (o.binance_uid ? row('Our Binance UID (shown to customer)', o.binance_uid) : '');
-  return `
-    <article class="ocard">
-      <div class="ohead">
-        <span class="sidepill ${o.side}">${buy ? 'BUY' : 'SELL'}</span>
-        <b>${esc(o.ref)}</b>
-        <span class="pill ${st.cls}">${st.text}</span>
-        <time>${esc(when(o.created_at))}</time>
-      </div>
-      <div class="obody">
-        <div class="ogrid">
-          <div><span class="k">Customer</span><span class="v">${esc(who)}<small>ID ${esc(o.customer.id)}</small></span></div>
-          <div><span class="k">USDT</span><span class="v">${fmtAmt(o.amount_usdt)} USDT</span></div>
-          <div><span class="k">Rate</span><span class="v">${fmt(o.rate)} ETB</span></div>
-          <div><span class="k">ETB amount</span><span class="v">${fmt(o.total_etb)} ETB</span></div>
-        </div>
-        ${todo ? `<div class="todo">${esc(todo)}</div>` : ''}
-        <div class="pay copy-box" style="margin:0">${details}</div>
-        ${o.proof_url ? `<div class="oproof"><button type="button" data-proof="${esc(o.proof_url)}" aria-label="View proof"><img src="${esc(o.proof_url)}" alt="Payment proof"></button><div><strong>${buy ? 'Payment screenshot' : 'Binance transfer screenshot'}</strong><div class="s" style="color:var(--muted);font-size:13px">Uploaded ${esc(when(o.submitted_at))}. Tap to enlarge.</div></div></div>` : ''}
-        ${o.status === 'rejected' && o.admin_note ? `<div class="err" style="margin:0">${esc(o.admin_note)}</div>` : ''}
-        ${o.status === 'submitted' ? `<div class="oacts"><button class="btn btn-buy sm" data-complete="${o.id}">Approve</button><button class="btn btn-danger sm" data-reject="${o.id}">Reject</button></div>`
-          : o.status === 'open' ? `<div class="oacts"><button class="btn btn-danger sm" data-reject="${o.id}">Reject</button></div>` : ''}
-      </div>
-    </article>`;
-}
-
-function renderAdminOrders(pane) {
-  pane.innerHTML = `
-    <div class="panel">
-      <h2>Orders</h2>
-      <p class="sub">New proofs appear here automatically and you also get a Telegram message.</p>
-      <div class="filters">${FILTERS.map(([k, l]) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${S.admin.filter === k}">${l}</button>`).join('')}</div>
-      <div id="oList">${S.admin.orders.length ? S.admin.orders.map(orderCard).join('') : '<div class="empty"><strong>Nothing here</strong>No orders match this filter.</div>'}</div>
-    </div>`;
-  pane.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { S.admin.filter = b.dataset.f; S.admin.orders = []; renderAdminOrders(pane); loadAdminOrders(); }));
-  pane.querySelectorAll('[data-proof]').forEach((b) => (b.onclick = () => { $('proofImg').src = b.dataset.proof; $('proofDlg').showModal(); }));
-  pane.querySelectorAll('[data-complete]').forEach((b) => (b.onclick = () => completeOrder(b.dataset.complete, b)));
-  pane.querySelectorAll('[data-reject]').forEach((b) => (b.onclick = () => askReject(b.dataset.reject)));
-}
-
-$('proofClose').onclick = () => $('proofDlg').close();
-$('proofDlg').addEventListener('click', (e) => { if (e.target === $('proofDlg')) $('proofDlg').close(); });
-
-async function completeOrder(id, btn) {
-  if (!confirm('Approve this order? Only approve after the payment arrived and you sent the funds to the customer.')) return;
-  btn.disabled = true;
-  try { await api(mini(`/admin/orders/${id}/complete`), { method: 'POST', body: {} }); toast('Order approved'); await refreshAdmin(); }
-  catch (e) { toast(e.message, 'error'); btn.disabled = false; }
-}
-
-let rejectId = null;
-function askReject(id) { rejectId = id; $('rejectNote').value = ''; $('rejectDlg').showModal(); $('rejectNote').focus(); }
-$('rejectCancel').onclick = () => $('rejectDlg').close();
-$('rejectOk').onclick = async () => {
-  const note = $('rejectNote').value.trim();
-  if (!note) return toast('Write a short reason for the customer.', 'error');
-  $('rejectOk').disabled = true;
-  try { await api(mini(`/admin/orders/${rejectId}/reject`), { method: 'POST', body: { note } }); $('rejectDlg').close(); toast('Order rejected'); await refreshAdmin(); }
-  catch (e) { toast(e.message, 'error'); }
-  $('rejectOk').disabled = false;
-};
-
-/* ---------- Rates and profile ---------- */
-function renderRates(pane) {
-  const p = curPlat();
-  pane.innerHTML = `
-    <div class="panel">
-      <h2>Binance UID, rates and limits</h2>
-      <p class="sub">Rates are birr per 1 USDT. Leave a rate at 0 to stop offering that side. Customers see changes immediately.</p>
-      <div class="field"><label for="rUid">Our Binance UID</label><input type="text" id="rUid" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="e.g. 123456789" value="${esc(p.binance_uid || '')}"><div class="hint">Shown to customers who sell USDT to you. They send their USDT to this UID.</div></div>
-      <div class="row2">
-        <div class="field"><label for="rBuy">Buy rate (customer pays)</label><div class="inwrap"><input type="number" id="rBuy" step="0.01" min="0" inputmode="decimal" value="${p.buy_rate || ''}"><span class="suffix">ETB</span></div></div>
-        <div class="field"><label for="rSell">Sell rate (customer receives)</label><div class="inwrap"><input type="number" id="rSell" step="0.01" min="0" inputmode="decimal" value="${p.sell_rate || ''}"><span class="suffix">ETB</span></div></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="rMin">Minimum order</label><div class="inwrap"><input type="number" id="rMin" step="0.01" min="0" inputmode="decimal" value="${p.min_usdt}"><span class="suffix">USDT</span></div></div>
-        <div class="field"><label for="rMax">Maximum order</label><div class="inwrap"><input type="number" id="rMax" step="0.01" min="0" inputmode="decimal" value="${p.max_usdt}"><span class="suffix">USDT</span></div></div>
-      </div>
-      <div class="field"><label class="switch"><input type="checkbox" id="rLive" ${p.paused ? '' : 'checked'}><span class="track"></span><span>Accepting orders</span></label>
-        <div class="hint">Turn this off to pause the platform. It stays in the market as paused.</div></div>
-    </div>
-    <div class="panel">
-      <h2>Profile</h2>
-      <p class="sub">What customers see in the market list.</p>
-      <div class="logo-row">
-        ${avatar(p, 'lg')}
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <label class="btn btn-ghost sm" for="logoFile" style="cursor:pointer">${ic('image', 'sm')}Upload logo</label>
-          ${p.logo_url ? '<button class="btn btn-danger sm" type="button" id="logoDel">Remove</button>' : ''}
-        </div>
-        <input type="file" id="logoFile" accept="image/*" hidden>
-      </div>
-      <div class="field"><label for="rTg">Contact Telegram username</label><input type="text" id="rTg" maxlength="33" placeholder="@username" value="${esc(p.tg_username ? '@' + p.tg_username : '')}"></div>
-      <div class="field"><label for="rNote">Short note (optional)</label><input type="text" id="rNote" maxlength="120" placeholder="Fast payouts, open daily" value="${esc(p.note)}"></div>
-      <div style="margin-top:22px"><button class="btn btn-primary" type="button" id="rSave">Save changes</button></div>
-    </div>`;
-
-  $('rSave').onclick = async (e) => {
-    const btn = e.currentTarget; btn.disabled = true;
-    try {
-      await api(mini(`/admin/platforms/${p.id}`), { method: 'PATCH', body: {
-        buy_rate: Number($('rBuy').value) || 0, sell_rate: Number($('rSell').value) || 0,
-        min_usdt: Number($('rMin').value), max_usdt: Number($('rMax').value),
-        binance_uid: $('rUid').value.trim(), paused: !$('rLive').checked, tg_username: $('rTg').value.trim(), note: $('rNote').value.trim(),
-      } });
-      toast('Saved');
-      await refreshAdmin(); loadMarket();
-    } catch (err) { toast(err.message, 'error'); }
-    btn.disabled = false;
-  };
-  $('logoFile').onchange = async (e) => {
-    const f = e.target.files[0]; if (!f) return;
-    try {
-      const blob = await toJpeg(f, 384, 0.88);
-      await api(mini(`/admin/platforms/${p.id}/logo`), { method: 'PUT', blob });
-      toast('Logo updated'); await refreshAdmin(); loadMarket(); renderAdminPane();
-    } catch (err) { toast(err.message, 'error'); }
-  };
-  const del = $('logoDel');
-  if (del) del.onclick = async () => {
-    try { await api(mini(`/admin/platforms/${p.id}/logo`), { method: 'DELETE' }); toast('Logo removed'); await refreshAdmin(); loadMarket(); renderAdminPane(); }
-    catch (err) { toast(err.message, 'error'); }
-  };
-}
-
-/* ---------- Payment accounts ---------- */
-function renderAccounts(pane) {
-  const p = curPlat();
-  pane.innerHTML = `
-    <div class="panel">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap">
-        <div><h2>Payment accounts</h2><p class="sub" style="margin-bottom:0">Telebirr and bank accounts are shown to customers who buy USDT. Customers who sell see your Binance UID (set it under Rates and profile).</p></div>
-        <button class="btn btn-primary sm" type="button" id="mAdd">${ic('plus', 'sm')}Add account</button>
-      </div>
-      <div class="mlist" style="margin-top:20px">
-        ${p.methods.length ? p.methods.map((m) => `
-          <div class="mitem" data-off="${!m.active}">
-            <span class="logo-chip ${esc(m.kind)}">${esc(KIND_ABBR[m.kind] || 'PAY')}</span>
-            <div class="grow"><strong>${esc(m.label)}${m.network ? ' &middot; ' + esc(m.network) : ''}${m.active ? '' : ' (hidden)'}</strong><span>${esc(m.account_name ? m.account_name + ' - ' : '')}${esc(m.account_number)}</span></div>
-            <button class="icon-btn" type="button" data-edit="${m.id}" aria-label="Edit account">${ic('edit')}</button>
-          </div>`).join('') : '<div class="empty"><strong>No accounts yet</strong>Add your Telebirr and CBE accounts so customers can pay you.</div>'}
-      </div>
-    </div>`;
-  $('mAdd').onclick = () => openMethod(null);
-  pane.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => openMethod(Number(b.dataset.edit))));
-}
-
-let editMethod = null;
-function syncMethodForm() {
-  const usdt = $('mKind').value === 'usdt';
-  $('mNetWrap').hidden = !usdt;
-  $('mNameLbl').textContent = usdt ? 'Wallet name (optional)' : 'Account holder name';
-  $('mNumberLbl').textContent = usdt ? 'Wallet address' : 'Account number or phone';
-}
-$('mKind').onchange = () => {
-  syncMethodForm();
-  const sel = $('mKind');
-  if (!$('mLabel').value.trim() || $('mLabel').dataset.auto === '1') { $('mLabel').value = sel.options[sel.selectedIndex].text.replace(' (for sell orders)', ''); $('mLabel').dataset.auto = '1'; }
-};
-$('mLabel').oninput = () => ($('mLabel').dataset.auto = '0');
-
-function openMethod(id) {
-  const p = curPlat();
-  const m = id ? p.methods.find((x) => x.id === id) : null;
-  editMethod = m;
-  $('mErr').hidden = true;
-  $('mTitle').textContent = m ? 'Edit payment account' : 'Add payment account';
-  $('mKind').value = m ? m.kind : 'telebirr';
-  $('mLabel').value = m ? m.label : 'Telebirr'; $('mLabel').dataset.auto = m ? '0' : '1';
-  $('mName').value = m ? m.account_name : '';
-  $('mNumber').value = m ? m.account_number : '';
-  $('mNet').value = m && m.network ? m.network : 'TRC20';
-  $('mActive').checked = m ? m.active : true;
-  $('mDelete').hidden = !m;
-  syncMethodForm();
-  $('methodDlg').showModal();
-}
-$('mCancel').onclick = () => $('methodDlg').close();
-$('mSave').onclick = async () => {
-  const p = curPlat();
-  const usdt = $('mKind').value === 'usdt';
-  const body = { kind: $('mKind').value, label: $('mLabel').value.trim(), account_name: $('mName').value.trim(), account_number: $('mNumber').value.trim(), network: usdt ? $('mNet').value : '', active: $('mActive').checked };
-  $('mSave').disabled = true;
-  try {
-    if (editMethod) await api(mini(`/admin/platforms/${p.id}/methods/${editMethod.id}`), { method: 'PATCH', body });
-    else await api(mini(`/admin/platforms/${p.id}/methods`), { method: 'POST', body });
-    $('methodDlg').close(); toast('Saved'); await refreshAdmin(); renderAdminPane();
-  } catch (e) { $('mErr').textContent = e.message; $('mErr').hidden = false; }
-  $('mSave').disabled = false;
-};
-$('mDelete').onclick = async () => {
-  if (!editMethod || !confirm('Delete this payment account?')) return;
-  const p = curPlat();
-  try { await api(mini(`/admin/platforms/${p.id}/methods/${editMethod.id}`), { method: 'DELETE' }); $('methodDlg').close(); toast('Deleted'); await refreshAdmin(); renderAdminPane(); }
-  catch (e) { $('mErr').textContent = e.message; $('mErr').hidden = false; }
-};
-
-
-/* ===================================================================
-   SETTINGS (language and theme)
-   =================================================================== */
-function renderSettings() {
-  $('view').innerHTML = `
-    <div class="wrap page set-wrap">
-      <div class="page-head"><h1>${T('Settings')}</h1><p>${T('Choose the language and look of the app.')}</p></div>
-      <div class="panel">
-        <h2>${T('Language')}</h2>
-        <p class="sub">${T('The app will show in the language you choose.')}</p>
-        <div class="opts" role="group" aria-label="${T('Language')}">
-          <button type="button" class="opt" data-lang="en" aria-pressed="${LANG === 'en'}">English</button>
-          <button type="button" class="opt" data-lang="am" aria-pressed="${LANG === 'am'}">አማርኛ</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>${T('Theme')}</h2>
-        <p class="sub">${T('Switch between a light and a dark look.')}</p>
-        <div class="opts" role="group" aria-label="${T('Theme')}">
-          <button type="button" class="opt" data-theme-set="light" aria-pressed="${THEME === 'light'}">${ic('sun')}${T('Light')}</button>
-          <button type="button" class="opt" data-theme-set="dark" aria-pressed="${THEME === 'dark'}">${ic('moon')}${T('Dark')}</button>
-        </div>
-      </div>
-    </div>`;
-  document.querySelectorAll('[data-lang]').forEach((b) => (b.onclick = () => setLang(b.dataset.lang)));
-  document.querySelectorAll('[data-theme-set]').forEach((b) => (b.onclick = () => setTheme(b.dataset.themeSet)));
-}
-
-/* ===================================================================
-   Boot
-   =================================================================== */
-(async function init() {
-  applyStatic();
-  applyTheme();
-  render();
-  const marketReq = loadMarket();
-  if (authed) {
-    try { S.me = await api(mini('/me')); } catch (_) { S.me = null; }
-    renderNav();
-    if (qs.get('admin') === '1' && isOperator()) { go('admin'); }
-    else if (qs.get('tab') === 'orders') { go('orders'); }
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const act = t.dataset.act, id = Number(t.dataset.id);
+  switch (act){
+    case 'retry': loadHome(); break;
+    case 'trade': openTrade(id, t.dataset.mode); break;
+    case 'close-sheet': $('#tradeSheet').close(); break;
+    case 'set-mode': trade.mode = t.dataset.mode; trade.proof = null; renderTrade(); break;
+    case 'quick': trade.amount = t.dataset.v; $('#fAmount').value = t.dataset.v; updateTradeTotals(); break;
+    case 'clear-proof': trade.proof = null; $('#proofSlot').innerHTML = proofBlock(); break;
+    case 'open-desk': openDesk(); break;
+    case 'close-desk': closeDesk(); break;
+    case 'desk-tab': D.tab = t.dataset.tab; renderDesk(); break;
+    case 'desk-filter': D.filter = t.dataset.v; loadDesk(); break;
+    case 'proof': if (t.dataset.url){ $('#proofImg').src = t.dataset.url; $('#proofDialog').showModal(); } break;
+    case 'close-proof': $('#proofDialog').close(); break;
+    case 'decide': {
+      const approve = t.dataset.do === 'approve';
+      const ok = await confirmAsk(approve ? `Approve ${t.dataset.code}? Only approve after you checked the real payment.` : `Reject ${t.dataset.code}?`);
+      if (!ok) break;
+      t.disabled = true;
+      try { await api(`/api/p2p/${BOT}/desk/orders/${id}/${t.dataset.do}`, 'POST'); toast(approve ? 'Order approved' : 'Order rejected'); }
+      catch (err) { toast(err.message, 'error'); }
+      loadDesk(); break;
+    }
   }
-  await marketReq;
-  setInterval(() => { if (S.view === 'market' && !$('sheet').open) loadMarket(); }, 30000);
-})();
+});
+document.addEventListener('change', e => { if (e.target.id === 'proofInput') attachProof(e.target.files[0]); });
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.f){ trade[t.dataset.f] = t.value; t.removeAttribute('aria-invalid'); if (t.dataset.f === 'amount') updateTradeTotals(); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'tForm') submitTrade();
+  else if (e.target.dataset.form === 'desk-platform') saveDeskPlatform(e.target);
+});
+$('#tradeSheet').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+$('#tradeSheet').addEventListener('close', () => { if (trade.done) { loadHome(); } });
+
+loadHome();
 </script>
 </body>
 </html>

@@ -50,11 +50,21 @@
       <div class="section-title">Add a bot</div>
       <div id="addMsg" class="msg"></div>
 
-      <label>Platform</label>
-      <select id="platform">
-        <option value="bingo">Bonus and Bingo bot</option>
-        <option value="p2p">Cross P2P platform</option>
-      </select>
+      <div class="grid">
+        <div>
+          <label>Bot type</label>
+          <select id="botType">
+            <option value="bingo">Bingo</option>
+            <option value="p2p">P2P platform</option>
+            <option value="store">Game store</option>
+          </select>
+        </div>
+        <div id="platformWrap" class="hidden">
+          <label>P2P platform</label>
+          <select id="p2pPlatform"></select>
+        </div>
+      </div>
+      <p class="note" id="typeNote">Bingo bots run the registration bonus, wallet and bingo game.</p>
 
       <div class="grid">
         <div>
@@ -70,16 +80,7 @@
       <label>Bot token (from BotFather)</label>
       <input type="text" id="token" placeholder="123456789:AAxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
 
-      <div id="p2pFields" class="hidden">
-        <div class="divider"></div>
-        <label>Operator Telegram IDs</label>
-        <input type="text" id="p2pAdmins" placeholder="123456789, 987654321" autocomplete="off" />
-        <p class="note">Only these Telegram accounts see "Switch to admin" for this platform. They set rates, payment accounts and approve orders from inside the app. Everyone else only sees the listed prices. Numeric IDs only (users can get theirs from @userinfobot).</p>
-        <label>Contact username shown to users (optional)</label>
-        <input type="text" id="p2pTg" placeholder="@support_username" />
-      </div>
-
-      <div id="bingoFields">
+      <div id="regFields">
       <div class="divider"></div>
 
       <div class="grid">
@@ -129,6 +130,7 @@
       <label>Referral bonus (birr)</label>
       <input type="number" id="referralBonus" value="10" min="0" />
       <p class="note">Paid to a user's referrer once the referred user claims their own registration bonus. Set to 0 to disable the referral program and hide the Share Referral Link button. Each user gets their own link automatically.</p>
+
       </div>
 
       <button class="btn" id="addBtn" style="margin-top:8px">Add bot</button>
@@ -167,6 +169,22 @@
       <div id="wdList"></div>
     </div>
 
+    <div class="card" style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <div class="section-title" style="margin:0;padding:0;border:0">P2P platforms</div>
+        <button class="btn small" id="p2pAdd" type="button">Add platform</button>
+      </div>
+      <p class="note">Each platform is a desk with its own rates. The Telegram ID is the desk admin's numeric Telegram ID: only that person sees the Admin switch in the P2P Mini App, and new orders for the platform are sent to them. Ask them to send /start to the P2P bot, and to get their ID from a bot like @userinfobot.</p>
+      <div id="p2pMsg" class="msg"></div>
+      <div id="p2pList"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="section-title">Pending P2P orders</div>
+      <div id="p2pOrdMsg" class="msg"></div>
+      <div id="p2pOrders"></div>
+    </div>
+
     <div class="bot-list" id="botList"></div>
   </div>
 
@@ -175,15 +193,22 @@
     <div id="editMsg" class="msg"></div>
     <label>Display name</label>
     <input type="text" id="eName" maxlength="60" />
-    <div id="eP2pFields" class="hidden">
-      <label>Operator Telegram IDs</label>
-      <input type="text" id="eP2pAdmins" placeholder="123456789, 987654321" autocomplete="off" />
-      <p class="note">Only these accounts see "Switch to admin" for this platform. Leave empty to remove all operators.</p>
-      <label>Contact username shown to users (optional)</label>
-      <input type="text" id="eP2pTg" placeholder="@support_username" />
+    <div class="grid">
+      <div>
+        <label>Bot type</label>
+        <select id="eType">
+          <option value="bingo">Bingo</option>
+          <option value="p2p">P2P platform</option>
+          <option value="store">Game store</option>
+        </select>
+      </div>
+      <div id="ePlatformWrap" class="hidden">
+        <label>P2P platform</label>
+        <select id="ePlatform"></select>
+      </div>
     </div>
 
-    <div id="eBingoFields">
+    <div id="eRegBox">
     <label>Bonus amount (birr)</label>
     <input type="number" id="eBonus" min="0" />
 
@@ -254,11 +279,60 @@
         <input type="number" id="eWithdrawMin" min="0" placeholder="100" />
       </div>
     </div>
+
     </div>
 
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn" id="eSave">Save</button>
       <button class="btn ghost" id="eCancel">Cancel</button>
+    </div>
+  </dialog>
+
+  <dialog id="p2pDlg">
+    <div class="section-title" style="margin-bottom:16px" id="pTitle">Add platform</div>
+    <div id="pMsg" class="msg"></div>
+    <label>Platform name</label>
+    <input type="text" id="pName" maxlength="40" placeholder="Binance P2P" />
+    <div class="grid">
+      <div>
+        <label>Telegram ID (desk admin)</label>
+        <input type="text" id="pTgId" inputmode="numeric" placeholder="482915637" autocomplete="off" />
+      </div>
+      <div>
+        <label>Telegram username (optional)</label>
+        <input type="text" id="pTgUser" placeholder="@desk_name" autocomplete="off" />
+      </div>
+    </div>
+    <p class="note">The username is only used for the chat link customers see. Access is decided by the numeric ID.</p>
+    <div class="grid">
+      <div>
+        <label>Buy rate (ETB per USDT, customer pays)</label>
+        <input type="number" id="pBuy" step="0.01" min="0" />
+      </div>
+      <div>
+        <label>Sell rate (ETB per USDT, customer receives)</label>
+        <input type="number" id="pSell" step="0.01" min="0" />
+      </div>
+    </div>
+    <p class="note">The sell rate must be lower than the buy rate.</p>
+    <div class="check">
+      <input type="checkbox" id="pActive" checked />
+      <span>Open for trading</span>
+    </div>
+    <div class="divider"></div>
+    <div class="grid">
+      <div><label>Telebirr phone</label><input type="text" id="pTbPhone" /></div>
+      <div><label>Telebirr name</label><input type="text" id="pTbName" /></div>
+    </div>
+    <div class="grid">
+      <div><label>CBE account</label><input type="text" id="pCbeAcc" inputmode="numeric" /></div>
+      <div><label>CBE name</label><input type="text" id="pCbeName" /></div>
+    </div>
+    <label>Binance UID (customers send USDT here)</label>
+    <input type="text" id="pBinance" inputmode="numeric" />
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" id="pSave">Save</button>
+      <button class="btn ghost" id="pCancel">Cancel</button>
     </div>
   </dialog>
 
@@ -273,7 +347,6 @@
 
     let token = localStorage.getItem('admin_token');
     let botsCache = [];
-    let p2pCache = {}; // bot_id -> Cross P2P platform details
 
     async function api(path, method = 'GET', body) {
       const res = await fetch(`${API_URL}${path}`, {
@@ -300,10 +373,11 @@
     function enterDashboard() {
       $('loginView').classList.add('hidden');
       $('dashView').classList.remove('hidden');
-      loadBots().then(loadChannels);
+      loadP2p().finally(() => loadBots().then(loadChannels));
+      loadP2pOrders();
       loadDeposits();
       loadWithdrawals();
-      setInterval(() => { loadDeposits(); loadWithdrawals(); }, 15000);
+      setInterval(() => { loadDeposits(); loadWithdrawals(); loadP2pOrders(); }, 15000);
     }
 
     $('loginBtn').onclick = async () => {
@@ -420,10 +494,6 @@
       try {
         const bots = await api('/api/admin/bots');
         botsCache = bots;
-        try {
-          const plats = await api('/api/admin/p2p/platforms');
-          p2pCache = Object.fromEntries(plats.map((p) => [p.bot_id, p]));
-        } catch (_) { p2pCache = {}; } // migration_p2p.sql not run yet
         fillTargets();
         fillLeaderboardBots();
         loadLeaderboard();
@@ -432,35 +502,9 @@
       } catch (e) { console.error(e); }
     }
 
-    function p2pCard(b) {
-      const p = p2pCache[b.id] || {};
-      const ids = p.admin_ids || [];
-      const rate = (n) => (n > 0 ? n : '-');
-      return `
-        <div class="card bot">
-          <div>
-            <h3>${esc(b.name)}
-              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>
-              <span class="badge p2p">Cross P2P</span>
-            </h3>
-            <div class="meta">
-              <a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a>
-              · Token ${b.token_preview}<br/>
-              Operators: ${ids.length ? ids.map((i) => `<code>${i}</code>`).join(', ') : 'none set, nobody can switch to admin yet'}<br/>
-              Buy ${rate(p.buy_rate)} · Sell ${rate(p.sell_rate)} ETB per USDT · ${p.paused === false ? 'listed' : 'paused by operator'}<br/>
-              ${p.pending_orders || 0} orders to review · ${b.users} users
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn ghost small" onclick="editBot(${b.id})">Edit</button>
-            <button class="btn ghost small" onclick="toggle(${b.id}, ${!b.active})">${b.active ? 'Pause' : 'Resume'}</button>
-            <button class="btn danger small" onclick="removeBot(${b.id}, '${esc(b.name).replace(/'/g, "\\'")}')">Delete</button>
-          </div>
-        </div>`;
-    }
-
     function botCard(b) {
-      if (b.platform === 'p2p') return p2pCard(b);
+      if (b.bot_type === 'p2p') return p2pBotCard(b);
+      if (b.bot_type === 'store') return storeBotCard(b);
       const joinInfo = (b.channel || b.group_chat)
         ? `${b.channel ? 'Channel ' + esc(b.channel) : ''}${b.channel && b.group_chat ? ' · ' : ''}${b.group_chat ? 'Group ' + esc(b.group_chat) : ''}<br/>`
         : 'No join requirement<br/>';
@@ -487,23 +531,12 @@
         </div>`;
     }
 
-    $('platform').onchange = () => {
-      const p2pOn = $('platform').value === 'p2p';
-      $('p2pFields').classList.toggle('hidden', !p2pOn);
-      $('bingoFields').classList.toggle('hidden', p2pOn);
-      $('bonusWrap').classList.toggle('hidden', p2pOn);
-      $('name').placeholder = p2pOn ? 'Cross P2P' : 'Bonus Bot 2';
-    };
-
     $('addBtn').onclick = async () => {
       hide($('addMsg'));
       $('addBtn').disabled = true;
       $('addBtn').textContent = 'Adding...';
       try {
         await api('/api/admin/bots', 'POST', {
-          platform: $('platform').value,
-          p2p_admin_ids: $('p2pAdmins').value.trim(),
-          p2p_tg_username: $('p2pTg').value.trim(),
           name: $('name').value.trim(),
           token: $('token').value.trim(),
           channel: $('channel').value.trim(),
@@ -515,9 +548,11 @@
           continue_text: $('continueText').value.trim() || 'Continue',
           continue_url: $('continueUrl').value.trim(),
           referral_bonus: Number($('referralBonus').value) || 0,
+          bot_type: $('botType').value,
+          p2p_platform_id: $('botType').value === 'p2p' ? Number($('p2pPlatform').value) : null,
         });
         show($('addMsg'), 'Bot added and running.', 'success');
-        ['name', 'token', 'channel', 'group', 'continueUrl', 'p2pAdmins', 'p2pTg'].forEach((i) => ($(i).value = ''));
+        ['name', 'token', 'channel', 'group', 'continueUrl'].forEach((i) => ($(i).value = ''));
         $('bonus').value = 20;
         $('continueText').value = 'Continue';
         $('referralBonus').value = 10;
@@ -556,17 +591,6 @@
       if (!b) return;
       editId = id;
       hide($('editMsg'));
-      const isP2p = b.platform === 'p2p';
-      $('eP2pFields').classList.toggle('hidden', !isP2p);
-      $('eBingoFields').classList.toggle('hidden', isP2p);
-      if (isP2p) {
-        const p = p2pCache[b.id] || {};
-        $('eP2pAdmins').value = (p.admin_ids || []).join(', ');
-        $('eP2pTg').value = p.tg_username || '';
-        $('eName').value = b.name;
-        $('editDlg').showModal();
-        return;
-      }
       $('eName').value = b.name;
       $('eBonus').value = b.bonus;
       $('eChannel').value = b.channel || '';
@@ -582,6 +606,9 @@
       $('eBingoEnabled').checked = b.bingo_enabled !== false;
       $('eDepositPhone').value = b.deposit_phone || '0930008319';
       $('eWithdrawMin').value = b.withdraw_min_deposit ?? 100;
+      $('eType').value = b.bot_type || 'bingo';
+      fillPlatformSelect('ePlatform', b.p2p_platform_id);
+      syncEditType();
       editRows = textToLinks((b.extra_links || []).map((l) => `${l.text} | ${l.url}`).join('\n'));
       renderLinkRows('eLinkRows', editRows);
       $('editDlg').showModal();
@@ -589,13 +616,18 @@
     $('eCancel').onclick = () => $('editDlg').close();
     $('eSave').onclick = async () => {
       hide($('editMsg'));
-      const cur = botsCache.find((x) => x.id === editId);
-      if (cur && cur.platform === 'p2p') {
+      if ($('eType').value === 'store') {
         try {
-          await api(`/api/admin/bots/${editId}`, 'PATCH', { name: $('eName').value.trim() });
-          await api(`/api/admin/p2p/platforms/${editId}`, 'PATCH', {
-            admin_ids: $('eP2pAdmins').value.trim(),
-            tg_username: $('eP2pTg').value.trim(),
+          await api(`/api/admin/bots/${editId}`, 'PATCH', { name: $('eName').value.trim(), bot_type: 'store' });
+          $('editDlg').close();
+          loadBots();
+        } catch (e) { show($('editMsg'), e.message, 'error'); }
+        return;
+      }
+      if ($('eType').value === 'p2p') {
+        try {
+          await api(`/api/admin/bots/${editId}`, 'PATCH', {
+            name: $('eName').value.trim(), bot_type: 'p2p', p2p_platform_id: Number($('ePlatform').value) || null,
           });
           $('editDlg').close();
           loadBots();
@@ -607,6 +639,7 @@
       }
       try {
         await api(`/api/admin/bots/${editId}`, 'PATCH', {
+          bot_type: 'bingo',
           name: $('eName').value.trim(),
           bonus: Number($('eBonus').value),
           channel: $('eChannel').value.trim(),
@@ -791,6 +824,180 @@
     async function rejectWithdrawal(id) {
       if (!confirm('Reject this withdrawal and refund the amount to the user\'s game balance?')) return;
       try { await api(`/api/admin/withdrawals/${id}/reject`, 'POST'); loadWithdrawals(); }
+      catch (e) { alert(e.message); }
+    }
+
+    /* ---------------- P2P: platforms, bot type, orders ---------------- */
+
+    let p2pCache = [];
+    const money = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function fillPlatformSelect(selectId, selected) {
+      const el = $(selectId);
+      el.innerHTML = p2pCache.length
+        ? p2pCache.map((p) => `<option value="${p.id}" ${p.id === selected ? 'selected' : ''}>${esc(p.name)} (ID ${esc(p.telegram_id)})</option>`).join('')
+        : '<option value="">Add a platform first</option>';
+    }
+
+    function syncAddType() {
+      const t = $('botType').value;
+      const p2p = t === 'p2p';
+      const noBingo = t !== 'bingo';
+      $('platformWrap').classList.toggle('hidden', !p2p);
+      $('bonusWrap').classList.toggle('hidden', noBingo);
+      $('regFields').classList.toggle('hidden', noBingo);
+      $('typeNote').textContent = p2p
+        ? 'P2P bots open the Cross P2P Mini App. Their orders go to the platform\'s Telegram ID.'
+        : t === 'store'
+          ? 'Store bots open the eFootball / DLS store Mini App. Manage items and orders in store-admin.html.'
+          : 'Bingo bots run the registration bonus, wallet and bingo game.';
+    }
+    function syncEditType() {
+      const t = $('eType').value;
+      $('ePlatformWrap').classList.toggle('hidden', t !== 'p2p');
+      $('eRegBox').classList.toggle('hidden', t !== 'bingo');
+    }
+    $('botType').onchange = syncAddType;
+    $('eType').onchange = syncEditType;
+
+    function storeBotCard(b) {
+      return `
+        <div class="card bot">
+          <div>
+            <h3>${esc(b.name)}
+              <span class="badge on" style="background:#1d2540;color:#8da2ff">Store</span>
+              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>
+            </h3>
+            <div class="meta">
+              <a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a> · Token ${b.token_preview}<br/>
+              <a href="store-admin.html">Open store admin</a>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost small" onclick="editBot(${b.id})">Edit</button>
+            <button class="btn ghost small" onclick="toggle(${b.id}, ${!b.active})">${b.active ? 'Pause' : 'Resume'}</button>
+            <button class="btn danger small" onclick="removeBot(${b.id}, '${esc(b.name).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </div>`;
+    }
+
+    function p2pBotCard(b) {
+      const plat = p2pCache.find((p) => p.id === b.p2p_platform_id);
+      return `
+        <div class="card bot">
+          <div>
+            <h3>${esc(b.name)}
+              <span class="badge on" style="background:#1d2540;color:#8da2ff">P2P</span>
+              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>
+            </h3>
+            <div class="meta">
+              <a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a> · Token ${b.token_preview}<br/>
+              ${plat ? `Platform ${esc(plat.name)} · desk Telegram ID <code>${esc(plat.telegram_id)}</code>` : 'No platform set. Edit this bot and choose one.'}
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost small" onclick="editBot(${b.id})">Edit</button>
+            <button class="btn ghost small" onclick="toggle(${b.id}, ${!b.active})">${b.active ? 'Pause' : 'Resume'}</button>
+            <button class="btn danger small" onclick="removeBot(${b.id}, '${esc(b.name).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </div>`;
+    }
+
+    async function loadP2p() {
+      hide($('p2pMsg'));
+      try {
+        p2pCache = await api('/api/admin/p2p/platforms');
+        fillPlatformSelect('p2pPlatform', null);
+        $('p2pList').innerHTML = p2pCache.length ? p2pCache.map((p) => `
+          <div class="card bot" style="margin-bottom:8px">
+            <div>
+              <h3>${esc(p.name)} <span class="badge ${p.active ? 'on' : 'off'}">${p.active ? 'Open' : 'Paused'}</span>${p.pending ? ` <span class="badge off">${p.pending} pending</span>` : ''}</h3>
+              <div class="meta">Buy ${money(p.buy_rate)} · Sell ${money(p.sell_rate)} ETB<br/>
+                Desk Telegram ID <code>${esc(p.telegram_id)}</code>${p.telegram_username ? ' · @' + esc(p.telegram_username) : ''}</div>
+            </div>
+            <div class="actions">
+              <button class="btn ghost small" onclick="editPlatform(${p.id})">Edit</button>
+              <button class="btn danger small" onclick="deletePlatform(${p.id}, '${esc(p.name).replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </div>`).join('') : '<p class="note" style="margin:8px 0 0">No platforms yet. Add one to start.</p>';
+      } catch (e) {
+        $('p2pList').innerHTML = '';
+        show($('p2pMsg'), /migration|relation|schema/i.test(e.message) ? 'P2P tables are missing. Run migration_p2p.sql in Supabase.' : e.message, 'error');
+      }
+    }
+
+    let p2pEditId = null;
+    function openPlatformDialog(p) {
+      p2pEditId = p ? p.id : null;
+      hide($('pMsg'));
+      $('pTitle').textContent = p ? 'Edit platform' : 'Add platform';
+      $('pName').value = p ? p.name : '';
+      $('pTgId').value = p ? p.telegram_id : '';
+      $('pTgUser').value = p ? p.telegram_username : '';
+      $('pBuy').value = p ? p.buy_rate : '';
+      $('pSell').value = p ? p.sell_rate : '';
+      $('pActive').checked = p ? p.active : true;
+      $('pTbPhone').value = p ? p.telebirr_phone : '';
+      $('pTbName').value = p ? p.telebirr_name : '';
+      $('pCbeAcc').value = p ? p.cbe_account : '';
+      $('pCbeName').value = p ? p.cbe_name : '';
+      $('pBinance').value = p ? p.binance_uid : '';
+      $('p2pDlg').showModal();
+    }
+    function editPlatform(id) { openPlatformDialog(p2pCache.find((x) => x.id === id)); }
+    $('p2pAdd').onclick = () => openPlatformDialog(null);
+    $('pCancel').onclick = () => $('p2pDlg').close();
+    $('pSave').onclick = async () => {
+      hide($('pMsg'));
+      const body = {
+        name: $('pName').value.trim(),
+        telegram_id: $('pTgId').value.trim(),
+        telegram_username: $('pTgUser').value.trim(),
+        buy_rate: Number($('pBuy').value),
+        sell_rate: Number($('pSell').value),
+        active: $('pActive').checked,
+        telebirr_phone: $('pTbPhone').value.trim(),
+        telebirr_name: $('pTbName').value.trim(),
+        cbe_account: $('pCbeAcc').value.trim(),
+        cbe_name: $('pCbeName').value.trim(),
+        binance_uid: $('pBinance').value.trim(),
+      };
+      try {
+        await api(p2pEditId ? `/api/admin/p2p/platforms/${p2pEditId}` : '/api/admin/p2p/platforms', p2pEditId ? 'PATCH' : 'POST', body);
+        $('p2pDlg').close();
+        await loadP2p();
+        loadBots();
+      } catch (e) { show($('pMsg'), e.message, 'error'); }
+    };
+    async function deletePlatform(id, name) {
+      if (!confirm(`Delete ${name}? Bots using it will need a new platform. Past orders are kept.`)) return;
+      try { await api(`/api/admin/p2p/platforms/${id}`, 'DELETE'); await loadP2p(); loadBots(); }
+      catch (e) { alert(e.message); }
+    }
+
+    async function loadP2pOrders() {
+      hide($('p2pOrdMsg'));
+      try {
+        const rows = await api('/api/admin/p2p/orders?status=pending');
+        $('p2pOrders').innerHTML = rows.length ? rows.map((o) => `
+          <div class="card bot" style="margin-bottom:8px">
+            <div>
+              <h3>${o.type === 'buy' ? 'Buy' : 'Sell'} ${money(o.usdt_amount)} USDT <span class="badge off">pending</span></h3>
+              <div class="meta">${esc(o.code)} · ${esc(o.platform_name)} · ${money(o.etb_total)} ETB at ${money(o.rate)} · ${ago(o.created_at)}<br/>
+                Customer Telegram ID <code>${esc(o.customer_telegram_id)}</code>${o.customer_username ? ' · @' + esc(o.customer_username) : ''}<br/>
+                ${o.type === 'buy' ? `Send USDT to Binance UID <code>${esc(o.binance_uid)}</code>` : `Pay ${esc(o.payout_name)} on Telebirr <code>${esc(o.payout_phone)}</code>`}
+                ${o.proof_url ? ` · <a href="${esc(o.proof_url)}" target="_blank" rel="noopener">View proof</a>` : ''}</div>
+            </div>
+            <div class="actions">
+              <button class="btn small" onclick="p2pDecide(${o.id}, 'approve')">Approve</button>
+              <button class="btn danger small" onclick="p2pDecide(${o.id}, 'reject')">Reject</button>
+            </div>
+          </div>`).join('') : '<p class="note" style="margin:8px 0 0">No pending P2P orders.</p>';
+      } catch (e) { show($('p2pOrdMsg'), e.message, 'error'); }
+    }
+    async function p2pDecide(id, action) {
+      if (!confirm(action === 'approve' ? 'Confirm you checked the real payment and approve this order?' : 'Reject this order?')) return;
+      try { await api(`/api/admin/p2p/orders/${id}/${action}`, 'POST'); loadP2pOrders(); loadP2p(); }
       catch (e) { alert(e.message); }
     }
 

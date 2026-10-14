@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Game Store</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0F1424;--card:#171E36;--line:#262F52;--text:#E8ECFA;--muted:#93A0C4;--accent:#3B82F6;--accent2:#22C55E;--danger:#EF4444;--warn:#F59E0B}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh;padding-bottom:40px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+.wrap{width:min(640px,100% - 24px);margin:0 auto}
+header{position:sticky;top:0;z-index:5;background:rgba(15,20,36,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:54px}
+h1{font-size:18px}
+.link{background:none;color:var(--accent);padding:6px 4px;font-weight:600}
+.tabs{display:flex;gap:8px;margin:14px 0 8px;flex-wrap:wrap}
+.chip{padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:600;font-size:14px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pad{padding:14px}
+.item{cursor:pointer}
+.item img,.ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#0B1020}
+.ph{display:grid;place-items:center;color:var(--muted);font-size:13px}
+.item .b{padding:10px 12px}
+.item .t{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.price{color:var(--accent2);font-weight:700}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#202A4D;color:var(--muted);margin-right:4px}
+.btn{width:100%;padding:13px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;margin-top:12px}
+.btn.green{background:var(--accent2);color:#06210F}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn:disabled{opacity:.5}
+.gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+.gal img{width:88%;flex:none;border-radius:12px;scroll-snap-align:start;aspect-ratio:4/3;object-fit:cover;background:#0B1020}
+.msg{padding:10px 12px;border-radius:10px;margin:10px 0;font-size:14px}
+.msg.err{background:#3A1A1F;color:#FCA5A5}.msg.ok{background:#12301F;color:#86EFAC}.msg.info{background:#1B2748;color:#BFD0FF}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}
+input[type=text],textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0F1630;outline:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+.method{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:#131A33;width:100%;text-align:left}
+.method.on{border-color:var(--accent2)}
+.num{font-size:20px;font-weight:700;letter-spacing:.5px;margin:6px 0}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.muted{color:var(--muted);font-size:13px}
+.chat{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0}
+.bub{max-width:82%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word;font-size:14px}
+.bub.admin{background:#202A4D;align-self:flex-start}
+.bub.customer{background:var(--accent);align-self:flex-end}
+.st{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
+.st.paid,.st.delivered{background:#12301F;color:#86EFAC}.st.verifying,.st.awaiting_payment{background:#3A2B0E;color:#FCD34D}.st.rejected,.st.expired{background:#3A1A1F;color:#FCA5A5}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1 id="title">Game Store</h1><button class="link" id="navBtn">My orders</button></div></header>
+<main class="wrap" id="app"></main>
+
+<script>
+const API_URL = 'https://gmae-production-aa21.up.railway.app';
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const qs = new URLSearchParams(location.search);
+const BOT = qs.get('b');
+const $app = document.getElementById('app');
+const $nav = document.getElementById('navBtn');
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ETB';
+const GAME = { efootball: 'eFootball', dls: 'DLS' };
+const STATUS = { awaiting_payment: 'Waiting for payment', verifying: 'Checking payment', paid: 'Paid', delivered: 'Delivered', rejected: 'Rejected', expired: 'Expired' };
+
+async function api(path, method = 'GET', body) {
+  if (!tg || !tg.initData || !BOT) throw new Error('Please open this store from Telegram.');
+  const r = await fetch(`${API_URL}/api/store/${BOT}${path}`, {
+    method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.error || 'Request failed'); e.data = j; throw e; }
+  return j;
+}
+
+// Shrink a photo before upload so it fits the server limit.
+function shrink(file, maxSide, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maxSide / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => reject(new Error('Could not read that image.'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+let timer = null;
+const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
+const notice = (cls, text) => `<div class="msg ${cls}">${esc(text)}</div>`;
+
+/* ---------------- list ---------------- */
+let filter = { game: '', kind: '' };
+async function showList() {
+  stopTimer(); $nav.textContent = 'My orders'; $nav.onclick = showOrders;
+  document.getElementById('title').textContent = 'Game Store';
+  $app.innerHTML = `
+    <div class="tabs" id="gTabs"></div><div class="tabs" id="kTabs"></div>
+    <div id="list"><div class="empty">Loading...</div></div>`;
+  const tabs = (id, key, opts) => {
+    document.getElementById(id).innerHTML = opts.map(([v, l]) => `<button class="chip ${filter[key] === v ? 'on' : ''}" data-v="${v}">${l}</button>`).join('');
+    document.getElementById(id).onclick = (e) => { const b = e.target.closest('button'); if (b) { filter[key] = b.dataset.v; showList(); } };
+  };
+  tabs('gTabs', 'game', [['', 'All games'], ['efootball', 'eFootball'], ['dls', 'DLS']]);
+  tabs('kTabs', 'kind', [['', 'All'], ['account', 'Accounts'], ['coins', 'Coins']]);
+  try {
+    const p = new URLSearchParams(); if (filter.game) p.set('game', filter.game); if (filter.kind) p.set('kind', filter.kind);
+    const { items } = await api(`/items?${p}`);
+    document.getElementById('list').innerHTML = items.length ? `<div class="grid">${items.map((i) => `
+      <div class="card item" data-id="${i.id}">
+        ${i.images[0] ? `<img src="${esc(i.images[0])}" alt="" loading="lazy">` : '<div class="ph">No photo</div>'}
+        <div class="b"><div class="t">${esc(i.title)}</div>
+        <div><span class="tag">${GAME[i.game]}</span><span class="tag">${i.kind === 'coins' ? 'Coins' : 'Account'}</span></div>
+        <div class="price">${money(i.price)}</div></div></div>`).join('')}</div>` : '<div class="empty">Nothing for sale right now.</div>';
+    document.getElementById('list').onclick = (e) => { const c = e.target.closest('.item'); if (c) showItem(Number(c.dataset.id)); };
+  } catch (e) { document.getElementById('list').innerHTML = notice('err', e.message); }
+}
+
+/* ---------------- item ---------------- */
+async function showItem(id) {
+  stopTimer(); $nav.textContent = 'Back'; $nav.onclick = showList;
+  $app.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const { item } = await api(`/items/${id}`);
+    $app.innerHTML = `<div style="margin-top:14px">
+      ${item.images.length ? `<div class="gal">${item.images.map((u) => `<img src="${esc(u)}" alt="">`).join('')}</div>` : ''}
+      <div class="card pad" style="margin-top:12px">
+        <div><span class="tag">${GAME[item.game]}</span><span class="tag">${item.kind === 'coins' ? 'Coins' : 'Account'}</span></div>
+        <h2 style="margin:8px 0 4px;font-size:19px">${esc(item.title)}</h2>
+        ${item.coins_amount ? `<div class="muted">Coins: ${Number(item.coins_amount).toLocaleString('en-US')}</div>` : ''}
+        ${item.description ? `<p style="margin-top:8px;white-space:pre-wrap">${esc(item.description)}</p>` : ''}
+        <div class="price" style="font-size:22px;margin-top:10px">${money(item.price)}</div>
+        <div id="msg"></div>
+        <button class="btn green" id="buy" ${item.status !== 'available' ? 'disabled' : ''}>${item.status === 'available' ? 'Buy now' : 'Not available'}</button>
+      </div></div>`;
+    document.getElementById('buy').onclick = async (e) => {
+      e.target.disabled = true;
+      try { showCheckout(await api('/orders', 'POST', { item_id: item.id })); }
+      catch (err) { document.getElementById('msg').innerHTML = notice('err', err.message); e.target.disabled = false; }
+    };
+  } catch (e) { $app.innerHTML = notice('err', e.message); }
+}
+
+/* ---------------- checkout ---------------- */
+function showCheckout(d) {
+  stopTimer(); $nav.textContent = 'Cancel';
+  $nav.onclick = async () => { try { await api(`/orders/${d.order.id}/cancel`, 'POST'); } catch {} showList(); };
+  let method = null, proof = null;
+  const draw = () => {
+    $app.innerHTML = `<div style="margin-top:14px">
+      <div class="card pad"><div class="row"><div><div class="muted">Order ${esc(d.order.code)}</div><b>${esc(d.item.title)}</b></div>
+      <div class="price">${money(d.order.price)}</div></div>
+      <div class="muted" style="margin-top:6px">Reserved for you for ${d.reserve_minutes} minutes.</div></div>
+      <h3 style="margin:16px 0 4px;font-size:16px">1. Choose payment method</h3>
+      ${d.methods.length ? d.methods.map((m) => `<button class="method ${method === m.key ? 'on' : ''}" data-k="${m.key}"><b>${esc(m.label)}</b><span class="muted">${method === m.key ? 'Selected' : 'Tap to select'}</span></button>`).join('') : notice('err', 'Payment is not set up yet. Please contact the admin.')}
+      ${method ? (() => { const m = d.methods.find((x) => x.key === method); return `
+        <div class="card pad" style="margin-top:12px">
+          <div class="muted">Send exactly <b>${money(d.order.price)}</b> to:</div>
+          <div class="num" id="num">${esc(m.number)}</div>
+          ${m.name ? `<div class="muted">Name: ${esc(m.name)}</div>` : ''}
+          <button class="btn ghost" id="copy" style="margin-top:8px">Copy number</button>
+        </div>
+        <h3 style="margin:16px 0 4px;font-size:16px">2. Confirm your payment</h3>
+        <label>Transaction / reference number</label>
+        <input type="text" id="ref" placeholder="e.g. DEV6HKJX7K" autocapitalize="characters" autocomplete="off">
+        <label>Payment screenshot (optional)</label>
+        <input type="file" id="shot" accept="image/*">
+        <div id="msg"></div>
+        <button class="btn green" id="pay">Submit payment</button>`; })() : ''}
+    </div>`;
+    document.querySelectorAll('.method').forEach((b) => b.onclick = () => { method = b.dataset.k; draw(); });
+    const copy = document.getElementById('copy');
+    if (copy) copy.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(document.getElementById('num').textContent); copy.textContent = 'Copied'; };
+    const shot = document.getElementById('shot');
+    if (shot) shot.onchange = async () => { proof = shot.files[0] ? await shrink(shot.files[0], 1280, 0.7).catch(() => null) : null; };
+    const pay = document.getElementById('pay');
+    if (pay) pay.onclick = async () => {
+      const msg = document.getElementById('msg');
+      const reference = document.getElementById('ref').value.trim();
+      if (!reference) return (msg.innerHTML = notice('err', 'Enter the transaction number.'));
+      pay.disabled = true; pay.textContent = 'Checking your payment...';
+      try {
+        const r = await api(`/orders/${d.order.id}/pay`, 'POST', { method, reference, proof });
+        showOrder(d.order.id, r.message);
+      } catch (e) {
+        msg.innerHTML = notice('err', e.message + (e.data && e.data.attempts_left != null ? ` (${e.data.attempts_left} tries left)` : ''));
+        pay.disabled = false; pay.textContent = 'Submit payment';
+      }
+    };
+  };
+  draw();
+}
+
+/* ---------------- order + chat ---------------- */
+async function showOrder(id, note) {
+  stopTimer(); $nav.textContent = 'My orders'; $nav.onclick = showOrders;
+  $app.innerHTML = '<div class="empty">Loading...</div>';
+  let last = '';
+  const load = async () => {
+    const d = await api(`/orders/${id}`);
+    const sig = JSON.stringify([d.order.status, d.messages.length]);
+    if (sig === last) return; last = sig;
+    const o = d.order;
+    $app.innerHTML = `<div style="margin-top:14px">
+      ${note ? notice('info', note) : ''}
+      <div class="card pad"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
+      <div class="muted">Order ${esc(o.code)} · ${money(o.price)}</div>
+      ${o.status === 'verifying' ? '<p style="margin-top:8px">We are checking your payment. You will get a Telegram message when it is confirmed.</p>' : ''}
+      ${o.status === 'rejected' ? '<p style="margin-top:8px">This order was rejected. If you already paid, message the admin with your order ID.</p>' : ''}
+      ${o.status === 'delivered' ? '<p style="margin-top:8px">Order complete. Please change the account password right away.</p>' : ''}</div>
+      ${(o.status === 'paid' || o.status === 'delivered') ? `<div class="card pad" style="margin-top:12px"><b>Chat with admin</b>
+        <div class="chat" id="chat">${d.messages.length ? d.messages.map((m) => `<div class="bub ${m.sender}">${esc(m.body)}</div>`).join('') : '<div class="muted">The admin will message you here with your account details.</div>'}</div>
+        ${d.chat_open ? `<div class="row" style="margin-top:10px;align-items:stretch"><textarea id="txt" rows="1" placeholder="Write a message"></textarea><button class="btn" id="send" style="width:auto;margin:0;padding:0 18px">Send</button></div>` : '<div class="muted" style="margin-top:8px">This chat is closed.</div>'}</div>` : ''}
+    </div>`;
+    const chat = document.getElementById('chat'); if (chat) chat.scrollTop = chat.scrollHeight;
+    const send = document.getElementById('send');
+    if (send) send.onclick = async () => {
+      const t = document.getElementById('txt').value.trim(); if (!t) return;
+      send.disabled = true;
+      try { await api(`/orders/${id}/messages`, 'POST', { body: t }); last = ''; note = ''; await load(); } catch (e) { alert(e.message); send.disabled = false; }
+    };
+  };
+  try { await load(); timer = setInterval(() => load().catch(() => {}), 5000); }
+  catch (e) { $app.innerHTML = notice('err', e.message); }
+}
+
+async function showOrders() {
+  stopTimer(); $nav.textContent = 'Store'; $nav.onclick = showList;
+  $app.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const { orders } = await api('/orders');
+    $app.innerHTML = orders.length ? `<div id="ol" style="margin-top:14px">${orders.map((o) => `
+      <div class="card pad item" data-id="${o.id}" style="margin-bottom:10px"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
+      <div class="muted">${esc(o.code)} · ${money(o.price)}</div></div>`).join('')}</div>` : '<div class="empty">No orders yet.</div>';
+    const ol = document.getElementById('ol');
+    if (ol) ol.onclick = (e) => { const c = e.target.closest('.item[data-id]'); if (c && c.dataset.id) { const o = orders.find((x) => x.id === Number(c.dataset.id)); if (o && o.status === 'awaiting_payment') return showList(); showOrder(o.id); } };
+  } catch (e) { $app.innerHTML = notice('err', e.message); }
+}
+
+/* ---------------- start ---------------- */
+(function start() {
+  if (!tg || !tg.initData) { $app.innerHTML = '<div style="margin-top:30px">' + notice('info', 'Open this store from the Telegram bot to browse and buy.') + '</div>'; $nav.hidden = true; return; }
+  if (qs.get('order')) return showOrder(Number(qs.get('order')));
+  if (qs.get('item')) return showItem(Number(qs.get('item')));
+  showList();
+})();
+</script>
+</body>
+</html>
