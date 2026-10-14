@@ -30,6 +30,9 @@ const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 const app = express();
 // P2P payment proofs arrive as base64 JSON, so only that route family gets a bigger limit.
 app.use('/api/p2p', express.json({ limit: '1mb' }));
+// Store: item photos and payment screenshots arrive as base64 JSON.
+app.use('/api/store', express.json({ limit: '2mb' }));
+app.use('/api/admin/store', express.json({ limit: '12mb' }));
 app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL || '*' }));
 
@@ -271,6 +274,7 @@ function attachHandlers(entry) {
     try {
       // P2P bots have no registration bonus: they just open the Cross P2P Mini App.
       if (row().bot_type === 'p2p') return p2p.handleStart(bot, row(), msg);
+      if (row().bot_type === 'store') return store.handleStart(bot, row(), msg);
       const referredByCode = (match && match[1] || '').trim().toUpperCase() || null;
       const user = await upsertUser(row().id, msg.from, referredByCode);
       if (user.bonus_given) {
@@ -308,6 +312,10 @@ function attachHandlers(entry) {
     // P2P bots only point people to the Mini App.
     if (r.bot_type === 'p2p') {
       if (text && !text.startsWith('/')) p2p.handleStart(bot, r, msg).catch(console.error);
+      return;
+    }
+    if (r.bot_type === 'store') {
+      if (text && !text.startsWith('/')) store.handleStart(bot, r, msg).catch(console.error);
       return;
     }
 
@@ -553,6 +561,7 @@ const requireAdmin = (req, res, next) => {
 const walletBot = require('./wallet-bot')(app, db, { requireAdmin, MINIAPP_BASE });
 require('./bingo')(app, db, { requireAdmin, miniAuth, mainMenuFor: mainMenu, sendMessage: null });
 const p2p = require('./p2p')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
+const store = require('./store')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 channels = require('./channels')(app, db, {
   requireAdmin,
   getEntry: (id) => registry.get(Number(id)),
@@ -641,7 +650,7 @@ app.post('/api/admin/bots', requireAdmin, async (req, res) => {
   }
 
   // A bot is either Bingo (default) or P2P. A P2P bot must belong to one platform.
-  const botType = bot_type === 'p2p' ? 'p2p' : 'bingo';
+  const botType = bot_type === 'p2p' ? 'p2p' : bot_type === 'store' ? 'store' : 'bingo';
   let platformId = null;
   if (botType === 'p2p') {
     platformId = Number(p2p_platform_id);
@@ -714,8 +723,8 @@ app.patch('/api/admin/bots/:id', requireAdmin, async (req, res) => {
   }
   if ('require_all_clicks' in patch) patch.require_all_clicks = patch.require_all_clicks !== false;
   if ('bot_type' in patch) {
-    patch.bot_type = patch.bot_type === 'p2p' ? 'p2p' : 'bingo';
-    if (patch.bot_type === 'bingo') patch.p2p_platform_id = null;
+    patch.bot_type = patch.bot_type === 'p2p' ? 'p2p' : patch.bot_type === 'store' ? 'store' : 'bingo';
+    if (patch.bot_type !== 'p2p') patch.p2p_platform_id = null;
     else {
       const pid = Number(patch.p2p_platform_id);
       const { data: plat } = Number.isInteger(pid)
@@ -945,7 +954,7 @@ app.post('/api/mini/:botId/click', async (req, res) => {
 });
 
 app.get('/api/public', async (_req, res) => {
-  const { data: bots } = await db.from('bots').select('id,name,bot_username,bonus').eq('active', true).neq('bot_type', 'p2p').order('id');
+  const { data: bots } = await db.from('bots').select('id,name,bot_username,bonus').eq('active', true).not('bot_type', 'in', '(p2p,store)').order('id');
   const { data: users } = await db.from('bot_users').select('bonus_given');
   res.json({
     bots: bots || [],
