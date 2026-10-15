@@ -165,6 +165,11 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     if (own) ids.add(String(own));
     const via = entry || [...reg.values()].find((e) => e.row.bot_type === 'store');
     if (!via) return;
+    // Admins added from inside the store (store_admins) get the same notifications.
+    try {
+      const { data: more } = await db.from('store_admins').select('telegram_id').eq('bot_id', via.row.id);
+      for (const r of more || []) ids.add(String(r.telegram_id));
+    } catch (_) { /* table missing before migration: ignore */ }
     for (const id of ids) await notify(via, id, text, `/store?b=${via.row.id}&admin=1`);
   }
 
@@ -535,13 +540,25 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   //   /api/admin/store/...            password login (store-admin page on a computer)
   //   /api/store/:botId/admin/...     inside Telegram, ONLY for the Telegram account set as
   //                                   this store bot's admin (the "Admin" switch in the Mini App)
-  function miniAdmin(req, res, next) {
-    const a = miniAuth(req, res); if (!a) return;
-    const adminId = Number(a.entry.row.store_admin_telegram_id);
-    if (!adminId || a.user.id !== adminId) return res.status(403).json({ error: 'You are not the admin of this store.' });
-    req.miniBotId = a.entry.row.id;
-    req.miniEntry = a.entry;
-    next();
+  // An admin is the Telegram ID set on the store bot, or any ID an admin added (store_admins).
+  async function isStoreAdmin(row, userId) {
+    const primary = Number(row.store_admin_telegram_id);
+    if (primary && primary === userId) return true;
+    try {
+      const { data } = await db.from('store_admins').select('telegram_id')
+        .eq('bot_id', row.id).eq('telegram_id', userId).maybeSingle();
+      return !!data;
+    } catch (_) { return false; }
+  }
+  async function miniAdmin(req, res, next) {
+    try {
+      const a = miniAuth(req, res); if (!a) return;
+      if (!(await isStoreAdmin(a.entry.row, a.user.id))) return res.status(403).json({ error: 'You are not the admin of this store.' });
+      req.miniBotId = a.entry.row.id;
+      req.miniEntry = a.entry;
+      req.miniUserId = a.user.id;
+      next();
+    } catch (err) { next(err); }
   }
   function adminRoute(method, path, handler) {
     app[method]('/api/admin/store' + path, requireAdmin, handler);
@@ -591,10 +608,52 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   // Tells the Mini App who is looking, so the Admin switch only exists for the admin.
   app.get('/api/store/:botId/home', wrap(async (req, res) => {
     const a = miniAuth(req, res); if (!a) return;
-    const adminId = Number(a.entry.row.store_admin_telegram_id);
-    res.json({ name: a.entry.row.name, is_admin: !!adminId && adminId === a.user.id });
+    res.json({ name: a.entry.row.name, is_admin: await isStoreAdmin(a.entry.row, a.user.id) });
   }));
 
+
+  // Admins of this store. Any admin can add another admin by Telegram ID, or remove one.
+  // The main admin (set on the bot) is always listed and cannot be removed here.
+  adminRoute('get', '/admins', wrap(async (req, res) => {
+    const botId = await scope(req);
+    const { data: bot } = await db.from('bots').select('store_admin_telegram_id').eq('id', botId).maybeSingle();
+    const { data, error } = await db.from('store_admins').select('telegram_id,added_by,created_at')
+      .eq('bot_id', botId).order('created_at', { ascending: true });
+    if (error) throw error;
+    const main = Number(bot && bot.store_admin_telegram_id) || null;
+    const list = [];
+    if (main) list.push({ telegram_id: main, main: true });
+    for (const r of data || []) if (Number(r.telegram_id) !== main) list.push({ telegram_id: Number(r.telegram_id), main: false, added_by: r.added_by ? Number(r.added_by) : null });
+    res.json({ admins: list, you: req.miniUserId || null });
+  }));
+
+  adminRoute('post', '/admins', wrap(async (req, res) => {
+    const botId = await scope(req);
+    const id = Number(String((req.body && req.body.telegram_id) || '').trim());
+    if (!Number.isSafeInteger(id) || id <= 0) throw new HttpError(400, 'Enter a valid Telegram ID (numbers only).');
+    const { data: bot } = await db.from('bots').select('store_admin_telegram_id').eq('id', botId).maybeSingle();
+    if (Number(bot && bot.store_admin_telegram_id) === id) throw new HttpError(409, 'That person is already an admin.');
+    const { count } = await db.from('store_admins').select('telegram_id', { count: 'exact', head: true }).eq('bot_id', botId);
+    if ((count || 0) >= 20) throw new HttpError(400, 'Admin limit reached (20).');
+    const { error } = await db.from('store_admins').upsert(
+      { bot_id: botId, telegram_id: id, added_by: req.miniUserId || null },
+      { onConflict: 'bot_id,telegram_id', ignoreDuplicates: true });
+    if (error) throw error;
+    const entry = req.miniEntry || registry(req).get(botId);
+    if (entry) notify(entry, id, `You are now an admin of ${entry.row.name || 'this store'}. Open the store and switch to Admin.`, `/store?b=${botId}&admin=1`).catch(() => {});
+    res.json({ ok: true });
+  }));
+
+  adminRoute('delete', '/admins/:tid', wrap(async (req, res) => {
+    const botId = await scope(req);
+    const id = Number(req.params.tid);
+    if (!Number.isSafeInteger(id) || id <= 0) throw new HttpError(400, 'Invalid Telegram ID.');
+    const { data: bot } = await db.from('bots').select('store_admin_telegram_id').eq('id', botId).maybeSingle();
+    if (Number(bot && bot.store_admin_telegram_id) === id) throw new HttpError(403, 'The main admin cannot be removed here.');
+    const { error } = await db.from('store_admins').delete().eq('bot_id', botId).eq('telegram_id', id);
+    if (error) throw error;
+    res.json({ ok: true });
+  }));
 
   // Groups/channels the bot is in (saved by channels.js). Mini admin sees only its own bot's.
   adminRoute('get', '/channels', wrap(async (req, res) => {
