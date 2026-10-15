@@ -289,15 +289,23 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   /* Customer API (Telegram Mini App)                                   */
   /* ---------------------------------------------------------------- */
 
+  // Squads this customer is currently holding (an unpaid order), so they can continue paying.
+  async function myHeldItems(telegramId) {
+    const { data } = await db.from('store_orders').select('item_id')
+      .eq('customer_telegram_id', telegramId).eq('status', 'awaiting_payment').not('item_id', 'is', null);
+    return new Set((data || []).map((o) => o.item_id));
+  }
+
   app.get('/api/store/:botId/items', wrap(async (req, res) => {
     const a = miniAuth(req, res); if (!a) return;
     await releaseExpired();
-    let q = db.from('store_items').select('*').eq('status', 'available').order('created_at', { ascending: false }).limit(100);
+    let q = db.from('store_items').select('*').in('status', ['available', 'reserved']).order('created_at', { ascending: false }).limit(100);
     if (req.query.game === 'efootball' || req.query.game === 'dls') q = q.eq('game', req.query.game);
     if (req.query.kind === 'account' || req.query.kind === 'coins') q = q.eq('kind', req.query.kind);
     const { data, error } = await q;
     if (error) throw error;
-    res.json({ items: (await itemsWithImages(data || [])).map(itemOut) });
+    const mine = await myHeldItems(a.user.id);
+    res.json({ items: (await itemsWithImages(data || [])).map((i) => ({ ...itemOut(i), status: i.status, mine: mine.has(i.id) })) });
   }));
 
   app.get('/api/store/:botId/items/:id', wrap(async (req, res) => {
@@ -306,7 +314,8 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     if (error) throw error;
     if (!data || data.status === 'hidden') throw new HttpError(404, 'Item not found.');
     const [it] = await itemsWithImages([data]);
-    res.json({ item: { ...itemOut(it), status: data.status } });
+    const mine = await myHeldItems(a.user.id);
+    res.json({ item: { ...itemOut(it), status: data.status, mine: mine.has(data.id) } });
   }));
 
   // Coin list for customers: packs the admin entered (coins -> price), grouped by section.
@@ -328,16 +337,34 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     await releaseExpired();
     const b = req.body || {};
 
-    // Two open orders per customer at most, so nobody can lock up the stock.
-    const { data: open } = await db.from('store_orders').select('id')
-      .eq('customer_telegram_id', a.user.id).eq('status', 'awaiting_payment');
-    if ((open || []).length >= 2) throw new HttpError(409, 'Finish or cancel your open orders first.');
 
     const who = {
       bot_id: a.entry.row.id, customer_telegram_id: a.user.id,
       customer_name: clean([a.user.first_name, a.user.last_name].filter(Boolean).join(' ') || a.user.username, 80),
     };
     let item = null, shown, row;
+
+    // Came back to a squad they already started paying for: continue that order.
+    if (b.item_id != null && Number.isInteger(Number(b.item_id))) {
+      const { data: mine } = await db.from('store_orders').select('*')
+        .eq('customer_telegram_id', a.user.id).eq('status', 'awaiting_payment').eq('item_id', Number(b.item_id)).limit(1);
+      if (mine && mine[0]) {
+        const { data: it } = await db.from('store_items').select('*').eq('id', mine[0].item_id).maybeSingle();
+        const s0 = await getSettings();
+        return res.json({
+          order: orderOut(mine[0]), item: itemOut({ ...it }), reserve_minutes: RESERVE_MINUTES,
+          methods: [
+            ...(s0.telebirr_phone ? [{ key: 'telebirr', label: 'Telebirr', number: s0.telebirr_phone, name: s0.telebirr_name || '' }] : []),
+            ...(s0.cbe_account ? [{ key: 'cbe', label: 'CBE Bank', number: s0.cbe_account, name: s0.cbe_name || '' }] : []),
+          ],
+        });
+      }
+    }
+
+    // Two open orders per customer at most, so nobody can lock up the stock.
+    const { data: open } = await db.from('store_orders').select('id')
+      .eq('customer_telegram_id', a.user.id).eq('status', 'awaiting_payment');
+    if ((open || []).length >= 2) throw new HttpError(409, 'Finish or cancel your open orders first.');
 
     if (b.pack_id != null) {
       const pid = Number(b.pack_id);
@@ -551,7 +578,26 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     await releaseExpired();
     const { data, error } = await db.from('store_items').select('*').order('created_at', { ascending: false }).limit(200);
     if (error) throw error;
-    res.json({ items: (await itemsWithImages(data || [])).map((i) => ({ ...itemOut(i), status: i.status, image_paths: i.image_paths })) });
+    const held = {};
+    const reservedIds = (data || []).filter((i) => i.status === 'reserved').map((i) => i.id);
+    if (reservedIds.length) {
+      const { data: ords } = await db.from('store_orders').select('item_id,code,customer_name,created_at')
+        .in('item_id', reservedIds).eq('status', 'awaiting_payment');
+      for (const o of ords || []) held[o.item_id] = { code: o.code, customer: o.customer_name, since: o.created_at };
+    }
+    res.json({ items: (await itemsWithImages(data || [])).map((i) => ({ ...itemOut(i), status: i.status, image_paths: i.image_paths, held_by: held[i.id] || null })) });
+  }));
+
+  // Free a squad that is stuck on "Reserved" (cancels the unpaid order holding it).
+  adminRoute('post', '/items/:id/release', wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    await db.from('store_orders').update({ status: 'expired', closed_at: new Date().toISOString() })
+      .eq('item_id', id).eq('status', 'awaiting_payment');
+    const { data, error } = await db.from('store_items').update({ status: 'available', reserved_at: null })
+      .eq('id', id).eq('status', 'reserved').select('id').maybeSingle();
+    if (error) throw error;
+    if (!data) throw new HttpError(409, 'This squad is not reserved.');
+    res.json({ ok: true });
   }));
 
   function parseItem(b) {
@@ -764,6 +810,22 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     }));
   }));
 
+  // Any message (text, optional photo, optional Open-store button) to the groups/channels
+  // the bot is in.
+  adminRoute('post', '/announce', wrap(async (req, res) => {
+    const b = req.body || {};
+    const text = clean(b.text, 3500);
+    const photo = b.image ? decodeImage(b.image, MAX_IMG_BYTES).buf : null;
+    if (!text && !photo) throw new HttpError(400, 'Write a message or add a photo.');
+    const targets = pickTargets(req);
+    res.json(await broadcast(req, targets, async (entry, me, chatId) => {
+      const opts = b.button ? { reply_markup: { inline_keyboard: [[{ text: 'Open store', url: `https://t.me/${me.username}?start=store` }]] } } : {};
+      if (photo && text.length <= 1000) await entry.bot.sendPhoto(chatId, photo, { caption: text, ...opts }, { filename: 'post.jpg' });
+      else if (photo) { await entry.bot.sendPhoto(chatId, photo, {}, { filename: 'post.jpg' }); await entry.bot.sendMessage(chatId, text, opts); }
+      else await entry.bot.sendMessage(chatId, text, opts);
+    }));
+  }));
+
   // The coin list for one game, as a text post with a Buy button.
   adminRoute('post', '/coins/post', wrap(async (req, res) => {
     const game = (req.body || {}).game === 'dls' ? 'dls' : 'efootball';
@@ -895,6 +957,8 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     const text = coinListText(game, packs);
     res.json({ text, link, share_url: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}` });
   }));
+
+  require('./store-account')({ db, adminRoute, wrap, HttpError, registry, clean, decodeImage, sleep, MAX_IMG_BYTES });
 
   /* ---------------------------------------------------------------- */
   /* Bot chat: open the store                                           */
