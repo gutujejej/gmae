@@ -5,59 +5,201 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Game Store</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0F1424;--card:#171E36;--line:#262F52;--text:#E8ECFA;--muted:#93A0C4;--accent:#3B82F6;--accent2:#22C55E;--danger:#EF4444;--warn:#F59E0B}
+:root{
+  --pitch:#0D3B2C; --turf:#17694B; --turf-2:#1E7C58; --chalk:#EEF3F0; --paper:#FFFFFF;
+  --ink:#0B1B15; --muted:#587066; --line:#D3DFD8; --flood:#FFCE2E; --flood-ink:#3A2C00; --red:#D9453B; --redsoft:#FBE6E3;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh;padding-bottom:40px}
-button,input,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:0}
-.wrap{width:min(640px,100% - 24px);margin:0 auto}
-header{position:sticky;top:0;z-index:5;background:rgba(15,20,36,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:54px}
-h1{font-size:18px}
-.link{background:none;color:var(--accent);padding:6px 4px;font-weight:600}
-.tabs{display:flex;gap:8px;margin:14px 0 8px;flex-wrap:wrap}
-.chip{padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-weight:600;font-size:14px}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.pad{padding:14px}
-.item{cursor:pointer}
-.item img,.ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#0B1020}
-.ph{display:grid;place-items:center;color:var(--muted);font-size:13px}
-.item .b{padding:10px 12px}
-.item .t{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.price{color:var(--accent2);font-weight:700}
-.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#202A4D;color:var(--muted);margin-right:4px}
-.btn{width:100%;padding:13px;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;margin-top:12px}
-.btn.green{background:var(--accent2);color:#06210F}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-.btn:disabled{opacity:.5}
-.gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
-.gal img{width:88%;flex:none;border-radius:12px;scroll-snap-align:start;aspect-ratio:4/3;object-fit:cover;background:#0B1020}
-.msg{padding:10px 12px;border-radius:10px;margin:10px 0;font-size:14px}
-.msg.err{background:#3A1A1F;color:#FCA5A5}.msg.ok{background:#12301F;color:#86EFAC}.msg.info{background:#1B2748;color:#BFD0FF}
-label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}
-input[type=text],textarea{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0F1630;outline:none}
-input:focus,textarea:focus{border-color:var(--accent)}
-.method{display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--line);border-radius:12px;margin-top:10px;background:#131A33;width:100%;text-align:left}
-.method.on{border-color:var(--accent2)}
-.num{font-size:20px;font-weight:700;letter-spacing:.5px;margin:6px 0}
-.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+html{background:var(--chalk)}
+body{font-family:var(--body);color:var(--ink);background:var(--chalk);min-height:100vh;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:30px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--flood);outline-offset:2px;border-radius:8px}
+.wrap{width:min(640px,100%);margin:0 auto}
+.pad{padding:0 16px}
+
+/* ---------- header ---------- */
+.top{background:var(--pitch);color:#fff;position:sticky;top:0;z-index:20;overflow:hidden}
+.top::after{content:"";position:absolute;right:-46px;top:-60px;width:170px;height:170px;border-radius:50%;border:2px solid rgba(255,255,255,.12);pointer-events:none}
+.top::before{content:"";position:absolute;right:-6px;top:-26px;width:90px;height:90px;border-radius:50%;border:2px solid rgba(255,255,255,.1);pointer-events:none}
+.top .wrap{padding:14px 16px 16px;position:relative;z-index:1}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:.01em;min-width:0}
+.logo svg{width:30px;height:30px;flex:none}
+.logo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{background:rgba(255,255,255,.14);padding:7px 13px;border-radius:999px;font-weight:600;font-size:13px;color:#fff;white-space:nowrap}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:rgba(0,0,0,.28);border-radius:14px;padding:4px;margin-top:12px}
+.seg button{padding:9px 6px;border-radius:10px;font-weight:700;font-size:14px;color:#BFD4C9;transition:background .18s,color .18s}
+.seg button[aria-pressed=true]{background:var(--flood);color:var(--flood-ink)}
+.seg.mode button svg{width:15px;height:15px;vertical-align:-2px;margin-right:5px}
+
+/* ---------- common ---------- */
+.kinds{display:flex;gap:8px;padding:14px 16px 4px;flex-wrap:wrap}
+.chipbtn{padding:7px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);font-weight:600;font-size:13.5px;color:var(--muted)}
+.chipbtn[aria-pressed=true]{border-color:var(--turf);color:var(--turf);background:#E4F2EB}
+.msg{padding:11px 13px;border-radius:12px;margin:12px 0;font-size:14px;line-height:1.45}
+.msg.err{background:var(--redsoft);color:#8E2A22}.msg.ok{background:#DDF1E6;color:#0F5133}.msg.info{background:#E1EEE7;color:#0F4B35}
+.empty{text-align:center;color:var(--muted);padding:56px 20px}
+.empty svg{width:46px;height:46px;opacity:.5;margin-bottom:8px}
+.btn{display:block;width:100%;padding:14px;border-radius:14px;background:var(--turf);color:#fff;font-weight:700;font-size:16px;box-shadow:0 8px 16px -8px rgba(23,105,75,.7);transition:transform .12s;text-align:center;text-decoration:none}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5;box-shadow:none}
+.btn.go{background:var(--flood);color:var(--flood-ink);box-shadow:0 8px 16px -8px rgba(255,206,46,.8)}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.red{background:var(--red);box-shadow:none}
+.btn.sm{display:inline-block;width:auto;padding:8px 13px;font-size:13px;border-radius:10px;box-shadow:none}
+label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+input[type=text],input[type=number],input[type=password],select,textarea,.field{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);font-size:15px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--turf)}
 .muted{color:var(--muted);font-size:13px}
-.chat{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0}
-.bub{max-width:82%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word;font-size:14px}
-.bub.admin{background:#202A4D;align-self:flex-start}
-.bub.customer{background:var(--accent);align-self:flex-end}
-.st{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
-.st.paid,.st.delivered{background:#12301F;color:#86EFAC}.st.verifying,.st.awaiting_payment{background:#3A2B0E;color:#FCD34D}.st.rejected,.st.expired{background:#3A1A1F;color:#FCA5A5}
-.empty{text-align:center;color:var(--muted);padding:40px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.st{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.st.paid,.st.delivered,.st.available,.st.verified{background:#DDF1E6;color:#0F5133}
+.st.verifying,.st.awaiting_payment,.st.reserved,.st.unverified{background:#FFF1C2;color:#6A4F00}
+.st.rejected,.st.expired,.st.failed,.st.hidden{background:var(--redsoft);color:#8E2A22}
+.st.sold{background:#E4E9E6;color:#40524A}
+
+/* ---------- stadium frame (the squad photo sits on the pitch) ---------- */
+.arena{position:relative;overflow:hidden;aspect-ratio:1/1;background:
+  radial-gradient(55% 38% at 0% 0%,rgba(255,246,196,.6),transparent 72%),
+  radial-gradient(55% 38% at 100% 0%,rgba(255,246,196,.6),transparent 72%),
+  radial-gradient(circle at 50% 62%,transparent 0 15%,rgba(255,255,255,.26) 15.4% 16.6%,transparent 17%),
+  linear-gradient(rgba(255,255,255,.26),rgba(255,255,255,.26)) 50% 62%/100% 2px no-repeat,
+  repeating-linear-gradient(90deg,var(--turf) 0 24px,var(--turf-2) 24px 48px)}
+.arena::before{content:"";position:absolute;left:-6%;right:-6%;top:0;height:30%;border-radius:0 0 50% 50%/0 0 100% 100%;
+  background:radial-gradient(circle at 5px 5px,rgba(255,255,255,.34) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(#08241B,#0F3A2C);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.arena.b{filter:hue-rotate(-22deg) saturate(1.1)}
+.arena img{position:absolute;left:5%;top:9%;width:90%;height:86%;object-fit:contain;z-index:1;border-radius:10px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.arena .game{position:absolute;left:10px;top:10px;z-index:2;background:var(--flood);color:var(--flood-ink);font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:8px}
+.arena .big{position:absolute;left:12px;bottom:8px;z-index:2;font-family:var(--display);font-weight:900;color:#fff;font-size:46px;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.arena .big small{display:block;font-family:var(--body);font-size:11px;font-weight:600;opacity:.92;text-shadow:none}
+.arena .ball{position:absolute;left:50%;top:58%;width:42%;transform:translate(-50%,-50%);opacity:.9;z-index:1}
+
+/* ---------- cards ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px 16px 24px}
+.card{background:var(--paper);border-radius:18px;overflow:hidden;border:1px solid var(--line);text-align:left;display:flex;flex-direction:column;width:100%}
+.card.tap{cursor:pointer}
+.info{padding:10px 12px 12px}
+.info h3{font-size:14px;line-height:1.3;font-weight:600;min-height:36px;overflow:hidden}
+.stub{position:relative;background:var(--flood);color:var(--flood-ink);padding:9px 12px;display:flex;align-items:baseline;gap:5px;border-top:2px dashed rgba(58,44,0,.35)}
+.stub::before,.stub::after{content:"";position:absolute;top:-9px;width:16px;height:16px;border-radius:50%;background:var(--chalk)}
+.stub::before{left:-8px}.stub::after{right:-8px}
+.stub b{font-family:var(--display);font-size:27px;font-weight:800;line-height:1}
+.stub span{font-size:12px;font-weight:700}
+.card .acts{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px 12px;border-top:1px solid var(--line)}
+
+/* ---------- item page ---------- */
+.gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gal .arena{flex:none;width:100%;scroll-snap-align:start;aspect-ratio:4/3.3;cursor:zoom-in}
+.dots{display:flex;justify-content:center;gap:6px;margin:-24px 0 8px;position:relative;z-index:3;height:10px}
+.dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55);transition:width .15s}
+.dots i.on{width:20px;border-radius:4px;background:#fff}
+.sheet{background:var(--chalk);margin-top:-6px;border-radius:22px 22px 0 0;position:relative;padding:20px 16px 18px}
+.sheet h2{font-family:var(--display);font-weight:800;font-size:31px;line-height:1.05;margin-bottom:12px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.chip{background:#E1EEE7;color:var(--turf);font-weight:700;font-size:12.5px;padding:5px 11px;border-radius:999px}
+.spec{background:var(--paper);border:1px solid var(--line);border-radius:16px;margin-bottom:14px}
+.spec div{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;font-size:14.5px}
+.spec div+div{border-top:1px solid var(--line)}
+.spec span{color:var(--muted)}.spec b{font-weight:700;text-align:right}
+.sheet p{color:#34493F;line-height:1.55;font-size:14.5px;white-space:pre-wrap}
+.buybar{position:sticky;bottom:0;border-top:1px solid var(--line);background:var(--paper);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:15}
+.buybar .wrap{display:flex;align-items:center;gap:14px;padding:0}
+.buybar .pr small{display:block;color:var(--muted);font-size:12px}
+.buybar .pr b{font-family:var(--display);font-size:30px;font-weight:800;line-height:1;white-space:nowrap}
+.buybar .btn{flex:1}
+
+/* ---------- checkout ---------- */
+.ticket{background:var(--pitch);color:#fff;margin:14px 16px 6px;border-radius:20px;padding:16px}
+.ticket small{color:#A9C4B7;font-size:12.5px}
+.ticket .t{font-weight:600;font-size:15px;margin-top:2px}
+.ticket .amt{font-family:var(--display);font-weight:800;font-size:34px;color:var(--flood);line-height:1;text-align:right}
+.hold{margin-top:12px;padding-top:12px;border-top:2px dashed rgba(255,255,255,.2);display:flex;justify-content:space-between;font-size:13px;color:#CFE2D8}
+.hold b{font-variant-numeric:tabular-nums;color:#fff}
+.steps{padding:14px 16px 22px}
+.step{display:grid;grid-template-columns:30px 1fr;gap:12px}
+.rail{display:flex;flex-direction:column;align-items:center}
+.n{width:30px;height:30px;border-radius:50%;background:var(--turf);color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px;flex:none}
+.rail::after{content:"";flex:1;width:2px;background:var(--line);margin:4px 0}
+.step:last-child .rail::after{display:none}
+.step h4{font-size:15.5px;margin:3px 0 10px}
+.step .body{padding-bottom:18px;min-width:0}
+.methods{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.m{background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:left}
+.m b{display:block;font-size:15px}.m span{font-size:12px;color:var(--muted)}
+.m[aria-pressed=true]{border-color:var(--turf);background:#E4F2EB}
+.pay{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px}
+.pay small{color:var(--muted);font-size:12.5px}
+.pay .num{font-family:var(--display);font-weight:800;font-size:33px;letter-spacing:.03em;line-height:1.1;margin:2px 0}
+.copy{margin-top:10px;width:100%;padding:11px;border-radius:11px;background:var(--chalk);border:1.5px solid var(--line);font-weight:700;font-size:14px}
+.copy.done{background:#E4F2EB;border-color:var(--turf);color:var(--turf)}
+.up{margin-top:10px;display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px dashed #9DB5A9;border-radius:12px;color:var(--muted);font-size:14px;background:#F7FAF8;cursor:pointer}
+.up input{display:none}
+.safe{display:flex;gap:9px;align-items:flex-start;background:#FFF6D6;border:1px solid #F1DC8A;border-radius:12px;padding:10px 12px;font-size:13px;color:#5A4600;margin-top:12px;line-height:1.45}
+
+/* ---------- order + chat ---------- */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;margin:14px 16px 0}
+.chat{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 0}
+.bub{max-width:84%;padding:9px 12px;border-radius:14px;white-space:pre-wrap;word-break:break-word;font-size:14.5px}
+.bub.admin{background:#E1EEE7;align-self:flex-start;border-bottom-left-radius:4px}
+.bub.customer{background:var(--turf);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.send{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+.send textarea{resize:none}
+
+/* ---------- admin ---------- */
+.adminhead{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 0}
+.adminhead h2{font-family:var(--display);font-size:26px;font-weight:800}
+.photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.photos .th{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#0F3A2C}
+.photos .th img{width:100%;height:100%;object-fit:cover}
+.photos .th button{position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:14px;line-height:22px}
+dialog{border:0;border-radius:22px;padding:0;width:min(520px,94vw);max-height:92vh;background:var(--chalk);color:var(--ink);margin:auto}
+dialog::backdrop{background:rgba(6,20,15,.6)}
+.dlg{padding:18px 16px 18px;max-height:90vh;overflow-y:auto}
+.dlg h3{font-family:var(--display);font-size:26px;font-weight:800;margin-bottom:4px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:10px;align-items:center;padding:9px 0;font-size:14.5px;border-bottom:1px solid var(--line)}
+.chk input{width:20px;height:20px;accent-color:var(--turf)}
+.ordercard{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 16px 0}
+.ordercard a{color:var(--turf);font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* viewer */
+#lb{position:fixed;inset:0;background:rgba(5,15,11,.94);z-index:100;display:grid;place-items:center;padding:14px}
+#lb img{max-width:100%;max-height:92vh;border-radius:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1 id="title">Game Store</h1><button class="link" id="navBtn">My orders</button></div></header>
+
+<header class="top"><div class="wrap">
+  <div class="bar">
+    <div class="logo">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#fff"/><path d="M16 9l5 3.6-1.9 5.9h-6.2L11 12.6 16 9z" fill="#0D3B2C"/><path d="M16 9V4M21 12.6l4.8-1.6M19.1 18.5l3 4.1M12.9 18.5l-3 4.1M11 12.6L6.2 11" stroke="#0D3B2C" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span id="title">Game Store</span>
+    </div>
+    <button class="pill" id="navBtn" hidden>My orders</button>
+  </div>
+  <div class="seg mode" id="modeSwitch" role="group" aria-label="Switch view" hidden>
+    <button data-m="shop" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16l-1.5 11h-13L4 8z"/><path d="M8 8a4 4 0 018 0"/></svg>Store</button>
+    <button data-m="admin" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>Admin</button>
+  </div>
+  <div id="topExtra"></div>
+</div></header>
+
 <main class="wrap" id="app"></main>
+<div id="barSlot"></div>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<div id="lb" hidden><img alt=""></div>
 
 <script>
 const API_URL = 'https://gmae-production-aa21.up.railway.app';
@@ -65,26 +207,52 @@ const tg = window.Telegram && Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 const qs = new URLSearchParams(location.search);
 const BOT = qs.get('b');
+const IN_TG = !!(tg && tg.initData && BOT);
+let token = localStorage.getItem('admin_token');
+let isAdmin = false;       // true only when Telegram says this person is the store admin
+let mode = 'shop';         // 'shop' | 'admin'
+
 const $app = document.getElementById('app');
 const $nav = document.getElementById('navBtn');
+const $extra = document.getElementById('topExtra');
+const $bar = document.getElementById('barSlot');
+const $dlg = document.getElementById('dlg');
+const $dlgBody = document.getElementById('dlgBody');
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const money = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ETB';
+const fmt = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const money = (n) => fmt(n) + ' ETB';
+const short = (n) => { n = Number(n); return n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K' : String(n); };
 const GAME = { efootball: 'eFootball', dls: 'DLS' };
-const STATUS = { awaiting_payment: 'Waiting for payment', verifying: 'Checking payment', paid: 'Paid', delivered: 'Delivered', rejected: 'Rejected', expired: 'Expired' };
+const STATUS = { awaiting_payment: 'Waiting for payment', verifying: 'Checking payment', paid: 'Paid', delivered: 'Delivered', rejected: 'Rejected', expired: 'Expired', available: 'For sale', reserved: 'Reserved', sold: 'Sold', hidden: 'Hidden' };
+const notice = (cls, t) => `<div class="msg ${cls}">${esc(t)}</div>`;
+const BALL = '<svg class="ball" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#fff" opacity=".92"/><path d="M16 9l5 3.6-1.9 5.9h-6.2L11 12.6 16 9z" fill="#0D3B2C"/><path d="M16 9V4M21 12.6l4.8-1.6M19.1 18.5l3 4.1M12.9 18.5l-3 4.1M11 12.6L6.2 11" stroke="#0D3B2C" stroke-width="1.6" stroke-linecap="round"/></svg>';
 
-async function api(path, method = 'GET', body) {
-  if (!tg || !tg.initData || !BOT) throw new Error('Please open this store from Telegram.');
-  const r = await fetch(`${API_URL}/api/store/${BOT}${path}`, {
-    method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+let timer = null;
+const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
+
+/* ---------- network ---------- */
+async function send(url, method, body, headers) {
+  const r = await fetch(API_URL + url, { method: method || 'GET', headers: { 'Content-Type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(j.error || 'Request failed'); e.data = j; throw e; }
+  if (!r.ok) { const e = new Error(j.error || 'Something went wrong. Try again.'); e.status = r.status; e.data = j; throw e; }
   return j;
 }
+function api(path, method, body) {                       // customer calls (Telegram only)
+  if (!IN_TG) throw new Error('Open the store from Telegram.');
+  return send(`/api/store/${BOT}${path}`, method, body, { Authorization: `tma ${tg.initData}` });
+}
+async function adm(path, method, body) {                 // admin calls
+  try {
+    if (IN_TG) return await send(`/api/store/${BOT}/admin${path}`, method, body, { Authorization: `tma ${tg.initData}` });
+    return await send(`/api/admin/store${path}`, method, body, { Authorization: `Bearer ${token}` });
+  } catch (e) {
+    if (!IN_TG && e.status === 401) { localStorage.removeItem('admin_token'); token = null; showLogin(); }
+    throw e;
+  }
+}
 
-// Shrink a photo before upload so it fits the server limit.
+/* ---------- helpers ---------- */
 function shrink(file, maxSide, quality) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -99,165 +267,388 @@ function shrink(file, maxSide, quality) {
     img.src = URL.createObjectURL(file);
   });
 }
+function arena(item, imgUrl, opts = {}) {
+  const b = item.game === 'dls' ? ' b' : '';
+  const inner = imgUrl ? `<img src="${esc(imgUrl)}" alt="" loading="lazy">`
+    : (item.coins_amount ? `<div class="big">${short(item.coins_amount)}<small>coins</small></div>` : BALL);
+  return `<div class="arena${b} ${opts.cls || ''}" ${opts.attrs || ''}><span class="game">${GAME[item.game] || ''}</span>${inner}</div>`;
+}
+const stub = (price) => `<div class="stub"><b>${fmt(price)}</b><span>ETB</span></div>`;
+function setBar(html) { $bar.innerHTML = html ? `<div class="buybar"><div class="wrap">${html}</div></div>` : ''; }
+function setTop({ nav, navFn, extra }) {
+  $nav.hidden = !nav; if (nav) { $nav.textContent = nav; $nav.onclick = navFn; }
+  $extra.innerHTML = extra || '';
+}
+function seg(id, key, opts, state, onPick, cls = 'seg') {
+  return `<div class="${cls}" id="${id}" role="group">${opts.map(([v, l]) => `<button data-v="${v}" aria-pressed="${state[key] === v}">${l}</button>`).join('')}</div>`;
+}
+function bindSeg(id, key, state, onPick) {
+  const el = document.getElementById(id); if (!el) return;
+  el.onclick = (e) => { const b = e.target.closest('button'); if (b) { state[key] = b.dataset.v; onPick(); } };
+}
+function emptyState(text) { return `<div class="empty"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="16" cy="16" r="14"/><path d="M16 9l5 3.6-1.9 5.9h-6.2L11 12.6 16 9z"/></svg><div>${esc(text)}</div></div>`; }
+function viewer(url) { const lb = document.getElementById('lb'); lb.querySelector('img').src = url; lb.hidden = false; lb.onclick = () => (lb.hidden = true); }
 
-let timer = null;
-const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
-const notice = (cls, text) => `<div class="msg ${cls}">${esc(text)}</div>`;
+/* =====================================================================
+   SHOP (customer)
+   ===================================================================== */
+const filter = { game: '', kind: '' };
 
-/* ---------------- list ---------------- */
-let filter = { game: '', kind: '' };
 async function showList() {
-  stopTimer(); $nav.textContent = 'My orders'; $nav.onclick = showOrders;
-  document.getElementById('title').textContent = 'Game Store';
-  $app.innerHTML = `
-    <div class="tabs" id="gTabs"></div><div class="tabs" id="kTabs"></div>
-    <div id="list"><div class="empty">Loading...</div></div>`;
-  const tabs = (id, key, opts) => {
-    document.getElementById(id).innerHTML = opts.map(([v, l]) => `<button class="chip ${filter[key] === v ? 'on' : ''}" data-v="${v}">${l}</button>`).join('');
-    document.getElementById(id).onclick = (e) => { const b = e.target.closest('button'); if (b) { filter[key] = b.dataset.v; showList(); } };
-  };
-  tabs('gTabs', 'game', [['', 'All games'], ['efootball', 'eFootball'], ['dls', 'DLS']]);
-  tabs('kTabs', 'kind', [['', 'All'], ['account', 'Accounts'], ['coins', 'Coins']]);
+  stopTimer(); setBar('');
+  setTop({ nav: 'My orders', navFn: showOrders, extra: seg('gSeg', 'game', [['', 'All'], ['efootball', 'eFootball'], ['dls', 'DLS']], filter) });
+  bindSeg('gSeg', 'game', filter, showList);
+  $app.innerHTML = `<div class="kinds" id="kinds">${[['', 'All'], ['account', 'Accounts'], ['coins', 'Coins']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${filter.kind === v}">${l}</button>`).join('')}</div><div id="list">${emptyState('Loading...')}</div>`;
+  document.getElementById('kinds').onclick = (e) => { const b = e.target.closest('button'); if (b) { filter.kind = b.dataset.v; showList(); } };
   try {
     const p = new URLSearchParams(); if (filter.game) p.set('game', filter.game); if (filter.kind) p.set('kind', filter.kind);
     const { items } = await api(`/items?${p}`);
-    document.getElementById('list').innerHTML = items.length ? `<div class="grid">${items.map((i) => `
-      <div class="card item" data-id="${i.id}">
-        ${i.images[0] ? `<img src="${esc(i.images[0])}" alt="" loading="lazy">` : '<div class="ph">No photo</div>'}
-        <div class="b"><div class="t">${esc(i.title)}</div>
-        <div><span class="tag">${GAME[i.game]}</span><span class="tag">${i.kind === 'coins' ? 'Coins' : 'Account'}</span></div>
-        <div class="price">${money(i.price)}</div></div></div>`).join('')}</div>` : '<div class="empty">Nothing for sale right now.</div>';
-    document.getElementById('list').onclick = (e) => { const c = e.target.closest('.item'); if (c) showItem(Number(c.dataset.id)); };
+    const list = document.getElementById('list');
+    list.innerHTML = items.length ? `<div class="grid">${items.map((i) => `
+      <button class="card tap" data-id="${i.id}">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`
+      : emptyState('Nothing for sale right now. Check back soon.');
+    list.onclick = (e) => { const c = e.target.closest('.card'); if (c) showItem(Number(c.dataset.id)); };
   } catch (e) { document.getElementById('list').innerHTML = notice('err', e.message); }
 }
 
-/* ---------------- item ---------------- */
 async function showItem(id) {
-  stopTimer(); $nav.textContent = 'Back'; $nav.onclick = showList;
-  $app.innerHTML = '<div class="empty">Loading...</div>';
+  stopTimer(); setBar(''); setTop({ nav: 'Back', navFn: showList });
+  $app.innerHTML = emptyState('Loading...');
   try {
     const { item } = await api(`/items/${id}`);
-    $app.innerHTML = `<div style="margin-top:14px">
-      ${item.images.length ? `<div class="gal">${item.images.map((u) => `<img src="${esc(u)}" alt="">`).join('')}</div>` : ''}
-      <div class="card pad" style="margin-top:12px">
-        <div><span class="tag">${GAME[item.game]}</span><span class="tag">${item.kind === 'coins' ? 'Coins' : 'Account'}</span></div>
-        <h2 style="margin:8px 0 4px;font-size:19px">${esc(item.title)}</h2>
-        ${item.coins_amount ? `<div class="muted">Coins: ${Number(item.coins_amount).toLocaleString('en-US')}</div>` : ''}
-        ${item.description ? `<p style="margin-top:8px;white-space:pre-wrap">${esc(item.description)}</p>` : ''}
-        <div class="price" style="font-size:22px;margin-top:10px">${money(item.price)}</div>
+    const imgs = item.images.length ? item.images : [null];
+    $app.innerHTML = `
+      <div class="gal" id="gal">${imgs.map((u) => arena(item, u, { attrs: u ? `data-full="${esc(u)}"` : '' })).join('')}</div>
+      ${imgs.length > 1 ? `<div class="dots" id="dots">${imgs.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>` : ''}
+      <div class="sheet">
+        <h2>${esc(item.title)}</h2>
+        <div class="chips"><span class="chip">${GAME[item.game]}</span><span class="chip">${item.kind === 'coins' ? 'Coins' : 'Account'}</span></div>
+        <div class="spec">
+          ${item.coins_amount ? `<div><span>Coins</span><b>${Number(item.coins_amount).toLocaleString('en-US')}</b></div>` : ''}
+          <div><span>Delivery</span><b>In chat after payment</b></div>
+          <div><span>Payment</span><b>Telebirr or CBE</b></div>
+        </div>
+        ${item.description ? `<p>${esc(item.description)}</p>` : ''}
         <div id="msg"></div>
-        <button class="btn green" id="buy" ${item.status !== 'available' ? 'disabled' : ''}>${item.status === 'available' ? 'Buy now' : 'Not available'}</button>
-      </div></div>`;
+      </div>`;
+    const gal = document.getElementById('gal');
+    gal.onclick = (e) => { const a = e.target.closest('[data-full]'); if (a) viewer(a.dataset.full); };
+    const dots = document.getElementById('dots');
+    if (dots) gal.onscroll = () => { const i = Math.round(gal.scrollLeft / gal.clientWidth); [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i)); };
+    const ok = item.status === 'available';
+    setBar(`<div class="pr"><small>Price</small><b>${fmt(item.price)} ETB</b></div><button class="btn" id="buy" ${ok ? '' : 'disabled'}>${ok ? 'Buy now' : 'Not available'}</button>`);
     document.getElementById('buy').onclick = async (e) => {
       e.target.disabled = true;
       try { showCheckout(await api('/orders', 'POST', { item_id: item.id })); }
       catch (err) { document.getElementById('msg').innerHTML = notice('err', err.message); e.target.disabled = false; }
     };
-  } catch (e) { $app.innerHTML = notice('err', e.message); }
+  } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
 }
 
-/* ---------------- checkout ---------------- */
 function showCheckout(d) {
-  stopTimer(); $nav.textContent = 'Cancel';
-  $nav.onclick = async () => { try { await api(`/orders/${d.order.id}/cancel`, 'POST'); } catch {} showList(); };
-  let method = null, proof = null;
+  stopTimer();
+  setTop({ nav: 'Cancel', navFn: async () => { try { await api(`/orders/${d.order.id}/cancel`, 'POST'); } catch {} showList(); } });
+  let method = d.methods[0] ? d.methods[0].key : null, proof = null;
+  let left = d.reserve_minutes * 60;
   const draw = () => {
-    $app.innerHTML = `<div style="margin-top:14px">
-      <div class="card pad"><div class="row"><div><div class="muted">Order ${esc(d.order.code)}</div><b>${esc(d.item.title)}</b></div>
-      <div class="price">${money(d.order.price)}</div></div>
-      <div class="muted" style="margin-top:6px">Reserved for you for ${d.reserve_minutes} minutes.</div></div>
-      <h3 style="margin:16px 0 4px;font-size:16px">1. Choose payment method</h3>
-      ${d.methods.length ? d.methods.map((m) => `<button class="method ${method === m.key ? 'on' : ''}" data-k="${m.key}"><b>${esc(m.label)}</b><span class="muted">${method === m.key ? 'Selected' : 'Tap to select'}</span></button>`).join('') : notice('err', 'Payment is not set up yet. Please contact the admin.')}
-      ${method ? (() => { const m = d.methods.find((x) => x.key === method); return `
-        <div class="card pad" style="margin-top:12px">
-          <div class="muted">Send exactly <b>${money(d.order.price)}</b> to:</div>
-          <div class="num" id="num">${esc(m.number)}</div>
-          ${m.name ? `<div class="muted">Name: ${esc(m.name)}</div>` : ''}
-          <button class="btn ghost" id="copy" style="margin-top:8px">Copy number</button>
-        </div>
-        <h3 style="margin:16px 0 4px;font-size:16px">2. Confirm your payment</h3>
-        <label>Transaction / reference number</label>
-        <input type="text" id="ref" placeholder="e.g. DEV6HKJX7K" autocapitalize="characters" autocomplete="off">
-        <label>Payment screenshot (optional)</label>
-        <input type="file" id="shot" accept="image/*">
-        <div id="msg"></div>
-        <button class="btn green" id="pay">Submit payment</button>`; })() : ''}
-    </div>`;
-    document.querySelectorAll('.method').forEach((b) => b.onclick = () => { method = b.dataset.k; draw(); });
+    const m = d.methods.find((x) => x.key === method);
+    $app.innerHTML = `
+      <div class="ticket"><div class="row"><div><small>Order ${esc(d.order.code)}</small><div class="t">${esc(d.item.title)}</div></div><div class="amt">${fmt(d.order.price)}<br><small style="font-family:var(--body);font-size:12px">ETB</small></div></div>
+        <div class="hold"><span>Reserved for you</span><b id="clock">--:--</b></div></div>
+      <div class="steps">
+        <div class="step"><div class="rail"><div class="n">1</div></div><div class="body"><h4>Choose how to pay</h4>
+          ${d.methods.length ? `<div class="methods">${d.methods.map((x) => `<button class="m" data-k="${x.key}" aria-pressed="${method === x.key}"><b>${esc(x.label)}</b><span>${esc(x.name || '')}</span></button>`).join('')}</div>` : notice('err', 'Payment is not set up yet. Please contact the admin.')}</div></div>
+        ${m ? `
+        <div class="step"><div class="rail"><div class="n">2</div></div><div class="body"><h4>Send exactly ${fmt(d.order.price)} ETB</h4>
+          <div class="pay"><small>${m.key === 'cbe' ? 'CBE account number' : 'Telebirr number'}${m.name ? ' · ' + esc(m.name) : ''}</small><div class="num" id="num">${esc(m.number)}</div><button class="copy" id="copy">Copy number</button></div></div></div>
+        <div class="step"><div class="rail"><div class="n">3</div></div><div class="body"><h4>Enter your transaction number</h4>
+          <input type="text" id="ref" placeholder="e.g. DEV6HKJX7K" autocapitalize="characters" autocomplete="off">
+          <label class="up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span id="shotName">Add screenshot (optional)</span><input type="file" id="shot" accept="image/*"></label>
+          <div class="safe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg><span>We check every payment automatically. The amount and receiver must match.</span></div>
+          <div id="msg"></div></div></div>` : ''}
+      </div>`;
+    setBar(m ? `<button class="btn go" id="pay">Confirm payment</button>` : '');
+    document.querySelectorAll('.m').forEach((b) => b.onclick = () => { method = b.dataset.k; draw(); });
     const copy = document.getElementById('copy');
-    if (copy) copy.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(document.getElementById('num').textContent); copy.textContent = 'Copied'; };
+    if (copy) copy.onclick = () => { if (navigator.clipboard) navigator.clipboard.writeText(m.number.replace(/\s/g, '')); copy.textContent = 'Copied'; copy.classList.add('done'); };
     const shot = document.getElementById('shot');
-    if (shot) shot.onchange = async () => { proof = shot.files[0] ? await shrink(shot.files[0], 1280, 0.7).catch(() => null) : null; };
+    if (shot) shot.onchange = async () => { proof = null; if (shot.files[0]) { proof = await shrink(shot.files[0], 1280, 0.7).catch(() => null); document.getElementById('shotName').textContent = proof ? 'Screenshot added' : 'Could not read that image'; } };
     const pay = document.getElementById('pay');
     if (pay) pay.onclick = async () => {
       const msg = document.getElementById('msg');
       const reference = document.getElementById('ref').value.trim();
-      if (!reference) return (msg.innerHTML = notice('err', 'Enter the transaction number.'));
+      if (!reference) { msg.innerHTML = notice('err', 'Enter the transaction number from your receipt.'); return; }
       pay.disabled = true; pay.textContent = 'Checking your payment...';
-      try {
-        const r = await api(`/orders/${d.order.id}/pay`, 'POST', { method, reference, proof });
-        showOrder(d.order.id, r.message);
-      } catch (e) {
-        msg.innerHTML = notice('err', e.message + (e.data && e.data.attempts_left != null ? ` (${e.data.attempts_left} tries left)` : ''));
-        pay.disabled = false; pay.textContent = 'Submit payment';
-      }
+      try { const r = await api(`/orders/${d.order.id}/pay`, 'POST', { method, reference, proof }); showOrder(d.order.id, r.message); }
+      catch (e) { msg.innerHTML = notice('err', e.message + (e.data && e.data.attempts_left != null ? ` You have ${e.data.attempts_left} tries left.` : '')); pay.disabled = false; pay.textContent = 'Confirm payment'; }
     };
+    tick();
   };
+  const tick = () => { const c = document.getElementById('clock'); if (c) c.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0'); };
   draw();
+  timer = setInterval(() => { left = Math.max(0, left - 1); tick(); }, 1000);
 }
 
-/* ---------------- order + chat ---------------- */
 async function showOrder(id, note) {
-  stopTimer(); $nav.textContent = 'My orders'; $nav.onclick = showOrders;
-  $app.innerHTML = '<div class="empty">Loading...</div>';
+  stopTimer(); setBar(''); setTop({ nav: 'My orders', navFn: showOrders });
+  $app.innerHTML = emptyState('Loading...');
   let last = '';
   const load = async () => {
     const d = await api(`/orders/${id}`);
     const sig = JSON.stringify([d.order.status, d.messages.length]);
     if (sig === last) return; last = sig;
     const o = d.order;
-    $app.innerHTML = `<div style="margin-top:14px">
-      ${note ? notice('info', note) : ''}
-      <div class="card pad"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
-      <div class="muted">Order ${esc(o.code)} · ${money(o.price)}</div>
-      ${o.status === 'verifying' ? '<p style="margin-top:8px">We are checking your payment. You will get a Telegram message when it is confirmed.</p>' : ''}
-      ${o.status === 'rejected' ? '<p style="margin-top:8px">This order was rejected. If you already paid, message the admin with your order ID.</p>' : ''}
-      ${o.status === 'delivered' ? '<p style="margin-top:8px">Order complete. Please change the account password right away.</p>' : ''}</div>
-      ${(o.status === 'paid' || o.status === 'delivered') ? `<div class="card pad" style="margin-top:12px"><b>Chat with admin</b>
-        <div class="chat" id="chat">${d.messages.length ? d.messages.map((m) => `<div class="bub ${m.sender}">${esc(m.body)}</div>`).join('') : '<div class="muted">The admin will message you here with your account details.</div>'}</div>
-        ${d.chat_open ? `<div class="row" style="margin-top:10px;align-items:stretch"><textarea id="txt" rows="1" placeholder="Write a message"></textarea><button class="btn" id="send" style="width:auto;margin:0;padding:0 18px">Send</button></div>` : '<div class="muted" style="margin-top:8px">This chat is closed.</div>'}</div>` : ''}
-    </div>`;
+    $app.innerHTML = `
+      ${note ? `<div class="pad">${notice('info', note)}</div>` : ''}
+      <div class="panel"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
+        <div class="muted">Order ${esc(o.code)} · ${money(o.price)}</div>
+        ${o.status === 'verifying' ? '<p style="margin-top:8px">We are checking your payment. You will get a Telegram message when it is confirmed.</p>' : ''}
+        ${o.status === 'rejected' ? '<p style="margin-top:8px">This order was rejected. If you already paid, message the admin with your order ID.</p>' : ''}
+        ${o.status === 'delivered' ? '<p style="margin-top:8px">Your order is complete. Change the account password right away.</p>' : ''}</div>
+      ${(o.status === 'paid' || o.status === 'delivered') ? `<div class="panel"><b>Chat with the admin</b>
+        <div class="chat" id="chat">${d.messages.length ? d.messages.map((m) => `<div class="bub ${m.sender}">${esc(m.body)}</div>`).join('') : '<div class="muted">The admin will send your account details here.</div>'}</div>
+        ${d.chat_open ? `<div class="send"><textarea id="txt" rows="1" placeholder="Write a message"></textarea><button class="btn sm" id="send">Send</button></div>` : '<div class="muted" style="margin-top:8px">This chat is closed.</div>'}</div>` : ''}`;
     const chat = document.getElementById('chat'); if (chat) chat.scrollTop = chat.scrollHeight;
-    const send = document.getElementById('send');
-    if (send) send.onclick = async () => {
+    const sendBtn = document.getElementById('send');
+    if (sendBtn) sendBtn.onclick = async () => {
       const t = document.getElementById('txt').value.trim(); if (!t) return;
-      send.disabled = true;
-      try { await api(`/orders/${id}/messages`, 'POST', { body: t }); last = ''; note = ''; await load(); } catch (e) { alert(e.message); send.disabled = false; }
+      sendBtn.disabled = true;
+      try { await api(`/orders/${id}/messages`, 'POST', { body: t }); last = ''; note = ''; await load(); } catch (e) { alert(e.message); sendBtn.disabled = false; }
     };
   };
   try { await load(); timer = setInterval(() => load().catch(() => {}), 5000); }
-  catch (e) { $app.innerHTML = notice('err', e.message); }
+  catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
 }
 
 async function showOrders() {
-  stopTimer(); $nav.textContent = 'Store'; $nav.onclick = showList;
-  $app.innerHTML = '<div class="empty">Loading...</div>';
+  stopTimer(); setBar(''); setTop({ nav: 'Store', navFn: showList });
+  $app.innerHTML = emptyState('Loading...');
   try {
     const { orders } = await api('/orders');
-    $app.innerHTML = orders.length ? `<div id="ol" style="margin-top:14px">${orders.map((o) => `
-      <div class="card pad item" data-id="${o.id}" style="margin-bottom:10px"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
-      <div class="muted">${esc(o.code)} · ${money(o.price)}</div></div>`).join('')}</div>` : '<div class="empty">No orders yet.</div>';
+    $app.innerHTML = orders.length ? `<div id="ol">${orders.map((o) => `
+      <div class="ordercard tap" data-id="${o.id}" style="cursor:pointer"><div class="row"><b>${esc(o.title || 'Order')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
+      <div class="muted">${esc(o.code)} · ${money(o.price)}</div></div>`).join('')}</div>` : emptyState('No orders yet.');
     const ol = document.getElementById('ol');
-    if (ol) ol.onclick = (e) => { const c = e.target.closest('.item[data-id]'); if (c && c.dataset.id) { const o = orders.find((x) => x.id === Number(c.dataset.id)); if (o && o.status === 'awaiting_payment') return showList(); showOrder(o.id); } };
-  } catch (e) { $app.innerHTML = notice('err', e.message); }
+    if (ol) ol.onclick = (e) => { const c = e.target.closest('.ordercard'); if (!c) return; const o = orders.find((x) => x.id === Number(c.dataset.id)); if (o.status === 'awaiting_payment') return showList(); showOrder(o.id); };
+  } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
 }
 
-/* ---------------- start ---------------- */
-(function start() {
-  if (!tg || !tg.initData) { $app.innerHTML = '<div style="margin-top:30px">' + notice('info', 'Open this store from the Telegram bot to browse and buy.') + '</div>'; $nav.hidden = true; return; }
-  if (qs.get('order')) return showOrder(Number(qs.get('order')));
-  if (qs.get('item')) return showItem(Number(qs.get('item')));
-  showList();
+/* =====================================================================
+   ADMIN
+   ===================================================================== */
+const adminState = { tab: 'items', ofilter: '' };
+
+function showLogin() {
+  stopTimer(); setBar(''); setTop({});
+  $app.innerHTML = `<div class="panel" style="margin-top:30px"><h3 style="font-family:var(--display);font-size:26px">Store admin</h3><label>Admin password</label><input type="password" id="pw"><div id="lmsg"></div><button class="btn" id="lbtn" style="margin-top:14px">Sign in</button></div>`;
+  document.getElementById('lbtn').onclick = async () => {
+    try { const j = await send('/api/admin/login', 'POST', { password: document.getElementById('pw').value }); token = j.token; localStorage.setItem('admin_token', token); showAdmin(); }
+    catch (e) { document.getElementById('lmsg').innerHTML = notice('err', e.message); }
+  };
+}
+
+function showAdmin() {
+  stopTimer(); setBar('');
+  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['orders', 'Orders'], ['pay', 'Payment']], adminState) });
+  bindSeg('aSeg', 'tab', adminState, showAdmin);
+  ({ items: adminItems, orders: adminOrders, pay: adminPay })[adminState.tab]();
+}
+
+/* ----- squads (items) ----- */
+let itemCache = [];
+async function adminItems() {
+  $app.innerHTML = `<div class="adminhead"><h2>Squads and coins</h2><button class="btn sm" id="addBtn">+ Add</button></div><div id="il">${emptyState('Loading...')}</div>`;
+  document.getElementById('addBtn').onclick = () => openItemForm(null);
+  try {
+    itemCache = (await adm('/items')).items;
+    const il = document.getElementById('il');
+    il.innerHTML = itemCache.length ? `<div class="grid">${itemCache.map((i) => `
+      <div class="card">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3><span class="st ${i.status}">${STATUS[i.status]}</span></div>${stub(i.price)}
+        <div class="acts">
+          ${i.status === 'available' ? `<button class="btn sm" data-a="post" data-id="${i.id}">Post</button>` : ''}
+          ${i.status !== 'sold' ? `<button class="btn sm ghost" data-a="edit" data-id="${i.id}">Edit</button>` : ''}
+          ${i.status === 'available' || i.status === 'hidden' ? `<button class="btn sm ghost" data-a="vis" data-id="${i.id}">${i.status === 'hidden' ? 'Show' : 'Hide'}</button>` : ''}
+          <button class="btn sm red" data-a="del" data-id="${i.id}">Delete</button></div></div>`).join('')}</div>` : emptyState('No squads yet. Tap Add to upload your first one.');
+    il.onclick = async (e) => {
+      const b = e.target.closest('button[data-a]'); if (!b) return;
+      const it = itemCache.find((x) => x.id === Number(b.dataset.id));
+      try {
+        if (b.dataset.a === 'edit') openItemForm(it);
+        else if (b.dataset.a === 'post') openPost(it);
+        else if (b.dataset.a === 'vis') { await adm(`/items/${it.id}`, 'PATCH', { ...it, status: it.status === 'hidden' ? 'available' : 'hidden', images: [] }); adminItems(); }
+        else if (b.dataset.a === 'del' && confirm('Delete this item?')) { await adm(`/items/${it.id}`, 'DELETE'); adminItems(); }
+      } catch (err) { alert(err.message); }
+    };
+  } catch (e) { document.getElementById('il').innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
+}
+
+function openItemForm(it) {
+  let newImgs = [], removed = [];
+  const keep = () => (it ? it.image_paths.map((p, i) => ({ path: p, url: it.images[i] })).filter((x) => !removed.includes(x.path)) : []);
+  const draw = () => {
+    const first = (keep()[0] && keep()[0].url) || newImgs[0] || null;
+    const preview = { game: document.getElementById('f_game') ? document.getElementById('f_game').value : (it ? it.game : 'efootball'), coins_amount: null };
+    document.getElementById('f_prev').innerHTML = arena(preview, first);
+    document.getElementById('f_th').innerHTML = [...keep().map((x) => `<div class="th"><img src="${esc(x.url)}" alt=""><button data-rm="${esc(x.path)}" aria-label="Remove">×</button></div>`), ...newImgs.map((u, i) => `<div class="th"><img src="${u}" alt=""><button data-new="${i}" aria-label="Remove">×</button></div>`)].join('');
+  };
+  $dlgBody.innerHTML = `
+    <h3>${it ? 'Edit squad' : 'Add squad'}</h3>
+    <div style="margin:10px 0 4px" id="f_prev"></div>
+    <label class="up" style="margin-top:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span>Upload squad photos (up to 6)</span><input type="file" id="f_files" accept="image/*" multiple></label>
+    <div class="photos" id="f_th"></div>
+    <div class="g2"><div><label>Game</label><select id="f_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select></div>
+      <div><label>Type</label><select id="f_kind"><option value="account">Account</option><option value="coins">Coins</option></select></div></div>
+    <label>Title</label><input type="text" id="f_title" maxlength="80" placeholder="e.g. Messi and Mbappé full squad">
+    <div class="g2"><div><label>Price (ETB)</label><input type="number" id="f_price" min="1" step="0.01" inputmode="decimal"></div>
+      <div><label>Coins (optional)</label><input type="number" id="f_coins" min="1" inputmode="numeric"></div></div>
+    <label>Description (optional)</label><textarea id="f_desc" rows="3" maxlength="1000"></textarea>
+    <div id="f_msg"></div>
+    <div class="actions"><button class="btn" id="f_save" style="flex:1">Save</button><button class="btn ghost" id="f_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
+  const $ = (id) => document.getElementById(id);
+  if (it) { $('f_game').value = it.game; $('f_kind').value = it.kind; $('f_title').value = it.title; $('f_price').value = it.price; $('f_coins').value = it.coins_amount || ''; $('f_desc').value = it.description || ''; }
+  $('f_game').onchange = draw;
+  $('f_files').onchange = async () => {
+    try { for (const f of [...$('f_files').files]) { if (keep().length + newImgs.length >= 6) break; newImgs.push(await shrink(f, 1600, 0.85)); } $('f_files').value = ''; draw(); }
+    catch (e) { $('f_msg').innerHTML = notice('err', e.message); }
+  };
+  $('f_th').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.rm) removed.push(b.dataset.rm); else newImgs.splice(Number(b.dataset.new), 1); draw(); };
+  $('f_cancel').onclick = () => $dlg.close();
+  $('f_save').onclick = async () => {
+    const body = { game: $('f_game').value, kind: $('f_kind').value, title: $('f_title').value, price: $('f_price').value, coins_amount: $('f_coins').value, description: $('f_desc').value, images: newImgs, remove_image_paths: removed };
+    $('f_save').disabled = true; $('f_save').textContent = 'Saving...';
+    try { if (it) await adm(`/items/${it.id}`, 'PATCH', body); else await adm('/items', 'POST', body); $dlg.close(); adminItems(); }
+    catch (e) { $('f_msg').innerHTML = notice('err', e.message); $('f_save').disabled = false; $('f_save').textContent = 'Save'; }
+  };
+  draw(); $dlg.showModal();
+}
+
+/* ----- posting to groups ----- */
+async function openPost(it) {
+  $dlgBody.innerHTML = `<h3>Post to groups</h3><p class="muted">${esc(it.title)} · ${money(it.price)}</p>
+    <div id="p_list" style="margin:10px 0">${emptyState('Loading groups...')}</div><div id="p_msg"></div>
+    <div class="actions"><button class="btn go" id="p_send" style="flex:1">Post with the bot</button></div>
+    <div class="panel" style="margin:14px 0 0"><b>Bot is not admin in a group?</b><p class="muted" style="margin:4px 0 10px">Post it yourself from your own Telegram account. Tap the button, choose the group, and send.</p>
+      <div class="actions" style="margin:0"><a class="btn sm ghost" id="p_share" target="_blank" rel="noopener">Share from my account</a><button class="btn sm ghost" id="p_copy">Copy post text</button></div></div>
+    <div class="actions"><button class="btn ghost" id="p_close">Close</button></div>`;
+  const $ = (id) => document.getElementById(id);
+  $('p_close').onclick = () => $dlg.close();
+  $dlg.showModal();
+  let share = null;
+  try {
+    const { channels } = await adm('/channels');
+    $('p_list').innerHTML = channels.length ? channels.map((c) => `<label class="chk" style="margin:0"><input type="checkbox" data-bot="${c.bot_id}" data-chat="${esc(c.chat_id)}"> ${esc(c.title || c.chat_id)}</label>`).join('') : '<div class="muted">The bot is not in any group yet. Add the bot as an admin to a group, or use "Share from my account" below.</div>';
+  } catch (e) { $('p_list').innerHTML = notice('err', e.message); }
+  try { share = await adm(`/items/${it.id}/share`); $('p_share').href = share.share_url; } catch (e) { $('p_share').removeAttribute('href'); }
+  $('p_copy').onclick = () => { if (share && navigator.clipboard) { navigator.clipboard.writeText(`${share.text}\n\n${share.link}`); $('p_copy').textContent = 'Copied'; } };
+  $('p_send').onclick = async () => {
+    const targets = [...document.querySelectorAll('#p_list input:checked')].map((c) => ({ bot_id: Number(c.dataset.bot), chat_id: c.dataset.chat }));
+    if (!targets.length) { $('p_msg').innerHTML = notice('err', 'Pick at least one group.'); return; }
+    $('p_send').disabled = true;
+    try { const r = await adm(`/items/${it.id}/post`, 'POST', { targets }); $('p_msg').innerHTML = notice(r.failed ? 'err' : 'ok', `Sent to ${r.sent}, failed ${r.failed}.` + r.results.filter((x) => !x.ok).map((x) => ` ${x.title || x.chat_id}: ${x.error}`).join('')); }
+    catch (e) { $('p_msg').innerHTML = notice('err', e.message); }
+    $('p_send').disabled = false;
+  };
+}
+
+/* ----- orders ----- */
+async function adminOrders() {
+  $app.innerHTML = `<div class="kinds" id="of">${[['', 'All'], ['verifying', 'Needs check'], ['paid', 'Paid'], ['awaiting_payment', 'Waiting'], ['delivered', 'Delivered'], ['rejected', 'Rejected']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${adminState.ofilter === v}">${l}</button>`).join('')}</div><div id="ol">${emptyState('Loading...')}</div>`;
+  document.getElementById('of').onclick = (e) => { const b = e.target.closest('button'); if (b) { adminState.ofilter = b.dataset.v; adminOrders(); } };
+  try {
+    const { orders } = await adm('/orders' + (adminState.ofilter ? `?status=${adminState.ofilter}` : ''));
+    const ol = document.getElementById('ol');
+    ol.innerHTML = orders.length ? orders.map((o) => `
+      <div class="ordercard" data-oid="${o.id}">
+        <div class="row"><b>${esc(o.title || 'Item')}</b><span class="st ${o.status}">${STATUS[o.status]}</span></div>
+        <div class="muted">${esc(o.code)} · ${money(o.price)} · ${esc(o.customer_name || '')} · ${new Date(o.created_at).toLocaleString()}</div>
+        ${o.reference ? `<div style="margin-top:8px">${esc(o.method)} reference <b>${esc(o.reference)}</b> ${o.verify_state ? `<span class="st ${o.verify_state}">${o.verify_state}</span>` : ''}
+          ${o.verify_detail && o.verify_detail.reason ? `<div class="muted">${esc(o.verify_detail.reason)}</div>` : ''}
+          ${o.verify_detail && o.verify_detail.amount != null ? `<div class="muted">Receipt shows ${money(o.verify_detail.amount)}${o.verify_detail.receiver ? ', receiver ' + esc(o.verify_detail.receiver) : ''}</div>` : ''}
+          ${o.proof_url ? `<a href="${esc(o.proof_url)}" target="_blank" rel="noopener">View screenshot</a>` : ''}</div>` : ''}
+        <div class="actions">
+          ${o.status === 'verifying' ? `<button class="btn sm" data-a="approve">Approve payment</button><button class="btn sm red" data-a="reject">Reject</button>` : ''}
+          ${o.status === 'paid' || o.status === 'delivered' ? `<button class="btn sm ghost" data-a="chat">${o.status === 'paid' ? 'Open chat' : 'View chat'}</button>` : ''}
+          ${o.status === 'paid' ? `<button class="btn sm go" data-a="finish">Finish</button>` : ''}</div>
+        <div class="chatbox"></div></div>`).join('') : emptyState('No orders here.');
+    ol.onclick = async (e) => {
+      const b = e.target.closest('button[data-a]'); if (!b) return;
+      const card = b.closest('[data-oid]'), id = card.dataset.oid;
+      try {
+        if (b.dataset.a === 'approve' || b.dataset.a === 'reject') {
+          if (!confirm(b.dataset.a === 'approve' ? 'Only approve if you saw the money arrive. Continue?' : 'Reject this order?')) return;
+          await adm(`/orders/${id}/${b.dataset.a}`, 'POST'); adminOrders();
+        } else if (b.dataset.a === 'finish') {
+          const wipe = confirm('Finish this order?\n\nOK = finish and DELETE the chat (removes passwords from the database).\nCancel = choose another option.');
+          if (!wipe && !confirm('Finish and keep the chat history?')) return;
+          await adm(`/orders/${id}/finish`, 'POST', { wipe }); adminOrders();
+        } else if (b.dataset.a === 'chat') openAdminChat(card, id);
+      } catch (err) { alert(err.message); }
+    };
+  } catch (e) { document.getElementById('ol').innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
+}
+
+async function openAdminChat(card, id) {
+  const box = card.querySelector('.chatbox'); let count = -1;
+  const render = async (force) => {
+    const { messages, status } = await adm(`/orders/${id}/messages`);
+    if (!force && messages.length === count) return; count = messages.length;
+    const typed = box.querySelector('textarea') ? box.querySelector('textarea').value : '';
+    box.innerHTML = `<div class="chat" style="max-height:260px">${messages.map((m) => `<div class="bub ${m.sender === 'admin' ? 'customer' : 'admin'}">${esc(m.body)}</div>`).join('') || '<div class="muted">No messages yet.</div>'}</div>
+      ${status === 'paid' ? `<div class="send"><textarea rows="2" placeholder="Send the account email and password...">${esc(typed)}</textarea><button class="btn sm">Send</button></div>` : '<div class="muted">Chat closed.</div>'}`;
+    const c = box.querySelector('.chat'); c.scrollTop = c.scrollHeight;
+    const btn = box.querySelector('button.btn'), ta = box.querySelector('textarea');
+    if (btn) btn.onclick = async () => { if (!ta.value.trim()) return; btn.disabled = true; try { await adm(`/orders/${id}/messages`, 'POST', { body: ta.value }); await render(true); } catch (e) { alert(e.message); btn.disabled = false; } };
+  };
+  await render(true);
+  stopTimer(); timer = setInterval(() => { if (document.body.contains(box)) render(false).catch(() => {}); }, 6000);
+}
+
+/* ----- payment details ----- */
+async function adminPay() {
+  $app.innerHTML = emptyState('Loading...');
+  try {
+    const s = await adm('/settings');
+    $app.innerHTML = `<div class="panel"><h3 style="font-family:var(--display);font-size:24px">Where customers pay</h3>
+      <p class="muted">Every payment is checked against these details. The receiver on the receipt must match.</p>
+      <label>Telebirr phone</label><input type="text" id="s_tp" inputmode="tel" value="${esc(s.telebirr_phone || '')}">
+      <label>Telebirr account name</label><input type="text" id="s_tn" value="${esc(s.telebirr_name || '')}">
+      <label>CBE account number</label><input type="text" id="s_ca" inputmode="numeric" value="${esc(s.cbe_account || '')}">
+      <label>CBE account name</label><input type="text" id="s_cn" value="${esc(s.cbe_name || '')}">
+      <div id="s_msg"></div><button class="btn" id="s_save" style="margin-top:14px">Save</button></div>`;
+    document.getElementById('s_save').onclick = async () => {
+      const $ = (id) => document.getElementById(id).value;
+      try { await adm('/settings', 'PUT', { telebirr_phone: $('s_tp'), telebirr_name: $('s_tn'), cbe_account: $('s_ca'), cbe_name: $('s_cn') }); document.getElementById('s_msg').innerHTML = notice('ok', 'Saved.'); }
+      catch (e) { document.getElementById('s_msg').innerHTML = notice('err', e.message); }
+    };
+  } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
+}
+
+/* =====================================================================
+   START
+   ===================================================================== */
+function setMode(m) {
+  mode = m; sessionStorage.setItem('store_mode', m);
+  document.querySelectorAll('#modeSwitch button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.m === m));
+  if (m === 'admin') showAdmin(); else showList();
+}
+document.getElementById('modeSwitch').onclick = (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); };
+
+(async function start() {
+  if (IN_TG) {
+    try {
+      const h = await api('/home');
+      document.getElementById('title').textContent = h.name || 'Game Store';
+      isAdmin = !!h.is_admin;
+    } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; return; }
+    document.getElementById('modeSwitch').hidden = !isAdmin;
+    if (qs.get('order')) return showOrder(Number(qs.get('order')));
+    if (qs.get('item')) return showItem(Number(qs.get('item')));
+    const wantAdmin = isAdmin && (qs.get('admin') === '1' || sessionStorage.getItem('store_mode') === 'admin');
+    return setMode(wantAdmin ? 'admin' : 'shop');
+  }
+  // Outside Telegram: only the password-protected admin page (store-admin.html).
+  if (qs.get('admin') === '1') return token ? showAdmin() : showLogin();
+  $app.innerHTML = `<div class="pad" style="margin-top:30px">${notice('info', 'Open this store from the Telegram bot to browse and buy.')}</div>`;
 })();
 </script>
 </body>

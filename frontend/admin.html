@@ -63,6 +63,10 @@
           <label>P2P platform</label>
           <select id="p2pPlatform"></select>
         </div>
+        <div id="storeAdminWrap" class="hidden">
+          <label>Store admin Telegram ID</label>
+          <input id="storeAdminId" inputmode="numeric" placeholder="e.g. 123456789" autocomplete="off" />
+        </div>
       </div>
       <p class="note" id="typeNote">Bingo bots run the registration bonus, wallet and bingo game.</p>
 
@@ -205,6 +209,10 @@
       <div id="ePlatformWrap" class="hidden">
         <label>P2P platform</label>
         <select id="ePlatform"></select>
+      </div>
+      <div id="eStoreAdminWrap" class="hidden">
+        <label>Store admin Telegram ID</label>
+        <input id="eStoreAdmin" inputmode="numeric" placeholder="e.g. 123456789" autocomplete="off" />
       </div>
     </div>
 
@@ -550,9 +558,10 @@
           referral_bonus: Number($('referralBonus').value) || 0,
           bot_type: $('botType').value,
           p2p_platform_id: $('botType').value === 'p2p' ? Number($('p2pPlatform').value) : null,
+          store_admin_telegram_id: $('botType').value === 'store' ? $('storeAdminId').value.trim() : null,
         });
         show($('addMsg'), 'Bot added and running.', 'success');
-        ['name', 'token', 'channel', 'group', 'continueUrl'].forEach((i) => ($(i).value = ''));
+        ['name', 'token', 'channel', 'group', 'continueUrl', 'storeAdminId'].forEach((i) => ($(i).value = ''));
         $('bonus').value = 20;
         $('continueText').value = 'Continue';
         $('referralBonus').value = 10;
@@ -607,6 +616,7 @@
       $('eDepositPhone').value = b.deposit_phone || '0930008319';
       $('eWithdrawMin').value = b.withdraw_min_deposit ?? 100;
       $('eType').value = b.bot_type || 'bingo';
+      $('eStoreAdmin').value = b.store_admin_telegram_id || '';
       fillPlatformSelect('ePlatform', b.p2p_platform_id);
       syncEditType();
       editRows = textToLinks((b.extra_links || []).map((l) => `${l.text} | ${l.url}`).join('\n'));
@@ -618,7 +628,7 @@
       hide($('editMsg'));
       if ($('eType').value === 'store') {
         try {
-          await api(`/api/admin/bots/${editId}`, 'PATCH', { name: $('eName').value.trim(), bot_type: 'store' });
+          await api(`/api/admin/bots/${editId}`, 'PATCH', { name: $('eName').value.trim(), bot_type: 'store', store_admin_telegram_id: $('eStoreAdmin').value.trim() });
           $('editDlg').close();
           loadBots();
         } catch (e) { show($('editMsg'), e.message, 'error'); }
@@ -844,17 +854,19 @@
       const p2p = t === 'p2p';
       const noBingo = t !== 'bingo';
       $('platformWrap').classList.toggle('hidden', !p2p);
+      $('storeAdminWrap').classList.toggle('hidden', t !== 'store');
       $('bonusWrap').classList.toggle('hidden', noBingo);
       $('regFields').classList.toggle('hidden', noBingo);
       $('typeNote').textContent = p2p
         ? 'P2P bots open the Cross P2P Mini App. Their orders go to the platform\'s Telegram ID.'
         : t === 'store'
-          ? 'Store bots open the eFootball / DLS store Mini App. Manage items and orders in store-admin.html.'
+          ? 'Store bots open the eFootball / DLS store Mini App. The Telegram account whose ID you enter becomes the store admin and gets a Store / Admin switch inside the app. (Ask them to message @userinfobot to see their ID, and to press Start on this bot once.)'
           : 'Bingo bots run the registration bonus, wallet and bingo game.';
     }
     function syncEditType() {
       const t = $('eType').value;
       $('ePlatformWrap').classList.toggle('hidden', t !== 'p2p');
+      $('eStoreAdminWrap').classList.toggle('hidden', t !== 'store');
       $('eRegBox').classList.toggle('hidden', t !== 'bingo');
     }
     $('botType').onchange = syncAddType;
@@ -870,7 +882,8 @@
             </h3>
             <div class="meta">
               <a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a> · Token ${b.token_preview}<br/>
-              <a href="store-admin.html">Open store admin</a>
+              Store admin ID: <b>${b.store_admin_telegram_id || 'not set'}</b><br/>
+              <a href="store-admin.html">Open store admin on computer</a>
             </div>
           </div>
           <div class="actions">
