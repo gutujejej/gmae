@@ -20,7 +20,7 @@ const DAILY_CAP = 120;           // messages per day per store
 const LOGIN_TTL_MS = 10 * 60 * 1000;
 const CLIENT_TTL_MS = 10 * 60 * 1000;
 
-module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, registry, clean, decodeImage, sleep, MAX_IMG_BYTES }) {
+module.exports = function attachAccount({ db, adminRoute, scope, wrap, HttpError, registry, clean, decodeImage, sleep, MAX_IMG_BYTES }) {
   const API_ID = Number(process.env.TG_API_ID);
   const API_HASH = process.env.TG_API_HASH;
   const SECRET = process.env.STORE_SESSION_KEY || '';
@@ -66,12 +66,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
     return new TelegramClient(new StringSession(session || ''), API_ID, API_HASH, { connectionRetries: 3 });
   };
 
-  function botIdOf(req) {
-    if (req.miniBotId) return req.miniBotId;
-    const e = [...registry(req).values()].find((x) => x.row.bot_type === 'store');
-    if (!e) throw new HttpError(409, 'Add a Store bot first.');
-    return e.row.id;
-  }
+  const botIdOf = (req) => scope(req);   // the store this admin call is about
 
   const pending = new Map();   // botId -> { client, phone, hash, at }
   const clients = new Map();   // botId -> { client, timer }
@@ -105,7 +100,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
 
   /* ---------------------------------------------------------------- */
   adminRoute('get', '/account', wrap(async (req, res) => {
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     const row = configured() ? await loadRow(botId) : null;
     const p = row && row.phone ? row.phone : '';
     res.json({ configured: configured(), connected: !!row, phone: p ? p.slice(0, 4) + '****' + p.slice(-2) : null });
@@ -113,7 +108,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
 
   adminRoute('post', '/account/send-code', wrap(async (req, res) => {
     need();
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     const phone = clean((req.body || {}).phone, 20).replace(/[\s-]/g, '');
     if (!/^\+\d{9,15}$/.test(phone)) throw new HttpError(400, 'Enter the phone number with country code, like +2519...');
     const old = pending.get(botId); if (old) { try { await old.client.disconnect(); } catch { /* ignore */ } }
@@ -134,7 +129,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
 
   adminRoute('post', '/account/verify', wrap(async (req, res) => {
     const { Api } = need();
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     const p = pending.get(botId);
     if (!p || Date.now() - p.at > LOGIN_TTL_MS) { pending.delete(botId); throw new HttpError(409, 'The code expired. Start again.'); }
     const code = clean((req.body || {}).code, 10).replace(/\D/g, '');
@@ -174,7 +169,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
   }));
 
   adminRoute('delete', '/account', wrap(async (req, res) => {
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     if (configured()) {
       try { const c = await liveClient(botId); const { Api } = lib(); await c.invoke(new Api.auth.LogOut()); } catch { /* already gone */ }
     }
@@ -185,7 +180,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
 
   // Groups and channels this account can post in.
   adminRoute('get', '/account/dialogs', wrap(async (req, res) => {
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     const client = await liveClient(botId);
     let list;
     try { list = await client.getDialogs({ limit: 300 }); }
@@ -207,7 +202,7 @@ module.exports = function attachAccount({ db, adminRoute, wrap, HttpError, regis
   // Start a send. It runs in the background (groups are spaced out), poll /account/jobs/:id.
   adminRoute('post', '/account/post', wrap(async (req, res) => {
     const { CustomFile } = need();
-    const botId = botIdOf(req);
+    const botId = await botIdOf(req);
     const b = req.body || {};
     const text = clean(b.text, 3500);
     const photo = b.image ? decodeImage(b.image, MAX_IMG_BYTES) : null;
