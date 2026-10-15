@@ -179,6 +179,7 @@ dialog::backdrop{background:rgba(6,20,15,.6)}
 .card.res .stub{background:#E4E9E6;color:#40524A}
 .seg.light{background:#DCE7E1}.seg.light button{color:var(--muted)}.seg.light button[aria-pressed=true]{background:var(--turf);color:#fff}
 .seg.five button{font-size:12.5px;padding:9px 2px}
+.seg.six button{font-size:11.5px;padding:9px 1px}
 .thumb{width:84px;height:84px;border-radius:12px;object-fit:cover;border:1px solid var(--line);margin-top:10px}
 .prog{height:8px;border-radius:6px;background:#DCE7E1;overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--turf);transition:width .4s}
 /* ---------- coin list ---------- */
@@ -523,9 +524,9 @@ function showAdmin() {
   stopTimer(); setBar(''); $app.onclick = null;
   if (!IN_TG && !currentStore) return showStores();
   if (!IN_TG) document.getElementById('title').textContent = currentStoreName || 'Store';
-  setTop({ nav: IN_TG ? '' : 'All stores', navFn: () => showStores(false), extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['msg', 'Post'], ['pay', 'Payment']], adminState, null, 'seg five') });
+  setTop({ nav: IN_TG ? '' : 'All stores', navFn: () => showStores(false), extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['msg', 'Post'], ['pay', 'Payment'], ['team', 'Admins']], adminState, null, 'seg six') });
   bindSeg('aSeg', 'tab', adminState, showAdmin);
-  ({ items: adminItems, coins: adminCoins, orders: adminOrders, msg: adminMsg, pay: adminPay })[adminState.tab]();
+  ({ items: adminItems, coins: adminCoins, orders: adminOrders, msg: adminMsg, pay: adminPay, team: adminTeam })[adminState.tab]();
 }
 
 /* ----- squads (items) ----- */
@@ -890,6 +891,26 @@ async function adminPay() {
       const $ = (id) => document.getElementById(id).value;
       try { await adm('/settings', 'PUT', { telebirr_phone: $('s_tp'), telebirr_name: $('s_tn'), cbe_account: $('s_ca'), cbe_name: $('s_cn') }); document.getElementById('s_msg').innerHTML = notice('ok', 'Saved.'); }
       catch (e) { document.getElementById('s_msg').innerHTML = notice('err', e.message); }
+    };
+  } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
+}
+
+async function adminTeam() {
+  $app.innerHTML = emptyState('Loading...');
+  try {
+    const { admins, you } = await adm('/admins');
+    $app.innerHTML = `<div class="panel"><h3 style="font-family:var(--display);font-size:24px">Store admins</h3>
+      <p class="muted">Admins can manage squads, orders, posts and payment details. Add someone by their Telegram ID. They must press Start on the bot once to get notifications.</p>
+      <div id="ad_list">${admins.map((a) => `<div class="adminhead" style="margin:10px 0"><span><b>${esc(a.telegram_id)}</b>${a.telegram_id === you ? ' (you)' : ''}${a.main ? ' · main admin' : ''}</span>${a.main || a.telegram_id === you ? '' : `<button class="btn sm red" data-rm="${esc(a.telegram_id)}">Remove</button>`}</div>`).join('') || '<p class="muted">No admins yet.</p>'}</div>
+      <label>Add admin (Telegram ID)</label><input type="text" id="ad_id" inputmode="numeric" placeholder="e.g. 123456789">
+      <div id="ad_msg"></div><button class="btn" id="ad_add" style="margin-top:14px">Add admin</button></div>`;
+    document.getElementById('ad_add').onclick = async () => {
+      try { await adm('/admins', 'POST', { telegram_id: document.getElementById('ad_id').value }); adminTeam(); }
+      catch (e) { document.getElementById('ad_msg').innerHTML = notice('err', e.message); }
+    };
+    document.getElementById('ad_list').onclick = async (e) => {
+      const b = e.target.closest('button[data-rm]'); if (!b || !confirm('Remove this admin?')) return;
+      try { await adm(`/admins/${b.dataset.rm}`, 'DELETE'); adminTeam(); } catch (err) { alert(err.message); }
     };
   } catch (e) { $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
 }
