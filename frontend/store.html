@@ -172,6 +172,22 @@ dialog::backdrop{background:rgba(6,20,15,.6)}
 .ordercard a{color:var(--turf);font-weight:600}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 
+/* ---------- coin list ---------- */
+.coinsec{margin:14px 16px 0;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.csh{background:var(--pitch);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.csh b{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:.01em}
+.csh .tagy{background:var(--flood);color:var(--flood-ink);font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:8px}
+.csh .note{width:100%;color:#A9C4B7;font-size:12.5px}
+.crow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line);width:100%;text-align:left;background:var(--paper)}
+button.crow:active{background:#F1F7F3}
+.crow .ico{width:30px;height:30px;flex:none}
+.crow .amt{font-family:var(--display);font-weight:800;font-size:27px;line-height:1;min-width:0}
+.crow .amt small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--muted);margin-left:5px}
+.crow .go{margin-left:auto;color:#9DB5A9;font-weight:700}
+.crow .cbuy{background:var(--flood);color:var(--flood-ink);border-radius:10px;padding:7px 12px;font-weight:800;white-space:nowrap;font-size:14px}
+.crow .cbuy b{font-family:var(--display);font-size:21px;font-weight:800;margin-right:3px}
+.crow .mini{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.sectitle{font-family:var(--display);font-weight:800;font-size:24px;padding:18px 16px 0}
 /* viewer */
 #lb{position:fixed;inset:0;background:rgba(5,15,11,.94);z-index:100;display:grid;place-items:center;padding:14px}
 #lb img{max-width:100%;max-height:92vh;border-radius:10px}
@@ -228,6 +244,12 @@ const STATUS = { awaiting_payment: 'Waiting for payment', verifying: 'Checking p
 const notice = (cls, t) => `<div class="msg ${cls}">${esc(t)}</div>`;
 const BALL = '<svg class="ball" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#fff" opacity=".92"/><path d="M16 9l5 3.6-1.9 5.9h-6.2L11 12.6 16 9z" fill="#0D3B2C"/><path d="M16 9V4M21 12.6l4.8-1.6M19.1 18.5l3 4.1M12.9 18.5l-3 4.1M11 12.6L6.2 11" stroke="#0D3B2C" stroke-width="1.6" stroke-linecap="round"/></svg>';
 
+const COIN = '<svg class="ico" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#FFCE2E"/><circle cx="16" cy="16" r="10.5" fill="none" stroke="#B88700" stroke-width="2"/><path d="M12 12.5h8M12 16h8M12 19.5h8" stroke="#B88700" stroke-width="2" stroke-linecap="round"/></svg>';
+function coinSections(packs) {
+  const map = new Map();
+  for (const p of packs) { const k = p.game + '|' + p.section; if (!map.has(k)) map.set(k, { game: p.game, name: p.section, note: p.note || '', packs: [] }); map.get(k).packs.push(p); }
+  return [...map.values()];
+}
 let timer = null;
 const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
 
@@ -298,17 +320,31 @@ async function showList() {
   stopTimer(); setBar('');
   setTop({ nav: 'My orders', navFn: showOrders, extra: seg('gSeg', 'game', [['', 'All'], ['efootball', 'eFootball'], ['dls', 'DLS']], filter) });
   bindSeg('gSeg', 'game', filter, showList);
-  $app.innerHTML = `<div class="kinds" id="kinds">${[['', 'All'], ['account', 'Accounts'], ['coins', 'Coins']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${filter.kind === v}">${l}</button>`).join('')}</div><div id="list">${emptyState('Loading...')}</div>`;
+  $app.innerHTML = `<div class="kinds" id="kinds">${[['', 'All'], ['account', 'Squads'], ['coin', 'Coins']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${filter.kind === v}">${l}</button>`).join('')}</div><div id="list">${emptyState('Loading...')}</div>`;
   document.getElementById('kinds').onclick = (e) => { const b = e.target.closest('button'); if (b) { filter.kind = b.dataset.v; showList(); } };
+  const list = document.getElementById('list');
   try {
-    const p = new URLSearchParams(); if (filter.game) p.set('game', filter.game); if (filter.kind) p.set('kind', filter.kind);
-    const { items } = await api(`/items?${p}`);
-    const list = document.getElementById('list');
-    list.innerHTML = items.length ? `<div class="grid">${items.map((i) => `
-      <button class="card tap" data-id="${i.id}">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`
-      : emptyState('Nothing for sale right now. Check back soon.');
-    list.onclick = (e) => { const c = e.target.closest('.card'); if (c) showItem(Number(c.dataset.id)); };
-  } catch (e) { document.getElementById('list').innerHTML = notice('err', e.message); }
+    const wantSquads = filter.kind !== 'coin', wantCoins = filter.kind !== 'account';
+    const gp = filter.game ? `game=${filter.game}` : '';
+    const [sq, co] = await Promise.all([
+      wantSquads ? api(`/items?kind=account${gp ? '&' + gp : ''}`) : { items: [] },
+      wantCoins ? api(`/coins${gp ? '?' + gp : ''}`) : { packs: [] },
+    ]);
+    let html = '';
+    if (sq.items.length) html += (wantCoins && co.packs.length ? '<div class="sectitle">Squads</div>' : '') + `<div class="grid">${sq.items.map((i) => `
+      <button class="card tap" data-id="${i.id}">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`;
+    if (co.packs.length) {
+      html += (sq.items.length ? '<div class="sectitle">Coin prices</div>' : '') + coinSections(co.packs).map((sec) => `
+        <div class="coinsec"><div class="csh"><span class="tagy">${GAME[sec.game]}</span><b>${esc(sec.name)}</b>${sec.note ? `<span class="note">${esc(sec.note)}</span>` : ''}</div>
+          ${sec.packs.map((p) => `<button class="crow" data-pack="${p.id}">${COIN}<span class="amt">${Number(p.coins_amount).toLocaleString('en-US')}<small>coins</small></span><span class="cbuy"><b>${fmt(p.price)}</b>ETB</span></button>`).join('')}</div>`).join('') + '<div style="height:18px"></div>';
+    }
+    list.innerHTML = html || emptyState('Nothing for sale right now. Check back soon.');
+    list.onclick = async (e) => {
+      const c = e.target.closest('.card'); if (c) return showItem(Number(c.dataset.id));
+      const r = e.target.closest('[data-pack]');
+      if (r) { r.disabled = true; try { showCheckout(await api('/orders', 'POST', { pack_id: Number(r.dataset.pack) })); } catch (err) { r.disabled = false; alert(err.message); } }
+    };
+  } catch (e) { list.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
 }
 
 async function showItem(id) {
@@ -354,7 +390,7 @@ function showCheckout(d) {
     const m = d.methods.find((x) => x.key === method);
     $app.innerHTML = `
       <div class="ticket"><div class="row"><div><small>Order ${esc(d.order.code)}</small><div class="t">${esc(d.item.title)}</div></div><div class="amt">${fmt(d.order.price)}<br><small style="font-family:var(--body);font-size:12px">ETB</small></div></div>
-        <div class="hold"><span>Reserved for you</span><b id="clock">--:--</b></div></div>
+        <div class="hold"><span>Pay within</span><b id="clock">--:--</b></div></div>
       <div class="steps">
         <div class="step"><div class="rail"><div class="n">1</div></div><div class="body"><h4>Choose how to pay</h4>
           ${d.methods.length ? `<div class="methods">${d.methods.map((x) => `<button class="m" data-k="${x.key}" aria-pressed="${method === x.key}"><b>${esc(x.label)}</b><span>${esc(x.name || '')}</span></button>`).join('')}</div>` : notice('err', 'Payment is not set up yet. Please contact the admin.')}</div></div>
@@ -404,9 +440,9 @@ async function showOrder(id, note) {
         <div class="muted">Order ${esc(o.code)} · ${money(o.price)}</div>
         ${o.status === 'verifying' ? '<p style="margin-top:8px">We are checking your payment. You will get a Telegram message when it is confirmed.</p>' : ''}
         ${o.status === 'rejected' ? '<p style="margin-top:8px">This order was rejected. If you already paid, message the admin with your order ID.</p>' : ''}
-        ${o.status === 'delivered' ? '<p style="margin-top:8px">Your order is complete. Change the account password right away.</p>' : ''}</div>
+        ${o.status === 'delivered' ? `<p style="margin-top:8px">${o.coins_amount ? 'Your order is complete. Thank you!' : 'Your order is complete. Change the account password right away.'}</p>` : ''}</div>
       ${(o.status === 'paid' || o.status === 'delivered') ? `<div class="panel"><b>Chat with the admin</b>
-        <div class="chat" id="chat">${d.messages.length ? d.messages.map((m) => `<div class="bub ${m.sender}">${esc(m.body)}</div>`).join('') : '<div class="muted">The admin will send your account details here.</div>'}</div>
+        <div class="chat" id="chat">${d.messages.length ? d.messages.map((m) => `<div class="bub ${m.sender}">${esc(m.body)}</div>`).join('') : `<div class="muted">${o.coins_amount ? 'Send your game ID and platform here. The admin will add your coins.' : 'The admin will send your account details here.'}</div>`}</div>
         ${d.chat_open ? `<div class="send"><textarea id="txt" rows="1" placeholder="Write a message"></textarea><button class="btn sm" id="send">Send</button></div>` : '<div class="muted" style="margin-top:8px">This chat is closed.</div>'}</div>` : ''}`;
     const chat = document.getElementById('chat'); if (chat) chat.scrollTop = chat.scrollHeight;
     const sendBtn = document.getElementById('send');
@@ -449,9 +485,9 @@ function showLogin() {
 
 function showAdmin() {
   stopTimer(); setBar('');
-  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['orders', 'Orders'], ['pay', 'Payment']], adminState) });
+  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['pay', 'Payment']], adminState) });
   bindSeg('aSeg', 'tab', adminState, showAdmin);
-  ({ items: adminItems, orders: adminOrders, pay: adminPay })[adminState.tab]();
+  ({ items: adminItems, coins: adminCoins, orders: adminOrders, pay: adminPay })[adminState.tab]();
 }
 
 /* ----- squads (items) ----- */
@@ -496,16 +532,15 @@ function openItemForm(it) {
     <div style="margin:10px 0 4px" id="f_prev"></div>
     <label class="up" style="margin-top:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span>Upload squad photos (up to 6)</span><input type="file" id="f_files" accept="image/*" multiple></label>
     <div class="photos" id="f_th"></div>
-    <div class="g2"><div><label>Game</label><select id="f_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select></div>
-      <div><label>Type</label><select id="f_kind"><option value="account">Account</option><option value="coins">Coins</option></select></div></div>
+    <label>Game</label><select id="f_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
     <label>Title</label><input type="text" id="f_title" maxlength="80" placeholder="e.g. Messi and Mbappé full squad">
     <div class="g2"><div><label>Price (ETB)</label><input type="number" id="f_price" min="1" step="0.01" inputmode="decimal"></div>
-      <div><label>Coins (optional)</label><input type="number" id="f_coins" min="1" inputmode="numeric"></div></div>
+      <div><label>Coins included (optional)</label><input type="number" id="f_coins" min="1" inputmode="numeric"></div></div>
     <label>Description (optional)</label><textarea id="f_desc" rows="3" maxlength="1000"></textarea>
     <div id="f_msg"></div>
     <div class="actions"><button class="btn" id="f_save" style="flex:1">Save</button><button class="btn ghost" id="f_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
   const $ = (id) => document.getElementById(id);
-  if (it) { $('f_game').value = it.game; $('f_kind').value = it.kind; $('f_title').value = it.title; $('f_price').value = it.price; $('f_coins').value = it.coins_amount || ''; $('f_desc').value = it.description || ''; }
+  if (it) { $('f_game').value = it.game; $('f_title').value = it.title; $('f_price').value = it.price; $('f_coins').value = it.coins_amount || ''; $('f_desc').value = it.description || ''; }
   $('f_game').onchange = draw;
   $('f_files').onchange = async () => {
     try { for (const f of [...$('f_files').files]) { if (keep().length + newImgs.length >= 6) break; newImgs.push(await shrink(f, 1600, 0.85)); } $('f_files').value = ''; draw(); }
@@ -514,7 +549,7 @@ function openItemForm(it) {
   $('f_th').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.rm) removed.push(b.dataset.rm); else newImgs.splice(Number(b.dataset.new), 1); draw(); };
   $('f_cancel').onclick = () => $dlg.close();
   $('f_save').onclick = async () => {
-    const body = { game: $('f_game').value, kind: $('f_kind').value, title: $('f_title').value, price: $('f_price').value, coins_amount: $('f_coins').value, description: $('f_desc').value, images: newImgs, remove_image_paths: removed };
+    const body = { game: $('f_game').value, kind: 'account', title: $('f_title').value, price: $('f_price').value, coins_amount: $('f_coins').value, description: $('f_desc').value, images: newImgs, remove_image_paths: removed };
     $('f_save').disabled = true; $('f_save').textContent = 'Saving...';
     try { if (it) await adm(`/items/${it.id}`, 'PATCH', body); else await adm('/items', 'POST', body); $dlg.close(); adminItems(); }
     catch (e) { $('f_msg').innerHTML = notice('err', e.message); $('f_save').disabled = false; $('f_save').textContent = 'Save'; }
@@ -523,8 +558,11 @@ function openItemForm(it) {
 }
 
 /* ----- posting to groups ----- */
-async function openPost(it) {
-  $dlgBody.innerHTML = `<h3>Post to groups</h3><p class="muted">${esc(it.title)} · ${money(it.price)}</p>
+function openPost(it) {
+  return openPostDlg({ sub: `${it.title} · ${money(it.price)}`, postPath: `/items/${it.id}/post`, sharePath: `/items/${it.id}/share` });
+}
+async function openPostDlg({ sub, postPath, postBody = {}, sharePath }) {
+  $dlgBody.innerHTML = `<h3>Post to groups</h3><p class="muted">${esc(sub)}</p>
     <div id="p_list" style="margin:10px 0">${emptyState('Loading groups...')}</div><div id="p_msg"></div>
     <div class="actions"><button class="btn go" id="p_send" style="flex:1">Post with the bot</button></div>
     <div class="panel" style="margin:14px 0 0"><b>Bot is not admin in a group?</b><p class="muted" style="margin:4px 0 10px">Post it yourself from your own Telegram account. Tap the button, choose the group, and send.</p>
@@ -538,16 +576,88 @@ async function openPost(it) {
     const { channels } = await adm('/channels');
     $('p_list').innerHTML = channels.length ? channels.map((c) => `<label class="chk" style="margin:0"><input type="checkbox" data-bot="${c.bot_id}" data-chat="${esc(c.chat_id)}"> ${esc(c.title || c.chat_id)}</label>`).join('') : '<div class="muted">The bot is not in any group yet. Add the bot as an admin to a group, or use "Share from my account" below.</div>';
   } catch (e) { $('p_list').innerHTML = notice('err', e.message); }
-  try { share = await adm(`/items/${it.id}/share`); $('p_share').href = share.share_url; } catch (e) { $('p_share').removeAttribute('href'); }
+  try { share = await adm(sharePath); $('p_share').href = share.share_url; } catch (e) { $('p_share').removeAttribute('href'); }
   $('p_copy').onclick = () => { if (share && navigator.clipboard) { navigator.clipboard.writeText(`${share.text}\n\n${share.link}`); $('p_copy').textContent = 'Copied'; } };
   $('p_send').onclick = async () => {
     const targets = [...document.querySelectorAll('#p_list input:checked')].map((c) => ({ bot_id: Number(c.dataset.bot), chat_id: c.dataset.chat }));
     if (!targets.length) { $('p_msg').innerHTML = notice('err', 'Pick at least one group.'); return; }
     $('p_send').disabled = true;
-    try { const r = await adm(`/items/${it.id}/post`, 'POST', { targets }); $('p_msg').innerHTML = notice(r.failed ? 'err' : 'ok', `Sent to ${r.sent}, failed ${r.failed}.` + r.results.filter((x) => !x.ok).map((x) => ` ${x.title || x.chat_id}: ${x.error}`).join('')); }
+    try { const r = await adm(postPath, 'POST', { ...postBody, targets }); $('p_msg').innerHTML = notice(r.failed ? 'err' : 'ok', `Sent to ${r.sent}, failed ${r.failed}.` + r.results.filter((x) => !x.ok).map((x) => ` ${x.title || x.chat_id}: ${x.error}`).join('')); }
     catch (e) { $('p_msg').innerHTML = notice('err', e.message); }
     $('p_send').disabled = false;
   };
+}
+
+/* ----- coin list ----- */
+const coinState = { game: 'efootball' };
+async function adminCoins() {
+  $app.innerHTML = `<div class="adminhead"><h2>Coin list</h2><div class="actions" style="margin:0"><button class="btn sm" id="cAdd">+ Pack</button><button class="btn sm ghost" id="cBulk">Paste list</button></div></div>
+    <div class="kinds" id="cg">${[['efootball', 'eFootball'], ['dls', 'DLS']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${coinState.game === v}">${l}</button>`).join('')}</div>
+    <div id="cl">${emptyState('Loading...')}</div>`;
+  document.getElementById('cg').onclick = (e) => { const b = e.target.closest('button'); if (b) { coinState.game = b.dataset.v; adminCoins(); } };
+  let packs = [];
+  try {
+    packs = (await adm(`/coin-packs?game=${coinState.game}`)).packs;
+    const cl = document.getElementById('cl');
+    cl.innerHTML = packs.length ? coinSections(packs).map((sec) => `
+      <div class="coinsec"><div class="csh"><span class="tagy">${GAME[sec.game]}</span><b>${esc(sec.name)}</b>${sec.note ? `<span class="note">${esc(sec.note)}</span>` : ''}</div>
+      ${sec.packs.map((p) => `<div class="crow">${COIN}<span class="amt">${Number(p.coins_amount).toLocaleString('en-US')}<small>${fmt(p.price)} ETB</small></span>
+        <span class="mini">${p.status === 'hidden' ? '<span class="st hidden">Hidden</span>' : ''}<button class="btn sm ghost" data-a="edit" data-id="${p.id}">Edit</button><button class="btn sm ghost" data-a="vis" data-id="${p.id}">${p.status === 'hidden' ? 'Show' : 'Hide'}</button><button class="btn sm red" data-a="del" data-id="${p.id}">Delete</button></span></div>`).join('')}</div>`).join('') +
+      `<div class="pad" style="margin-top:16px"><button class="btn go" id="cPost">Post this list to groups</button></div>` : emptyState('No coin packs yet. Tap Paste list to add your whole price list at once.');
+    cl.onclick = async (e) => {
+      if (e.target.closest('#cPost')) return openPostDlg({ sub: `${GAME[coinState.game]} coin list`, postPath: '/coins/post', postBody: { game: coinState.game }, sharePath: `/coins/share?game=${coinState.game}` });
+      const b = e.target.closest('button[data-a]'); if (!b) return;
+      const p = packs.find((x) => x.id === Number(b.dataset.id));
+      try {
+        if (b.dataset.a === 'edit') openPackForm(p, packs);
+        else if (b.dataset.a === 'vis') { await adm(`/coin-packs/${p.id}`, 'PATCH', { ...p, status: p.status === 'hidden' ? 'available' : 'hidden' }); adminCoins(); }
+        else if (b.dataset.a === 'del' && confirm('Delete this coin pack?')) { await adm(`/coin-packs/${p.id}`, 'DELETE'); adminCoins(); }
+      } catch (err) { alert(err.message); }
+    };
+  } catch (e) { document.getElementById('cl').innerHTML = `<div class="pad">${notice('err', e.message)}</div>`; }
+  document.getElementById('cAdd').onclick = () => openPackForm(null, packs);
+  document.getElementById('cBulk').onclick = () => openBulk(packs);
+}
+const sectionList = (packs) => `<datalist id="secs">${[...new Set(packs.map((p) => p.section))].map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`;
+
+function openPackForm(p, packs) {
+  $dlgBody.innerHTML = `<h3>${p ? 'Edit coin pack' : 'Add coin pack'}</h3>
+    <label>Game</label><select id="k_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
+    <label>Section name</label><input type="text" id="k_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
+    <label>Note under the section (optional)</label><input type="text" id="k_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
+    <div class="g2"><div><label>Coins</label><input type="number" id="k_coins" min="1" inputmode="numeric"></div><div><label>Price (ETB)</label><input type="number" id="k_price" min="1" step="0.01" inputmode="decimal"></div></div>
+    <label>Order in list (small number shows first)</label><input type="number" id="k_sort" inputmode="numeric" value="0">
+    <div id="k_msg"></div><div class="actions"><button class="btn" id="k_save" style="flex:1">Save</button><button class="btn ghost" id="k_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
+  const $ = (id) => document.getElementById(id);
+  $('k_game').value = p ? p.game : coinState.game; $('k_sec').value = p ? p.section : (packs[0] ? packs[packs.length - 1].section : 'All platforms');
+  if (p) { $('k_note').value = p.note || ''; $('k_coins').value = p.coins_amount; $('k_price').value = p.price; $('k_sort').value = p.sort; }
+  else if (packs.length) $('k_sort').value = Math.max(...packs.map((x) => x.sort)) + 1;
+  $('k_cancel').onclick = () => $dlg.close();
+  $('k_save').onclick = async () => {
+    const body = { game: $('k_game').value, section: $('k_sec').value, note: $('k_note').value, coins_amount: $('k_coins').value, price: $('k_price').value, sort: $('k_sort').value, status: p ? p.status : 'available' };
+    $('k_save').disabled = true;
+    try { if (p) await adm(`/coin-packs/${p.id}`, 'PATCH', body); else await adm('/coin-packs', 'POST', body); coinState.game = body.game; $dlg.close(); adminCoins(); }
+    catch (e) { $('k_msg').innerHTML = notice('err', e.message); $('k_save').disabled = false; }
+  };
+  $dlg.showModal();
+}
+
+function openBulk(packs) {
+  $dlgBody.innerHTML = `<h3>Paste your coin list</h3><p class="muted">One pack per line: the coins, then the price. For example <b>1040 1850</b>. Arrows and the word BIRR are fine.</p>
+    <label>Game</label><select id="b_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
+    <label>Section name</label><input type="text" id="b_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
+    <label>Note (optional)</label><input type="text" id="b_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
+    <label>Lines</label><textarea id="b_lines" rows="8" placeholder="300 » 550 BIRR&#10;550 » 999 BIRR&#10;1040 » 1850 BIRR"></textarea>
+    <div id="b_msg"></div><div class="actions"><button class="btn" id="b_save" style="flex:1">Add to list</button><button class="btn ghost" id="b_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
+  const $ = (id) => document.getElementById(id);
+  $('b_game').value = coinState.game; $('b_sec').value = 'All platforms';
+  $('b_cancel').onclick = () => $dlg.close();
+  $('b_save').onclick = async () => {
+    $('b_save').disabled = true;
+    try { const r = await adm('/coin-packs/bulk', 'POST', { game: $('b_game').value, section: $('b_sec').value, note: $('b_note').value, lines: $('b_lines').value }); coinState.game = $('b_game').value; $dlg.close(); adminCoins(); }
+    catch (e) { $('b_msg').innerHTML = notice('err', e.message); $('b_save').disabled = false; }
+  };
+  $dlg.showModal();
 }
 
 /* ----- orders ----- */
@@ -643,6 +753,8 @@ document.getElementById('modeSwitch').onclick = (e) => { const b = e.target.clos
     document.getElementById('modeSwitch').hidden = !isAdmin;
     if (qs.get('order')) return showOrder(Number(qs.get('order')));
     if (qs.get('item')) return showItem(Number(qs.get('item')));
+    if (qs.get('game') === 'efootball' || qs.get('game') === 'dls') filter.game = qs.get('game');
+    if (qs.get('kind') === 'coin') filter.kind = 'coin';
     const wantAdmin = isAdmin && (qs.get('admin') === '1' || sessionStorage.getItem('store_mode') === 'admin');
     return setMode(wantAdmin ? 'admin' : 'shop');
   }
