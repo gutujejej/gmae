@@ -248,7 +248,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const fmt = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
 const money = (n) => fmt(n) + ' ETB';
 const short = (n) => { n = Number(n); return n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n % 1e3 ? 1 : 0).replace(/\.0$/, '') + 'K' : String(n); };
-const GAME = { efootball: 'eFootball', dls: 'DLS' };
+const GAME = { efootball: 'eFootball' };
 const STATUS = { awaiting_payment: 'Waiting for payment', verifying: 'Checking payment', paid: 'Paid', delivered: 'Delivered', rejected: 'Rejected', expired: 'Expired', available: 'For sale', reserved: 'Reserved', sold: 'Sold', hidden: 'Hidden' };
 const notice = (cls, t) => `<div class="msg ${cls}">${esc(t)}</div>`;
 const BALL = '<svg class="ball" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#fff" opacity=".92"/><path d="M16 9l5 3.6-1.9 5.9h-6.2L11 12.6 16 9z" fill="#0D3B2C"/><path d="M16 9V4M21 12.6l4.8-1.6M19.1 18.5l3 4.1M12.9 18.5l-3 4.1M11 12.6L6.2 11" stroke="#0D3B2C" stroke-width="1.6" stroke-linecap="round"/></svg>';
@@ -299,7 +299,7 @@ function shrink(file, maxSide, quality) {
   });
 }
 function arena(item, imgUrl, opts = {}) {
-  const b = item.game === 'dls' ? ' b' : '';
+  const b = '';
   const inner = imgUrl ? `<img src="${esc(imgUrl)}" alt="" loading="lazy">`
     : (item.coins_amount ? `<div class="big">${short(item.coins_amount)}<small>coins</small></div>` : BALL);
   return `<div class="arena${b} ${opts.cls || ''}" ${opts.attrs || ''}><span class="game">${GAME[item.game] || ''}</span>${inner}</div>`;
@@ -327,8 +327,7 @@ const filter = { game: '', kind: '' };
 
 async function showList() {
   stopTimer(); setBar('');
-  setTop({ nav: 'My orders', navFn: showOrders, extra: seg('gSeg', 'game', [['', 'All'], ['efootball', 'eFootball'], ['dls', 'DLS']], filter) });
-  bindSeg('gSeg', 'game', filter, showList);
+  setTop({ nav: 'My orders', navFn: showOrders });
   $app.innerHTML = `<div class="kinds" id="kinds">${[['', 'All'], ['account', 'Squads'], ['coin', 'Coins']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${filter.kind === v}">${l}</button>`).join('')}</div><div id="list">${emptyState('Loading...')}</div>`;
   document.getElementById('kinds').onclick = (e) => { const b = e.target.closest('button'); if (b) { filter.kind = b.dataset.v; showList(); } };
   const list = document.getElementById('list');
@@ -535,7 +534,7 @@ function openItemForm(it) {
   const keep = () => (it ? it.image_paths.map((p, i) => ({ path: p, url: it.images[i] })).filter((x) => !removed.includes(x.path)) : []);
   const draw = () => {
     const first = (keep()[0] && keep()[0].url) || newImgs[0] || null;
-    const preview = { game: document.getElementById('f_game') ? document.getElementById('f_game').value : (it ? it.game : 'efootball'), coins_amount: null };
+    const preview = { game: 'efootball', coins_amount: null };
     document.getElementById('f_prev').innerHTML = arena(preview, first);
     document.getElementById('f_th').innerHTML = [...keep().map((x) => `<div class="th"><img src="${esc(x.url)}" alt=""><button data-rm="${esc(x.path)}" aria-label="Remove">×</button></div>`), ...newImgs.map((u, i) => `<div class="th"><img src="${u}" alt=""><button data-new="${i}" aria-label="Remove">×</button></div>`)].join('');
   };
@@ -544,7 +543,6 @@ function openItemForm(it) {
     <div style="margin:10px 0 4px" id="f_prev"></div>
     <label class="up" style="margin-top:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span>Upload squad photos (up to 6)</span><input type="file" id="f_files" accept="image/*" multiple></label>
     <div class="photos" id="f_th"></div>
-    <label>Game</label><select id="f_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
     <label>Title</label><input type="text" id="f_title" maxlength="80" placeholder="e.g. Messi and Mbappé full squad">
     <div class="g2"><div><label>Price (ETB)</label><input type="number" id="f_price" min="1" step="0.01" inputmode="decimal"></div>
       <div><label>Coins included (optional)</label><input type="number" id="f_coins" min="1" inputmode="numeric"></div></div>
@@ -552,8 +550,7 @@ function openItemForm(it) {
     <div id="f_msg"></div>
     <div class="actions"><button class="btn" id="f_save" style="flex:1">Save</button><button class="btn ghost" id="f_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
   const $ = (id) => document.getElementById(id);
-  if (it) { $('f_game').value = it.game; $('f_title').value = it.title; $('f_price').value = it.price; $('f_coins').value = it.coins_amount || ''; $('f_desc').value = it.description || ''; }
-  $('f_game').onchange = draw;
+  if (it) { $('f_title').value = it.title; $('f_price').value = it.price; $('f_coins').value = it.coins_amount || ''; $('f_desc').value = it.description || ''; }
   $('f_files').onchange = async () => {
     try { for (const f of [...$('f_files').files]) { if (keep().length + newImgs.length >= 6) break; newImgs.push(await shrink(f, 1600, 0.85)); } $('f_files').value = ''; draw(); }
     catch (e) { $('f_msg').innerHTML = notice('err', e.message); }
@@ -561,7 +558,7 @@ function openItemForm(it) {
   $('f_th').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.rm) removed.push(b.dataset.rm); else newImgs.splice(Number(b.dataset.new), 1); draw(); };
   $('f_cancel').onclick = () => $dlg.close();
   $('f_save').onclick = async () => {
-    const body = { game: $('f_game').value, kind: 'account', title: $('f_title').value, price: $('f_price').value, coins_amount: $('f_coins').value, description: $('f_desc').value, images: newImgs, remove_image_paths: removed };
+    const body = { game: 'efootball', kind: 'account', title: $('f_title').value, price: $('f_price').value, coins_amount: $('f_coins').value, description: $('f_desc').value, images: newImgs, remove_image_paths: removed };
     $('f_save').disabled = true; $('f_save').textContent = 'Saving...';
     try { if (it) await adm(`/items/${it.id}`, 'PATCH', body); else await adm('/items', 'POST', body); $dlg.close(); adminItems(); }
     catch (e) { $('f_msg').innerHTML = notice('err', e.message); $('f_save').disabled = false; $('f_save').textContent = 'Save'; }
@@ -604,9 +601,7 @@ async function openPostDlg({ sub, postPath, postBody = {}, sharePath }) {
 const coinState = { game: 'efootball' };
 async function adminCoins() {
   $app.innerHTML = `<div class="adminhead"><h2>Coin list</h2><div class="actions" style="margin:0"><button class="btn sm" id="cAdd">+ Pack</button><button class="btn sm ghost" id="cBulk">Paste list</button></div></div>
-    <div class="kinds" id="cg">${[['efootball', 'eFootball'], ['dls', 'DLS']].map(([v, l]) => `<button class="chipbtn" data-v="${v}" aria-pressed="${coinState.game === v}">${l}</button>`).join('')}</div>
     <div id="cl">${emptyState('Loading...')}</div>`;
-  document.getElementById('cg').onclick = (e) => { const b = e.target.closest('button'); if (b) { coinState.game = b.dataset.v; adminCoins(); } };
   let packs = [];
   try {
     packs = (await adm(`/coin-packs?game=${coinState.game}`)).packs;
@@ -634,21 +629,20 @@ const sectionList = (packs) => `<datalist id="secs">${[...new Set(packs.map((p) 
 
 function openPackForm(p, packs) {
   $dlgBody.innerHTML = `<h3>${p ? 'Edit coin pack' : 'Add coin pack'}</h3>
-    <label>Game</label><select id="k_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
     <label>Section name</label><input type="text" id="k_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
     <label>Note under the section (optional)</label><input type="text" id="k_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
     <div class="g2"><div><label>Coins</label><input type="number" id="k_coins" min="1" inputmode="numeric"></div><div><label>Price (ETB)</label><input type="number" id="k_price" min="1" step="0.01" inputmode="decimal"></div></div>
     <label>Order in list (small number shows first)</label><input type="number" id="k_sort" inputmode="numeric" value="0">
     <div id="k_msg"></div><div class="actions"><button class="btn" id="k_save" style="flex:1">Save</button><button class="btn ghost" id="k_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
   const $ = (id) => document.getElementById(id);
-  $('k_game').value = p ? p.game : coinState.game; $('k_sec').value = p ? p.section : (packs[0] ? packs[packs.length - 1].section : 'All platforms');
+  $('k_sec').value = p ? p.section : (packs[0] ? packs[packs.length - 1].section : 'All platforms');
   if (p) { $('k_note').value = p.note || ''; $('k_coins').value = p.coins_amount; $('k_price').value = p.price; $('k_sort').value = p.sort; }
   else if (packs.length) $('k_sort').value = Math.max(...packs.map((x) => x.sort)) + 1;
   $('k_cancel').onclick = () => $dlg.close();
   $('k_save').onclick = async () => {
-    const body = { game: $('k_game').value, section: $('k_sec').value, note: $('k_note').value, coins_amount: $('k_coins').value, price: $('k_price').value, sort: $('k_sort').value, status: p ? p.status : 'available' };
+    const body = { game: 'efootball', section: $('k_sec').value, note: $('k_note').value, coins_amount: $('k_coins').value, price: $('k_price').value, sort: $('k_sort').value, status: p ? p.status : 'available' };
     $('k_save').disabled = true;
-    try { if (p) await adm(`/coin-packs/${p.id}`, 'PATCH', body); else await adm('/coin-packs', 'POST', body); coinState.game = body.game; $dlg.close(); adminCoins(); }
+    try { if (p) await adm(`/coin-packs/${p.id}`, 'PATCH', body); else await adm('/coin-packs', 'POST', body); $dlg.close(); adminCoins(); }
     catch (e) { $('k_msg').innerHTML = notice('err', e.message); $('k_save').disabled = false; }
   };
   $dlg.showModal();
@@ -656,17 +650,16 @@ function openPackForm(p, packs) {
 
 function openBulk(packs) {
   $dlgBody.innerHTML = `<h3>Paste your coin list</h3><p class="muted">One pack per line: the coins, then the price. For example <b>1040 1850</b>. Arrows and the word BIRR are fine.</p>
-    <label>Game</label><select id="b_game"><option value="efootball">eFootball</option><option value="dls">DLS</option></select>
     <label>Section name</label><input type="text" id="b_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
     <label>Note (optional)</label><input type="text" id="b_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
     <label>Lines</label><textarea id="b_lines" rows="8" placeholder="300 » 550 BIRR&#10;550 » 999 BIRR&#10;1040 » 1850 BIRR"></textarea>
     <div id="b_msg"></div><div class="actions"><button class="btn" id="b_save" style="flex:1">Add to list</button><button class="btn ghost" id="b_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
   const $ = (id) => document.getElementById(id);
-  $('b_game').value = coinState.game; $('b_sec').value = 'All platforms';
+  $('b_sec').value = 'All platforms';
   $('b_cancel').onclick = () => $dlg.close();
   $('b_save').onclick = async () => {
     $('b_save').disabled = true;
-    try { const r = await adm('/coin-packs/bulk', 'POST', { game: $('b_game').value, section: $('b_sec').value, note: $('b_note').value, lines: $('b_lines').value }); coinState.game = $('b_game').value; $dlg.close(); adminCoins(); }
+    try { const r = await adm('/coin-packs/bulk', 'POST', { game: 'efootball', section: $('b_sec').value, note: $('b_note').value, lines: $('b_lines').value }); $dlg.close(); adminCoins(); }
     catch (e) { $('b_msg').innerHTML = notice('err', e.message); $('b_save').disabled = false; }
   };
   $dlg.showModal();
@@ -693,7 +686,7 @@ function drawMsg(acc, squads) {
     <div class="panel"><label style="margin-top:0">Message</label>
       <textarea id="m_text" rows="6" maxlength="3500" placeholder="Write your message...">${esc(msgState.text)}</textarea>
       <label>Insert ready text</label>
-      <select id="m_ins"><option value="">Choose...</option><option value="coins:efootball">eFootball coin list</option><option value="coins:dls">DLS coin list</option>${squads.map((i) => `<option value="item:${i.id}">Squad: ${esc(i.title)}</option>`).join('')}</select>
+      <select id="m_ins"><option value="">Choose...</option><option value="coins:efootball">Coin list</option>${squads.map((i) => `<option value="item:${i.id}">Squad: ${esc(i.title)}</option>`).join('')}</select>
       <label class="up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span id="m_pname">${msgState.photo ? 'Photo added (tap to change)' : 'Add a photo (optional)'}</span><input type="file" id="m_photo" accept="image/*"></label>
       ${msgState.photo ? `<img class="thumb" src="${msgState.photo}" alt=""> <button class="btn sm ghost" id="m_rmphoto" style="margin-left:8px">Remove photo</button>` : ''}
       ${via === 'bot' ? `<label class="chk" style="margin-top:10px"><input type="checkbox" id="m_btn"> Add an "Open store" button under the message</label>` : ''}
@@ -892,7 +885,6 @@ document.getElementById('modeSwitch').onclick = (e) => { const b = e.target.clos
     document.getElementById('modeSwitch').hidden = !isAdmin;
     if (qs.get('order')) return showOrder(Number(qs.get('order')));
     if (qs.get('item')) return showItem(Number(qs.get('item')));
-    if (qs.get('game') === 'efootball' || qs.get('game') === 'dls') filter.game = qs.get('game');
     if (qs.get('kind') === 'coin') filter.kind = 'coin';
     const wantAdmin = isAdmin && (qs.get('admin') === '1' || sessionStorage.getItem('store_mode') === 'admin');
     return setMode(wantAdmin ? 'admin' : 'shop');
