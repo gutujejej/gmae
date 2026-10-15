@@ -95,7 +95,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     for (const o of old || []) {
       const { data: upd } = await db.from('store_orders').update({ status: 'expired', closed_at: new Date().toISOString() })
         .eq('id', o.id).eq('status', 'awaiting_payment').select('id').maybeSingle();
-      if (upd) await db.from('store_items').update({ status: 'available', reserved_at: null })
+      if (upd && o.item_id) await db.from('store_items').update({ status: 'available', reserved_at: null })
         .eq('id', o.item_id).eq('status', 'reserved');
     }
   }
@@ -128,7 +128,8 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   });
 
   const orderOut = (o, extra = {}) => ({
-    id: o.id, code: o.code, item_id: o.item_id, price: Number(o.price), method: o.method,
+    id: o.id, code: o.code, item_id: o.item_id, pack_id: o.pack_id || null, coins_amount: o.coins_amount ?? null,
+    price: Number(o.price), method: o.method,
     reference: o.reference, status: o.status, verify_state: o.verify_state,
     attempts: o.attempts, created_at: o.created_at, paid_at: o.paid_at, ...extra,
   });
@@ -308,37 +309,66 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     res.json({ item: { ...itemOut(it), status: data.status } });
   }));
 
-  // Create an order. Price comes from the database. The item is reserved atomically.
+  // Coin list for customers: packs the admin entered (coins -> price), grouped by section.
+  app.get('/api/store/:botId/coins', wrap(async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    let q = db.from('store_coin_packs').select('id,game,section,note,coins_amount,price,sort')
+      .eq('status', 'available').order('sort').order('coins_amount').limit(300);
+    if (req.query.game === 'efootball' || req.query.game === 'dls') q = q.eq('game', req.query.game);
+    const { data, error } = await q;
+    if (error) throw error;
+    res.json({ packs: (data || []).map((p) => ({ ...p, price: Number(p.price) })) });
+  }));
+
+  // Create an order. Price always comes from the database.
+  //   item_id -> a squad/account: reserved for this customer (one of a kind)
+  //   pack_id -> a coin pack from the coin list: can be sold again and again
   app.post('/api/store/:botId/orders', wrap(async (req, res) => {
     const a = miniAuth(req, res); if (!a) return;
     await releaseExpired();
-    const itemId = Number((req.body || {}).item_id);
-    if (!Number.isInteger(itemId)) throw new HttpError(400, 'Choose an item.');
+    const b = req.body || {};
 
-    // One open order per customer at a time keeps people from locking up the stock.
-    const { data: open } = await db.from('store_orders').select('id,item_id,code')
+    // Two open orders per customer at most, so nobody can lock up the stock.
+    const { data: open } = await db.from('store_orders').select('id')
       .eq('customer_telegram_id', a.user.id).eq('status', 'awaiting_payment');
     if ((open || []).length >= 2) throw new HttpError(409, 'Finish or cancel your open orders first.');
 
-    const { data: item, error: ie } = await db.from('store_items')
-      .update({ status: 'reserved', reserved_at: new Date().toISOString() })
-      .eq('id', itemId).eq('status', 'available').select().maybeSingle();
-    if (ie) throw ie;
-    if (!item) throw new HttpError(409, 'Sorry, this item was just taken.');
-
-    const { data: order, error } = await db.from('store_orders').insert({
-      code: newCode(), item_id: item.id, bot_id: a.entry.row.id,
-      customer_telegram_id: a.user.id,
+    const who = {
+      bot_id: a.entry.row.id, customer_telegram_id: a.user.id,
       customer_name: clean([a.user.first_name, a.user.last_name].filter(Boolean).join(' ') || a.user.username, 80),
-      price: item.price,
-    }).select().single();
+    };
+    let item = null, shown, row;
+
+    if (b.pack_id != null) {
+      const pid = Number(b.pack_id);
+      if (!Number.isInteger(pid)) throw new HttpError(400, 'Choose a coin pack.');
+      const { data: pack, error: pe } = await db.from('store_coin_packs').select('*').eq('id', pid).eq('status', 'available').maybeSingle();
+      if (pe) throw pe;
+      if (!pack) throw new HttpError(404, 'This coin pack is no longer available.');
+      const title = `${Number(pack.coins_amount).toLocaleString('en-US')} ${pack.game === 'dls' ? 'DLS' : 'eFootball'} coins`;
+      row = { code: newCode(), item_id: null, pack_id: pack.id, title, coins_amount: pack.coins_amount, price: pack.price, ...who };
+      shown = { id: pack.id, game: pack.game, kind: 'coins', title, coins_amount: Number(pack.coins_amount), price: Number(pack.price), images: [] };
+    } else {
+      const itemId = Number(b.item_id);
+      if (!Number.isInteger(itemId)) throw new HttpError(400, 'Choose an item.');
+      const { data: it, error: ie } = await db.from('store_items')
+        .update({ status: 'reserved', reserved_at: new Date().toISOString() })
+        .eq('id', itemId).eq('status', 'available').select().maybeSingle();
+      if (ie) throw ie;
+      if (!it) throw new HttpError(409, 'Sorry, this item was just taken.');
+      item = it;
+      row = { code: newCode(), item_id: it.id, price: it.price, ...who };
+      shown = itemOut({ ...it });
+    }
+
+    const { data: order, error } = await db.from('store_orders').insert(row).select().single();
     if (error) {
-      await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', item.id);
+      if (item) await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', item.id);
       throw error;
     }
     const s = await getSettings();
     res.json({
-      order: orderOut(order), item: itemOut({ ...item }),
+      order: orderOut(order), item: shown,
       methods: [
         ...(s.telebirr_phone ? [{ key: 'telebirr', label: 'Telebirr', number: s.telebirr_phone, name: s.telebirr_name || '' }] : []),
         ...(s.cbe_account ? [{ key: 'cbe', label: 'CBE Bank', number: s.cbe_account, name: s.cbe_name || '' }] : []),
@@ -354,7 +384,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       .eq('id', Number(req.params.id)).eq('customer_telegram_id', a.user.id).eq('status', 'awaiting_payment')
       .select().maybeSingle();
     if (!o) throw new HttpError(409, 'This order cannot be cancelled.');
-    await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', o.item_id).eq('status', 'reserved');
+    if (o.item_id) await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', o.item_id).eq('status', 'reserved');
     res.json({ ok: true });
   }));
 
@@ -426,7 +456,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     const { data, error } = await db.from('store_orders').select('*, store_items(title,game,kind)')
       .eq('customer_telegram_id', a.user.id).order('created_at', { ascending: false }).limit(30);
     if (error) throw error;
-    res.json({ orders: (data || []).map((o) => orderOut(o, { title: o.store_items && o.store_items.title })) });
+    res.json({ orders: (data || []).map((o) => orderOut(o, { title: (o.store_items && o.store_items.title) || o.title })) });
   }));
 
   async function ownOrder(a, id) {
@@ -447,7 +477,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       const { data } = await db.from('store_messages').select('id,sender,body,created_at').eq('order_id', o.id).order('id');
       messages = data || [];
     }
-    res.json({ order: orderOut(o, { title: o.store_items && o.store_items.title }), chat_open: chatOpen, messages });
+    res.json({ order: orderOut(o, { title: (o.store_items && o.store_items.title) || o.title }), chat_open: chatOpen, messages });
   }));
 
   app.post('/api/store/:botId/orders/:id/messages', wrap(async (req, res) => {
@@ -601,7 +631,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     const urls = await signedUrls(PROOF_BUCKET, (data || []).map((o) => o.proof_path));
     res.json({
       orders: (data || []).map((o) => orderOut(o, {
-        title: o.store_items && o.store_items.title, customer_name: o.customer_name,
+        title: (o.store_items && o.store_items.title) || o.title, customer_name: o.customer_name,
         customer_telegram_id: o.customer_telegram_id, verify_detail: o.verify_detail,
         proof_url: urls[o.proof_path] || null,
       })),
@@ -626,7 +656,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       .eq('id', o.id).eq('status', 'verifying').select().maybeSingle();
     if (error) throw error;
     if (!upd) throw new HttpError(409, 'Already handled.');
-    if (!approve) await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', o.item_id).eq('status', 'reserved');
+    if (!approve && o.item_id) await db.from('store_items').update({ status: 'available', reserved_at: null }).eq('id', o.item_id).eq('status', 'reserved');
     const entry = registry(req).get(o.bot_id);
     notify(entry, o.customer_telegram_id,
       approve ? `Payment for order ${o.code} confirmed. The admin will message you here with your account details.`
@@ -661,10 +691,11 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       .eq('id', o.id).eq('status', 'paid').select().maybeSingle();
     if (error) throw error;
     if (!upd) throw new HttpError(409, 'Only paid orders can be finished.');
-    await db.from('store_items').update({ status: 'sold', reserved_at: null }).eq('id', o.item_id);
+    if (o.item_id) await db.from('store_items').update({ status: 'sold', reserved_at: null }).eq('id', o.item_id);
     if ((req.body || {}).wipe === true) await db.from('store_messages').delete().eq('order_id', o.id);
     notify(registry(req).get(o.bot_id), o.customer_telegram_id,
-      `Order ${o.code} is complete. Thank you! Please change the account password right away.`);
+      o.pack_id ? `Order ${o.code} is complete. Your coins were sent. Thank you!`
+        : `Order ${o.code} is complete. Thank you! Please change the account password right away.`);
     res.json({ ok: true });
   }));
 
@@ -686,18 +717,8 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     return { item, imagePath: first && first[0] && first[0].path };
   }
 
-  // Bot posts to groups/channels it is in (saved by channels.js in bot_channels).
-  adminRoute('post', '/items/:id/post', wrap(async (req, res) => {
-    const { item, imagePath } = await loadItemForPost(req.params.id);
-    const targets = Array.isArray((req.body || {}).targets) ? req.body.targets.slice(0, 50) : [];
-    if (!targets.length) throw new HttpError(400, 'Pick at least one group.');
-
-    let photo = null;
-    if (imagePath) {
-      const { data } = await db.storage.from(IMG_BUCKET).download(imagePath);
-      if (data) photo = Buffer.from(await data.arrayBuffer());
-    }
-
+  // Sends one message to each chosen group through the bot. Mini admin: own bot only.
+  async function broadcast(req, targets, send) {
     const reg = registry(req);
     const results = [];
     for (const t of targets) {
@@ -710,9 +731,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       if (!entry) { results.push({ ...t, title: ch.title, ok: false, error: 'Bot is not running' }); continue; }
       try {
         const me = entry.me || (entry.me = await entry.bot.getMe());
-        const opts = { reply_markup: { inline_keyboard: [[{ text: 'Buy now', url: `https://t.me/${me.username}?start=item_${item.id}` }]] } };
-        if (photo) await entry.bot.sendPhoto(ch.chat_id, photo, { caption: caption(item).slice(0, 1000), ...opts }, { filename: 'item.jpg' });
-        else await entry.bot.sendMessage(ch.chat_id, caption(item), opts);
+        await send(entry, me, ch.chat_id);
         results.push({ ...t, title: ch.title, ok: true });
       } catch (err) {
         const desc = (err && err.response && err.response.body && err.response.body.description) || err.message;
@@ -721,7 +740,40 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
       await sleep(400);
     }
     const sent = results.filter((r) => r.ok).length;
-    res.json({ ok: true, sent, failed: results.length - sent, results });
+    return { ok: true, sent, failed: results.length - sent, results };
+  }
+  const pickTargets = (req) => {
+    const targets = Array.isArray((req.body || {}).targets) ? req.body.targets.slice(0, 50) : [];
+    if (!targets.length) throw new HttpError(400, 'Pick at least one group.');
+    return targets;
+  };
+
+  // A squad: photo + price + Buy button.
+  adminRoute('post', '/items/:id/post', wrap(async (req, res) => {
+    const { item, imagePath } = await loadItemForPost(req.params.id);
+    const targets = pickTargets(req);
+    let photo = null;
+    if (imagePath) {
+      const { data } = await db.storage.from(IMG_BUCKET).download(imagePath);
+      if (data) photo = Buffer.from(await data.arrayBuffer());
+    }
+    res.json(await broadcast(req, targets, async (entry, me, chatId) => {
+      const opts = { reply_markup: { inline_keyboard: [[{ text: 'Buy now', url: `https://t.me/${me.username}?start=item_${item.id}` }]] } };
+      if (photo) await entry.bot.sendPhoto(chatId, photo, { caption: caption(item).slice(0, 1000), ...opts }, { filename: 'item.jpg' });
+      else await entry.bot.sendMessage(chatId, caption(item), opts);
+    }));
+  }));
+
+  // The coin list for one game, as a text post with a Buy button.
+  adminRoute('post', '/coins/post', wrap(async (req, res) => {
+    const game = (req.body || {}).game === 'dls' ? 'dls' : 'efootball';
+    const targets = pickTargets(req);
+    const packs = await loadPacks(game);
+    if (!packs.length) throw new HttpError(409, 'Add coin packs for this game first.');
+    const text = coinListText(game, packs);
+    res.json(await broadcast(req, targets, async (entry, me, chatId) => {
+      await entry.bot.sendMessage(chatId, text, { reply_markup: { inline_keyboard: [[{ text: 'Buy coins', url: `https://t.me/${me.username}?start=coins_${game}` }]] } });
+    }));
   }));
 
   // Fallback when the bot is not an admin of a group: the admin posts from their own
@@ -741,13 +793,118 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   }));
 
   /* ---------------------------------------------------------------- */
+  /* Coin list (coins -> price, sold again and again)                   */
+  /* ---------------------------------------------------------------- */
+  async function loadPacks(game, includeHidden) {
+    let q = db.from('store_coin_packs').select('*').order('sort').order('coins_amount').limit(300);
+    if (game) q = q.eq('game', game);
+    if (!includeHidden) q = q.eq('status', 'available');
+    const { data, error } = await q;
+    if (error) throw error;
+    return data || [];
+  }
+  function groupSections(packs) {
+    const map = new Map();
+    for (const p of packs) {
+      if (!map.has(p.section)) map.set(p.section, { name: p.section, note: p.note || '', packs: [] });
+      map.get(p.section).packs.push(p);
+    }
+    return [...map.values()];
+  }
+  function coinListText(game, packs) {
+    let out = `${game === 'dls' ? 'DLS' : 'eFootball'} coin list\n`;
+    for (const sec of groupSections(packs)) {
+      out += `\n${sec.name}${sec.note ? ` (${sec.note})` : ''}\n`;
+      for (const p of sec.packs) out += `${Number(p.coins_amount).toLocaleString('en-US')} coins » ${Number(p.price).toLocaleString('en-US')} birr\n`;
+    }
+    return out.trim();
+  }
+  function parsePack(b) {
+    const game = b.game === 'dls' ? 'dls' : 'efootball';
+    const coins = Math.floor(Number(b.coins_amount));
+    const price = round2(Number(b.price));
+    if (!(coins > 0)) throw new HttpError(400, 'Enter the coin amount.');
+    if (!(price > 0)) throw new HttpError(400, 'Enter a price.');
+    return {
+      game, coins_amount: coins, price,
+      section: clean(b.section, 60) || 'All platforms',
+      note: clean(b.note, 80) || null,
+      sort: Number.isFinite(Number(b.sort)) ? Math.floor(Number(b.sort)) : 0,
+    };
+  }
+
+  adminRoute('get', '/coin-packs', wrap(async (req, res) => {
+    const game = req.query.game === 'dls' ? 'dls' : req.query.game === 'efootball' ? 'efootball' : null;
+    res.json({ packs: (await loadPacks(game, true)).map((p) => ({ ...p, price: Number(p.price) })) });
+  }));
+
+  adminRoute('post', '/coin-packs', wrap(async (req, res) => {
+    const { data, error } = await db.from('store_coin_packs').insert(parsePack(req.body || {})).select().single();
+    if (error) throw error;
+    res.json({ ok: true, id: data.id });
+  }));
+
+  // Paste a whole list: one pack per line, "coins price" (e.g. "1040 1850" or "1040 > 1850").
+  adminRoute('post', '/coin-packs/bulk', wrap(async (req, res) => {
+    const b = req.body || {};
+    const game = b.game === 'dls' ? 'dls' : 'efootball';
+    const section = clean(b.section, 60) || 'All platforms';
+    const note = clean(b.note, 80) || null;
+    const lines = String(b.lines || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 80);
+    if (!lines.length) throw new HttpError(400, 'Paste at least one line.');
+    const { data: last } = await db.from('store_coin_packs').select('sort').eq('game', game).eq('section', section).order('sort', { ascending: false }).limit(1);
+    let sort = last && last[0] ? Number(last[0].sort) : 0;
+    const rows = lines.map((line, i) => {
+      const m = /(\d[\d,]*)\D+(\d[\d,]*(?:\.\d+)?)/.exec(line);
+      const coins = m ? Number(m[1].replace(/,/g, '')) : 0;
+      const price = m ? Number(m[2].replace(/,/g, '')) : 0;
+      if (!(coins > 0) || !(price > 0)) throw new HttpError(400, `Line ${i + 1} is not "coins price": ${line.slice(0, 40)}`);
+      return { game, section, note, coins_amount: coins, price: round2(price), sort: (sort += 1) };
+    });
+    const { error } = await db.from('store_coin_packs').insert(rows);
+    if (error) throw error;
+    res.json({ ok: true, added: rows.length });
+  }));
+
+  adminRoute('patch', '/coin-packs/:id', wrap(async (req, res) => {
+    const b = req.body || {};
+    const patch = parsePack(b);
+    if (['available', 'hidden'].includes(b.status)) patch.status = b.status;
+    const { error } = await db.from('store_coin_packs').update(patch).eq('id', Number(req.params.id));
+    if (error) throw error;
+    res.json({ ok: true });
+  }));
+
+  adminRoute('delete', '/coin-packs/:id', wrap(async (req, res) => {
+    const id = Number(req.params.id);
+    const { data: used } = await db.from('store_orders').select('id').eq('pack_id', id).limit(1);
+    if (used && used.length) { await db.from('store_coin_packs').update({ status: 'hidden' }).eq('id', id); return res.json({ ok: true, hidden: true }); }
+    await db.from('store_coin_packs').delete().eq('id', id);
+    res.json({ ok: true });
+  }));
+
+  // Posting fallback for the coin list (admin posts from their own Telegram).
+  adminRoute('get', '/coins/share', wrap(async (req, res) => {
+    const game = req.query.game === 'dls' ? 'dls' : 'efootball';
+    const packs = await loadPacks(game);
+    if (!packs.length) throw new HttpError(409, 'Add coin packs for this game first.');
+    const entry = req.miniEntry || [...registry(req).values()].find((e) => e.row.bot_type === 'store' && e.row.active !== false);
+    if (!entry) throw new HttpError(409, 'Add and start a Store bot first.');
+    const me = entry.me || (entry.me = await entry.bot.getMe());
+    const link = `https://t.me/${me.username}?start=coins_${game}`;
+    const text = coinListText(game, packs);
+    res.json({ text, link, share_url: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}` });
+  }));
+
+  /* ---------------------------------------------------------------- */
   /* Bot chat: open the store                                           */
   /* ---------------------------------------------------------------- */
   async function handleStart(bot, row, msg) {
     if (!MINIAPP_BASE) return bot.sendMessage(msg.chat.id, 'The store is not available right now.');
     const m = /\/start\s+item_(\d+)/.exec(msg.text || '');
-    const url = `${MINIAPP_BASE}/store?b=${row.id}${m ? `&item=${m[1]}` : ''}`;
-    await bot.sendMessage(msg.chat.id, `Welcome to ${row.name}.\nBrowse eFootball and DLS accounts and coins.`,
+    const c = /\/start\s+coins_(efootball|dls)/.exec(msg.text || '');
+    const url = `${MINIAPP_BASE}/store?b=${row.id}${m ? `&item=${m[1]}` : ''}${c ? `&kind=coin&game=${c[1]}` : ''}`;
+    await bot.sendMessage(msg.chat.id, `Welcome to ${row.name}.\nBrowse eFootball and DLS squads and the coin list.`,
       { reply_markup: { inline_keyboard: [[{ text: 'Open Store', web_app: { url } }]] } });
   }
 
