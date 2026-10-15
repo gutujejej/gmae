@@ -172,6 +172,15 @@ dialog::backdrop{background:rgba(6,20,15,.6)}
 .ordercard a{color:var(--turf);font-weight:600}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 
+/* reserved squads stay visible (greyed) so customers see they exist */
+.card{position:relative}
+.resb{position:absolute;right:10px;top:10px;z-index:3;background:#fff;color:#6A4F00;font-weight:800;font-size:11.5px;padding:4px 9px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.card.res .arena{filter:grayscale(.6) brightness(.9)}
+.card.res .stub{background:#E4E9E6;color:#40524A}
+.seg.light{background:#DCE7E1}.seg.light button{color:var(--muted)}.seg.light button[aria-pressed=true]{background:var(--turf);color:#fff}
+.seg.five button{font-size:12.5px;padding:9px 2px}
+.thumb{width:84px;height:84px;border-radius:12px;object-fit:cover;border:1px solid var(--line);margin-top:10px}
+.prog{height:8px;border-radius:6px;background:#DCE7E1;overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--turf);transition:width .4s}
 /* ---------- coin list ---------- */
 .coinsec{margin:14px 16px 0;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .csh{background:var(--pitch);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -332,7 +341,7 @@ async function showList() {
     ]);
     let html = '';
     if (sq.items.length) html += (wantCoins && co.packs.length ? '<div class="sectitle">Squads</div>' : '') + `<div class="grid">${sq.items.map((i) => `
-      <button class="card tap" data-id="${i.id}">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`;
+      <button class="card tap ${i.status === 'reserved' ? 'res' : ''}" data-id="${i.id}">${i.status === 'reserved' ? `<span class="resb">${i.mine ? 'Your order' : 'Reserved'}</span>` : ''}${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`;
     if (co.packs.length) {
       html += (sq.items.length ? '<div class="sectitle">Coin prices</div>' : '') + coinSections(co.packs).map((sec) => `
         <div class="coinsec"><div class="csh"><span class="tagy">${GAME[sec.game]}</span><b>${esc(sec.name)}</b>${sec.note ? `<span class="note">${esc(sec.note)}</span>` : ''}</div>
@@ -371,8 +380,9 @@ async function showItem(id) {
     gal.onclick = (e) => { const a = e.target.closest('[data-full]'); if (a) viewer(a.dataset.full); };
     const dots = document.getElementById('dots');
     if (dots) gal.onscroll = () => { const i = Math.round(gal.scrollLeft / gal.clientWidth); [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i)); };
-    const ok = item.status === 'available';
-    setBar(`<div class="pr"><small>Price</small><b>${fmt(item.price)} ETB</b></div><button class="btn" id="buy" ${ok ? '' : 'disabled'}>${ok ? 'Buy now' : 'Not available'}</button>`);
+    const ok = item.status === 'available' || item.mine;
+    const label = item.mine ? 'Continue payment' : item.status === 'available' ? 'Buy now' : item.status === 'reserved' ? 'Reserved by another buyer' : 'Not available';
+    setBar(`<div class="pr"><small>Price</small><b>${fmt(item.price)} ETB</b></div><button class="btn" id="buy" ${ok ? '' : 'disabled'}>${label}</button>`);
     document.getElementById('buy').onclick = async (e) => {
       e.target.disabled = true;
       try { showCheckout(await api('/orders', 'POST', { item_id: item.id })); }
@@ -485,9 +495,9 @@ function showLogin() {
 
 function showAdmin() {
   stopTimer(); setBar('');
-  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['pay', 'Payment']], adminState) });
+  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['msg', 'Post'], ['pay', 'Payment']], adminState, null, 'seg five') });
   bindSeg('aSeg', 'tab', adminState, showAdmin);
-  ({ items: adminItems, coins: adminCoins, orders: adminOrders, pay: adminPay })[adminState.tab]();
+  ({ items: adminItems, coins: adminCoins, orders: adminOrders, msg: adminMsg, pay: adminPay })[adminState.tab]();
 }
 
 /* ----- squads (items) ----- */
@@ -499,8 +509,9 @@ async function adminItems() {
     itemCache = (await adm('/items')).items;
     const il = document.getElementById('il');
     il.innerHTML = itemCache.length ? `<div class="grid">${itemCache.map((i) => `
-      <div class="card">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3><span class="st ${i.status}">${STATUS[i.status]}</span></div>${stub(i.price)}
+      <div class="card">${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3><span class="st ${i.status}">${STATUS[i.status]}</span>${i.status === 'reserved' && i.held_by ? `<div class="muted" style="margin-top:6px">Held by ${esc(i.held_by.customer || 'a buyer')} · order ${esc(i.held_by.code)}</div>` : ''}</div>${stub(i.price)}
         <div class="acts">
+          ${i.status === 'reserved' ? `<button class="btn sm go" data-a="release" data-id="${i.id}">Release</button>` : ''}
           ${i.status === 'available' ? `<button class="btn sm" data-a="post" data-id="${i.id}">Post</button>` : ''}
           ${i.status !== 'sold' ? `<button class="btn sm ghost" data-a="edit" data-id="${i.id}">Edit</button>` : ''}
           ${i.status === 'available' || i.status === 'hidden' ? `<button class="btn sm ghost" data-a="vis" data-id="${i.id}">${i.status === 'hidden' ? 'Show' : 'Hide'}</button>` : ''}
@@ -511,6 +522,7 @@ async function adminItems() {
       try {
         if (b.dataset.a === 'edit') openItemForm(it);
         else if (b.dataset.a === 'post') openPost(it);
+        else if (b.dataset.a === 'release') { if (confirm('Free this squad? The buyer holding it loses the reservation.')) { await adm(`/items/${it.id}/release`, 'POST'); adminItems(); } }
         else if (b.dataset.a === 'vis') { await adm(`/items/${it.id}`, 'PATCH', { ...it, status: it.status === 'hidden' ? 'available' : 'hidden', images: [] }); adminItems(); }
         else if (b.dataset.a === 'del' && confirm('Delete this item?')) { await adm(`/items/${it.id}`, 'DELETE'); adminItems(); }
       } catch (err) { alert(err.message); }
@@ -658,6 +670,133 @@ function openBulk(packs) {
     catch (e) { $('b_msg').innerHTML = notice('err', e.message); $('b_save').disabled = false; }
   };
   $dlg.showModal();
+}
+
+/* ----- messages: bot or connected account ----- */
+const msgState = { via: 'bot', text: '', photo: null, photoName: '' };
+async function adminMsg() {
+  stopTimer();
+  $app.innerHTML = `<div class="adminhead"><h2>Post to groups</h2></div><div id="mbody">${emptyState('Loading...')}</div>`;
+  let acc = { configured: false, connected: false };
+  try { acc = await adm('/account'); } catch (e) { /* account feature may not be set up */ }
+  let squads = [];
+  try { squads = (await adm('/items')).items.filter((i) => i.status === 'available'); } catch (e) { /* ignore */ }
+  drawMsg(acc, squads);
+}
+
+function drawMsg(acc, squads) {
+  const via = msgState.via, body = document.getElementById('mbody');
+  const $ = (id) => document.getElementById(id);
+  body.innerHTML = `
+    <div class="pad"><div class="seg light" id="viaSeg" style="margin-top:12px">
+      <button data-v="bot" aria-pressed="${via === 'bot'}">With the bot</button><button data-v="account" aria-pressed="${via === 'account'}">With my account</button></div></div>
+    <div class="panel"><label style="margin-top:0">Message</label>
+      <textarea id="m_text" rows="6" maxlength="3500" placeholder="Write your message...">${esc(msgState.text)}</textarea>
+      <label>Insert ready text</label>
+      <select id="m_ins"><option value="">Choose...</option><option value="coins:efootball">eFootball coin list</option><option value="coins:dls">DLS coin list</option>${squads.map((i) => `<option value="item:${i.id}">Squad: ${esc(i.title)}</option>`).join('')}</select>
+      <label class="up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span id="m_pname">${msgState.photo ? 'Photo added (tap to change)' : 'Add a photo (optional)'}</span><input type="file" id="m_photo" accept="image/*"></label>
+      ${msgState.photo ? `<img class="thumb" src="${msgState.photo}" alt=""> <button class="btn sm ghost" id="m_rmphoto" style="margin-left:8px">Remove photo</button>` : ''}
+      ${via === 'bot' ? `<label class="chk" style="margin-top:10px"><input type="checkbox" id="m_btn"> Add an "Open store" button under the message</label>` : ''}
+    </div>
+    <div id="m_acc"></div>
+    <div class="panel" id="m_tpanel"><b>Send to</b><div id="m_targets" style="margin-top:6px">${emptyState('Loading...')}</div></div>
+    <div class="pad"><div id="m_msg"></div><button class="btn go" id="m_send">Send</button></div>`;
+
+  $('viaSeg').onclick = (e) => { const b = e.target.closest('button'); if (b) { msgState.text = $('m_text').value; msgState.via = b.dataset.v; drawMsg(acc, squads); } };
+  $('m_text').oninput = () => { msgState.text = $('m_text').value; };
+  $('m_photo').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { msgState.photo = await shrink(f, 1600, 0.85); } catch (err) { alert(err.message); } msgState.text = $('m_text').value; drawMsg(acc, squads); };
+  if ($('m_rmphoto')) $('m_rmphoto').onclick = () => { msgState.photo = null; msgState.text = $('m_text').value; drawMsg(acc, squads); };
+  $('m_ins').onchange = async () => {
+    const v = $('m_ins').value; if (!v) return;
+    try {
+      const [kind, id] = v.split(':');
+      const r = await adm(kind === 'coins' ? `/coins/share?game=${id}` : `/items/${id}/share`);
+      $('m_text').value = `${r.text}\n\n${r.link}`; msgState.text = $('m_text').value;
+    } catch (e) { $('m_msg').innerHTML = notice('err', e.message); }
+    $('m_ins').value = '';
+  };
+
+  // chat targets for the chosen way of sending
+  const showTargets = (html) => { $('m_targets').innerHTML = html; };
+  let loadTargets = async () => [];
+  if (via === 'bot') {
+    loadTargets = async () => (await adm('/channels')).channels.map((c) => ({ val: `${c.bot_id}|${c.chat_id}`, title: c.title || c.chat_id }));
+    $('m_acc').innerHTML = '';
+  } else {
+    drawAccountCard(acc, () => adminMsg());
+    loadTargets = async () => { if (!acc.connected) return null; return (await adm('/account/dialogs')).dialogs.map((d) => ({ val: d.id, title: d.title, sub: d.type })); };
+  }
+  loadTargets().then((list) => {
+    if (list === null) return showTargets('<div class="muted">Connect your account above to choose groups.</div>');
+    showTargets(list.length ? list.map((t) => `<label class="chk"><input type="checkbox" value="${esc(t.val)}"> ${esc(t.title)}${t.sub ? ` <span class="muted">${esc(t.sub)}</span>` : ''}</label>`).join('')
+      : `<div class="muted">${via === 'bot' ? 'The bot is not in any group yet. Add the bot as an admin to a group or channel and it will appear here.' : 'No groups or channels found on this account.'}</div>`);
+  }).catch((e) => showTargets(notice('err', e.message)));
+
+  $('m_send').onclick = async () => {
+    const text = $('m_text').value.trim(), picked = [...document.querySelectorAll('#m_targets input:checked')].map((c) => c.value);
+    if (!text && !msgState.photo) { $('m_msg').innerHTML = notice('err', 'Write a message or add a photo.'); return; }
+    if (!picked.length) { $('m_msg').innerHTML = notice('err', 'Pick at least one group.'); return; }
+    $('m_send').disabled = true; $('m_msg').innerHTML = '';
+    try {
+      if (via === 'bot') {
+        const targets = picked.map((v) => { const [b, ...c] = v.split('|'); return { bot_id: Number(b), chat_id: c.join('|') }; });
+        const r = await adm('/announce', 'POST', { text, image: msgState.photo, button: !!($('m_btn') && $('m_btn').checked), targets });
+        $('m_msg').innerHTML = notice(r.failed ? 'err' : 'ok', `Sent to ${r.sent}, failed ${r.failed}.` + r.results.filter((x) => !x.ok).map((x) => ` ${x.title || x.chat_id}: ${x.error}`).join(''));
+        $('m_send').disabled = false;
+      } else {
+        const r = await adm('/account/post', 'POST', { text, image: msgState.photo, targets: picked });
+        trackJob(r.job_id, r.total);
+      }
+    } catch (e) { $('m_msg').innerHTML = notice('err', e.message); $('m_send').disabled = false; }
+  };
+}
+
+function trackJob(id, total) {
+  const box = document.getElementById('m_msg');
+  const draw = (j) => { box.innerHTML = `<div class="msg info">Sending ${j.done} of ${total}. Groups are spaced out on purpose, keep this page open.<div class="prog"><i style="width:${Math.round(100 * j.done / total)}%"></i></div></div>`; };
+  draw({ done: 0 }); stopTimer();
+  timer = setInterval(async () => {
+    try {
+      const j = await adm(`/account/jobs/${id}`); draw(j);
+      if (j.status !== 'running') {
+        stopTimer(); const bad = j.results.filter((x) => !x.ok);
+        box.innerHTML = notice(j.status === 'stopped' || bad.length ? 'err' : 'ok', (j.status === 'stopped' ? (j.message || 'Stopped.') + ' ' : '') + `Sent to ${j.results.length - bad.length}, failed ${bad.length}.` + bad.map((x) => ` ${x.title}: ${x.error}`).join(''));
+        const b = document.getElementById('m_send'); if (b) b.disabled = false;
+      }
+    } catch (e) { stopTimer(); box.innerHTML = notice('err', e.message); }
+  }, 3000);
+}
+
+function drawAccountCard(acc, refresh) {
+  const el = document.getElementById('m_acc');
+  if (!acc.configured) { el.innerHTML = `<div class="panel">${notice('info', 'Posting with your own account is not set up on the server yet. The developer needs to add TG_API_ID, TG_API_HASH and STORE_SESSION_KEY.')}</div>`; return; }
+  if (acc.connected) {
+    el.innerHTML = `<div class="panel"><div class="row"><div><b>Account connected</b><div class="muted">${esc(acc.phone || '')}</div></div><button class="btn sm ghost" id="a_off">Disconnect</button></div>
+      <p class="muted" style="margin-top:8px">Telegram limits accounts that post a lot, so groups are spaced out and a daily limit applies. A spare account is safer than your main one.</p><div id="a_msg"></div></div>`;
+    document.getElementById('a_off').onclick = async () => { if (!confirm('Disconnect this account? It will be logged out.')) return; try { await adm('/account', 'DELETE'); refresh(); } catch (e) { document.getElementById('a_msg').innerHTML = notice('err', e.message); } };
+    return;
+  }
+  el.innerHTML = `<div class="panel"><b>Connect your Telegram account</b>
+    <p class="muted" style="margin:4px 0 0">Telegram will send a login code to your account. The code and password are only used to sign in and are not saved. The login is stored encrypted.</p>
+    <div id="a_step1"><label>Phone number</label><input type="text" id="a_phone" inputmode="tel" placeholder="+2519..."><button class="btn" id="a_send" style="margin-top:12px">Send code</button></div>
+    <div id="a_step2" hidden><label>Code from Telegram</label><input type="text" id="a_code" inputmode="numeric" autocomplete="one-time-code">
+      <div id="a_pwwrap" hidden><label>2-step verification password</label><input type="password" id="a_pw"></div>
+      <button class="btn" id="a_go" style="margin-top:12px">Connect</button></div>
+    <div id="a_msg"></div></div>`;
+  const $ = (id) => document.getElementById(id), msg = (c, t) => { $('a_msg').innerHTML = notice(c, t); };
+  $('a_send').onclick = async () => {
+    $('a_send').disabled = true;
+    try { await adm('/account/send-code', 'POST', { phone: $('a_phone').value }); $('a_step1').hidden = true; $('a_step2').hidden = false; msg('info', 'Code sent. Look for it in your Telegram app.'); }
+    catch (e) { msg('err', e.message); $('a_send').disabled = false; }
+  };
+  $('a_go').onclick = async () => {
+    $('a_go').disabled = true;
+    try {
+      const r = await adm('/account/verify', 'POST', { code: $('a_code').value, password: $('a_pw').value });
+      if (r.need_password) { $('a_pwwrap').hidden = false; msg('info', 'This account has 2-step verification. Enter your password.'); $('a_go').disabled = false; return; }
+      refresh();
+    } catch (e) { msg('err', e.message); $('a_go').disabled = false; }
+  };
 }
 
 /* ----- orders ----- */
