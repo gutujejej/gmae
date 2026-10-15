@@ -31,6 +31,7 @@ const app = express();
 // P2P payment proofs arrive as base64 JSON, so only that route family gets a bigger limit.
 app.use('/api/p2p', express.json({ limit: '1mb' }));
 // Store: item photos and payment screenshots arrive as base64 JSON.
+app.use(/^\/api\/store\/\d+\/admin/, express.json({ limit: '12mb' })); // admin uploads squad photos inside Telegram
 app.use('/api/store', express.json({ limit: '2mb' }));
 app.use('/api/admin/store', express.json({ limit: '12mb' }));
 app.use(express.json());
@@ -596,6 +597,7 @@ const publicBot = (b, stats = {}) => ({
   token_preview: '····' + b.token.slice(-6),
   bot_type: b.bot_type || 'bingo',
   p2p_platform_id: b.p2p_platform_id || null,
+  store_admin_telegram_id: b.store_admin_telegram_id || null,
 });
 
 app.get('/api/admin/bots', requireAdmin, async (_req, res) => {
@@ -644,7 +646,7 @@ app.get('/api/admin/top-inviters', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/bots', requireAdmin, async (req, res) => {
-  const { name, token, channel, group_chat, bonus, verify: v, continue_url, continue_text, referral_bonus, require_all_clicks, bot_type, p2p_platform_id } = req.body;
+  const { name, token, channel, group_chat, bonus, verify: v, continue_url, continue_text, referral_bonus, require_all_clicks, bot_type, p2p_platform_id, store_admin_telegram_id } = req.body;
   if (!name || !token) {
     return res.status(400).json({ error: 'name and token are required' });
   }
@@ -658,6 +660,14 @@ app.post('/api/admin/bots', requireAdmin, async (req, res) => {
       ? await db.from('p2p_platforms').select('id').eq('id', platformId).maybeSingle()
       : { data: null };
     if (!plat) return res.status(400).json({ error: 'Choose a P2P platform for this bot' });
+  }
+  // A store bot has one admin: that Telegram account gets the Admin switch inside the store.
+  let storeAdminId = null;
+  if (botType === 'store') {
+    storeAdminId = Number(store_admin_telegram_id);
+    if (!Number.isSafeInteger(storeAdminId) || storeAdminId <= 0) {
+      return res.status(400).json({ error: 'Enter the store admin\'s numeric Telegram ID' });
+    }
   }
   if (continue_url && !/^https:\/\/\S+$/i.test(continue_url)) {
     return res.status(400).json({ error: 'Continue redirect must be a valid https:// URL' });
@@ -688,6 +698,7 @@ app.post('/api/admin/bots', requireAdmin, async (req, res) => {
     referral_bonus: referral_bonus === undefined || referral_bonus === '' ? 10 : Math.max(0, Number(referral_bonus) || 0),
     bot_type: botType,
     p2p_platform_id: platformId,
+    store_admin_telegram_id: storeAdminId,
   }).select().single();
 
   if (error) {
@@ -710,7 +721,7 @@ app.patch('/api/admin/bots/:id', requireAdmin, async (req, res) => {
     'name', 'channel', 'group_chat', 'bonus', 'verify', 'active', 'continue_url', 'continue_text',
     'referral_bonus', 'require_all_clicks',
     'bingo_name', 'bingo_enabled', 'bingo_stakes', 'bingo_payout_pct', 'deposit_phone', 'withdraw_min_deposit',
-    'bot_type', 'p2p_platform_id',
+    'bot_type', 'p2p_platform_id', 'store_admin_telegram_id',
   ];
   const patch = {};
   for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
@@ -722,6 +733,15 @@ app.patch('/api/admin/bots/:id', requireAdmin, async (req, res) => {
     patch.referral_bonus = Math.max(0, Number(patch.referral_bonus) || 0);
   }
   if ('require_all_clicks' in patch) patch.require_all_clicks = patch.require_all_clicks !== false;
+  if ('store_admin_telegram_id' in patch) {
+    const v = patch.store_admin_telegram_id;
+    if (v === '' || v === null) patch.store_admin_telegram_id = null;
+    else {
+      const n = Number(v);
+      if (!Number.isSafeInteger(n) || n <= 0) return res.status(400).json({ error: 'Store admin Telegram ID must be a number' });
+      patch.store_admin_telegram_id = n;
+    }
+  }
   if ('bot_type' in patch) {
     patch.bot_type = patch.bot_type === 'p2p' ? 'p2p' : patch.bot_type === 'store' ? 'store' : 'bingo';
     if (patch.bot_type !== 'p2p') patch.p2p_platform_id = null;

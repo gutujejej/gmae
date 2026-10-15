@@ -118,6 +118,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     return items.map((it) => ({
       ...it,
       images: (imgs || []).filter((i) => i.item_id === it.id).map((i) => urls[i.path]).filter(Boolean),
+      image_paths: (imgs || []).filter((i) => i.item_id === it.id).map((i) => i.path),
     }));
   }
 
@@ -146,10 +147,15 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     }
   }
 
-  // Tell the admin (Telegram IDs in STORE_ADMIN_TELEGRAM_IDS, comma separated, optional).
+  // Tell the store admin: the Telegram ID set on the store bot, plus any extra IDs in
+  // STORE_ADMIN_TELEGRAM_IDS. The admin must have pressed Start on the bot once.
   async function notifyAdmins(reg, entry, text) {
-    const ids = String(process.env.STORE_ADMIN_TELEGRAM_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
-    for (const id of ids) await notify(entry || [...reg.values()][0], id, text);
+    const ids = new Set(String(process.env.STORE_ADMIN_TELEGRAM_IDS || '').split(',').map((s) => s.trim()).filter(Boolean));
+    const own = entry && entry.row && entry.row.store_admin_telegram_id;
+    if (own) ids.add(String(own));
+    const via = entry || [...reg.values()].find((e) => e.row.bot_type === 'store');
+    if (!via) return;
+    for (const id of ids) await notify(via, id, text, `/store?b=${via.row.id}&admin=1`);
   }
 
   /* ---------------------------------------------------------------- */
@@ -457,14 +463,47 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   }));
 
   /* ---------------------------------------------------------------- */
-  /* Admin API (password login token, same as admin.html)               */
+  /* Admin API                                                          */
   /* ---------------------------------------------------------------- */
+  // Every admin route is served twice with the same handler:
+  //   /api/admin/store/...            password login (store-admin page on a computer)
+  //   /api/store/:botId/admin/...     inside Telegram, ONLY for the Telegram account set as
+  //                                   this store bot's admin (the "Admin" switch in the Mini App)
+  function miniAdmin(req, res, next) {
+    const a = miniAuth(req, res); if (!a) return;
+    const adminId = Number(a.entry.row.store_admin_telegram_id);
+    if (!adminId || a.user.id !== adminId) return res.status(403).json({ error: 'You are not the admin of this store.' });
+    req.miniBotId = a.entry.row.id;
+    req.miniEntry = a.entry;
+    next();
+  }
+  function adminRoute(method, path, handler) {
+    app[method]('/api/admin/store' + path, requireAdmin, handler);
+    app[method]('/api/store/:botId/admin' + path, miniAdmin, handler);
+  }
 
-  app.get('/api/admin/store/settings', requireAdmin, wrap(async (_req, res) => {
+  // Tells the Mini App who is looking, so the Admin switch only exists for the admin.
+  app.get('/api/store/:botId/home', wrap(async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const adminId = Number(a.entry.row.store_admin_telegram_id);
+    res.json({ name: a.entry.row.name, is_admin: !!adminId && adminId === a.user.id });
+  }));
+
+
+  // Groups/channels the bot is in (saved by channels.js). Mini admin sees only its own bot's.
+  adminRoute('get', '/channels', wrap(async (req, res) => {
+    let q = db.from('bot_channels').select('bot_id,chat_id,title,username,chat_type,can_post').order('title', { ascending: true });
+    if (req.miniBotId) q = q.eq('bot_id', req.miniBotId);
+    const { data, error } = await q;
+    if (error) throw error;
+    res.json({ channels: (data || []).filter((c) => c.can_post !== false) });
+  }));
+
+  adminRoute('get', '/settings', wrap(async (_req, res) => {
     res.json(await getSettings());
   }));
 
-  app.put('/api/admin/store/settings', requireAdmin, wrap(async (req, res) => {
+  adminRoute('put', '/settings', wrap(async (req, res) => {
     const b = req.body || {};
     const phone = digits(b.telebirr_phone);
     if (phone && !/^(?:251|0)?[79]\d{8}$/.test(phone)) throw new HttpError(400, 'Telebirr number looks wrong.');
@@ -478,11 +517,11 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     res.json(data);
   }));
 
-  app.get('/api/admin/store/items', requireAdmin, wrap(async (_req, res) => {
+  adminRoute('get', '/items', wrap(async (_req, res) => {
     await releaseExpired();
     const { data, error } = await db.from('store_items').select('*').order('created_at', { ascending: false }).limit(200);
     if (error) throw error;
-    res.json({ items: (await itemsWithImages(data || [])).map((i) => ({ ...itemOut(i), status: i.status })) });
+    res.json({ items: (await itemsWithImages(data || [])).map((i) => ({ ...itemOut(i), status: i.status, image_paths: i.image_paths })) });
   }));
 
   function parseItem(b) {
@@ -509,7 +548,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     }
   }
 
-  app.post('/api/admin/store/items', requireAdmin, wrap(async (req, res) => {
+  adminRoute('post', '/items', wrap(async (req, res) => {
     const row = parseItem(req.body || {});
     const { data, error } = await db.from('store_items').insert(row).select().single();
     if (error) throw error;
@@ -517,7 +556,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     res.json({ ok: true, id: data.id });
   }));
 
-  app.patch('/api/admin/store/items/:id', requireAdmin, wrap(async (req, res) => {
+  adminRoute('patch', '/items/:id', wrap(async (req, res) => {
     const id = Number(req.params.id);
     const b = req.body || {};
     const patch = parseItem({ ...b });
@@ -537,7 +576,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     res.json({ ok: true });
   }));
 
-  app.delete('/api/admin/store/items/:id', requireAdmin, wrap(async (req, res) => {
+  adminRoute('delete', '/items/:id', wrap(async (req, res) => {
     const id = Number(req.params.id);
     const { data: used } = await db.from('store_orders').select('id').eq('item_id', id).limit(1);
     if (used && used.length) {
@@ -551,9 +590,10 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   }));
 
   // Orders list (with 1-hour signed proof links).
-  app.get('/api/admin/store/orders', requireAdmin, wrap(async (req, res) => {
+  adminRoute('get', '/orders', wrap(async (req, res) => {
     await releaseExpired();
     let q = db.from('store_orders').select('*, store_items(title,game,kind)').order('created_at', { ascending: false }).limit(80);
+    if (req.miniBotId) q = q.eq('bot_id', req.miniBotId);
     const st = String(req.query.status || '');
     if (['awaiting_payment', 'verifying', 'paid', 'delivered', 'rejected', 'expired'].includes(st)) q = q.eq('status', st);
     const { data, error } = await q;
@@ -568,16 +608,16 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     });
   }));
 
-  async function adminOrder(id) {
+  async function adminOrder(req, id) {
     const { data, error } = await db.from('store_orders').select('*').eq('id', Number(id)).maybeSingle();
     if (error) throw error;
-    if (!data) throw new HttpError(404, 'Order not found.');
+    if (!data || (req.miniBotId && Number(data.bot_id) !== req.miniBotId)) throw new HttpError(404, 'Order not found.');
     return data;
   }
 
   // Manual decision for orders the checker could not confirm.
-  app.post('/api/admin/store/orders/:id/:action(approve|reject)', requireAdmin, wrap(async (req, res) => {
-    const o = await adminOrder(req.params.id);
+  adminRoute('post', '/orders/:id/:action(approve|reject)', wrap(async (req, res) => {
+    const o = await adminOrder(req, req.params.id);
     if (o.status !== 'verifying') throw new HttpError(409, 'Only orders waiting for a manual check can be decided.');
     const approve = req.params.action === 'approve';
     const { data: upd, error } = await db.from('store_orders').update(approve
@@ -595,14 +635,14 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     res.json({ ok: true });
   }));
 
-  app.get('/api/admin/store/orders/:id/messages', requireAdmin, wrap(async (req, res) => {
-    const o = await adminOrder(req.params.id);
+  adminRoute('get', '/orders/:id/messages', wrap(async (req, res) => {
+    const o = await adminOrder(req, req.params.id);
     const { data } = await db.from('store_messages').select('id,sender,body,created_at').eq('order_id', o.id).order('id');
     res.json({ messages: data || [], status: o.status });
   }));
 
-  app.post('/api/admin/store/orders/:id/messages', requireAdmin, wrap(async (req, res) => {
-    const o = await adminOrder(req.params.id);
+  adminRoute('post', '/orders/:id/messages', wrap(async (req, res) => {
+    const o = await adminOrder(req, req.params.id);
     if (o.status !== 'paid') throw new HttpError(409, 'Chat is only open for paid orders.');
     const text = clean((req.body || {}).body, 2000);
     if (!text) throw new HttpError(400, 'Message is empty.');
@@ -615,8 +655,8 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   }));
 
   // Finish: order delivered, item sold, chat closed. wipe=true also deletes the chat.
-  app.post('/api/admin/store/orders/:id/finish', requireAdmin, wrap(async (req, res) => {
-    const o = await adminOrder(req.params.id);
+  adminRoute('post', '/orders/:id/finish', wrap(async (req, res) => {
+    const o = await adminOrder(req, req.params.id);
     const { data: upd, error } = await db.from('store_orders').update({ status: 'delivered', closed_at: new Date().toISOString() })
       .eq('id', o.id).eq('status', 'paid').select().maybeSingle();
     if (error) throw error;
@@ -647,7 +687,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
   }
 
   // Bot posts to groups/channels it is in (saved by channels.js in bot_channels).
-  app.post('/api/admin/store/items/:id/post', requireAdmin, wrap(async (req, res) => {
+  adminRoute('post', '/items/:id/post', wrap(async (req, res) => {
     const { item, imagePath } = await loadItemForPost(req.params.id);
     const targets = Array.isArray((req.body || {}).targets) ? req.body.targets.slice(0, 50) : [];
     if (!targets.length) throw new HttpError(400, 'Pick at least one group.');
@@ -661,7 +701,7 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
     const reg = registry(req);
     const results = [];
     for (const t of targets) {
-      const botId = Number(t.bot_id);
+      const botId = req.miniBotId || Number(t.bot_id);
       const { data: ch } = await db.from('bot_channels').select('chat_id,title,can_post')
         .eq('bot_id', botId).eq('chat_id', t.chat_id).maybeSingle();
       if (!ch) { results.push({ ...t, ok: false, error: 'Not a saved group' }); continue; }
@@ -686,10 +726,10 @@ module.exports = function attachStore(app, db, { requireAdmin, miniAuth, MINIAPP
 
   // Fallback when the bot is not an admin of a group: the admin posts from their own
   // Telegram account. Returns ready-to-send text and a one-tap share link.
-  app.get('/api/admin/store/items/:id/share', requireAdmin, wrap(async (req, res) => {
+  adminRoute('get', '/items/:id/share', wrap(async (req, res) => {
     const { item } = await loadItemForPost(req.params.id);
     const bots = [...registry(req).values()].filter((e) => e.row.bot_type === 'store' && e.row.active !== false);
-    const entry = bots[0];
+    const entry = req.miniEntry || bots[0];
     if (!entry) throw new HttpError(409, 'Add and start a Store bot first.');
     const me = entry.me || (entry.me = await entry.bot.getMe());
     const link = `https://t.me/${me.username}?start=item_${item.id}`;
