@@ -234,6 +234,8 @@ const qs = new URLSearchParams(location.search);
 const BOT = qs.get('b');
 const IN_TG = !!(tg && tg.initData && BOT);
 let token = localStorage.getItem('admin_token');
+let currentStore = sessionStorage.getItem('store_id') || '';
+let currentStoreName = sessionStorage.getItem('store_name') || '';
 let isAdmin = false;       // true only when Telegram says this person is the store admin
 let mode = 'shop';         // 'shop' | 'admin'
 
@@ -276,7 +278,7 @@ function api(path, method, body) {                       // customer calls (Tele
 async function adm(path, method, body) {                 // admin calls
   try {
     if (IN_TG) return await send(`/api/store/${BOT}/admin${path}`, method, body, { Authorization: `tma ${tg.initData}` });
-    return await send(`/api/admin/store${path}`, method, body, { Authorization: `Bearer ${token}` });
+    return await send(`/api/admin/store${path}`, method, body, { Authorization: `Bearer ${token}`, 'X-Store-Bot': currentStore });
   } catch (e) {
     if (!IN_TG && e.status === 401) { localStorage.removeItem('admin_token'); token = null; showLogin(); }
     throw e;
@@ -323,7 +325,7 @@ function viewer(url) { const lb = document.getElementById('lb'); lb.querySelecto
 /* =====================================================================
    SHOP (customer)
    ===================================================================== */
-const filter = { game: '', kind: '' };
+const filter = { game: '', kind: '', section: '' };
 
 async function showList() {
   stopTimer(); setBar('');
@@ -342,12 +344,16 @@ async function showList() {
     if (sq.items.length) html += (wantCoins && co.packs.length ? '<div class="sectitle">Squads</div>' : '') + `<div class="grid">${sq.items.map((i) => `
       <button class="card tap ${i.status === 'reserved' ? 'res' : ''}" data-id="${i.id}">${i.status === 'reserved' ? `<span class="resb">${i.mine ? 'Your order' : 'Reserved'}</span>` : ''}${arena(i, i.images[0])}<div class="info"><h3>${esc(i.title)}</h3></div>${stub(i.price)}</button>`).join('')}</div>`;
     if (co.packs.length) {
-      html += (sq.items.length ? '<div class="sectitle">Coin prices</div>' : '') + coinSections(co.packs).map((sec) => `
+      const all = coinSections(co.packs), names = [...new Set(all.map((x) => x.name))];
+      const shown = filter.section && names.includes(filter.section) ? all.filter((x) => x.name === filter.section) : all;
+      const chips = names.length > 1 ? `<div class="kinds" id="secs">${[['', 'All']].concat(names.map((n) => [n, n])).map(([v, l]) => `<button class="chipbtn" data-s="${esc(v)}" aria-pressed="${(names.includes(filter.section) ? filter.section : '') === v}">${esc(l)}</button>`).join('')}</div>` : '';
+      html += (sq.items.length ? '<div class="sectitle">Coin prices</div>' : '') + chips + shown.map((sec) => `
         <div class="coinsec"><div class="csh"><span class="tagy">${GAME[sec.game]}</span><b>${esc(sec.name)}</b>${sec.note ? `<span class="note">${esc(sec.note)}</span>` : ''}</div>
           ${sec.packs.map((p) => `<button class="crow" data-pack="${p.id}">${COIN}<span class="amt">${Number(p.coins_amount).toLocaleString('en-US')}<small>coins</small></span><span class="cbuy"><b>${fmt(p.price)}</b>ETB</span></button>`).join('')}</div>`).join('') + '<div style="height:18px"></div>';
     }
     list.innerHTML = html || emptyState('Nothing for sale right now. Check back soon.');
     list.onclick = async (e) => {
+      const sc = e.target.closest('[data-s]'); if (sc) { filter.section = sc.dataset.s; return showList(); }
       const c = e.target.closest('.card'); if (c) return showItem(Number(c.dataset.id));
       const r = e.target.closest('[data-pack]');
       if (r) { r.disabled = true; try { showCheckout(await api('/orders', 'POST', { pack_id: Number(r.dataset.pack) })); } catch (err) { r.disabled = false; alert(err.message); } }
@@ -487,14 +493,37 @@ function showLogin() {
   stopTimer(); setBar(''); setTop({});
   $app.innerHTML = `<div class="panel" style="margin-top:30px"><h3 style="font-family:var(--display);font-size:26px">Store admin</h3><label>Admin password</label><input type="password" id="pw"><div id="lmsg"></div><button class="btn" id="lbtn" style="margin-top:14px">Sign in</button></div>`;
   document.getElementById('lbtn').onclick = async () => {
-    try { const j = await send('/api/admin/login', 'POST', { password: document.getElementById('pw').value }); token = j.token; localStorage.setItem('admin_token', token); showAdmin(); }
+    try { const j = await send('/api/admin/login', 'POST', { password: document.getElementById('pw').value }); token = j.token; localStorage.setItem('admin_token', token); showStores(); }
     catch (e) { document.getElementById('lmsg').innerHTML = notice('err', e.message); }
   };
 }
 
+async function showStores(autoOpen) {
+  stopTimer(); setBar(''); setTop({});
+  document.getElementById('title').textContent = 'All stores';
+  $app.innerHTML = emptyState('Loading...');
+  try {
+    const { stores } = await send('/api/admin/store/stores', 'GET', null, { Authorization: `Bearer ${token}` });
+    if (!stores.length) { $app.innerHTML = `<div class="pad">${notice('info', 'No store yet. In the bot manager, add a bot of type "Game store".')}</div>`; return; }
+    const open = (st) => { currentStore = String(st.id); currentStoreName = st.name; sessionStorage.setItem('store_id', currentStore); sessionStorage.setItem('store_name', currentStoreName); showAdmin(); };
+    if (autoOpen && stores.length === 1) return open(stores[0]);
+    $app.innerHTML = `<div class="adminhead"><h2>Your stores</h2></div><p class="muted pad" style="margin-top:4px">Each store has its own squads, coins, orders, payment details and groups. Nothing is shared between stores.</p>
+      ${stores.map((st) => `<div class="ordercard"><div class="row"><b>${esc(st.name)}</b><span class="st ${st.active ? 'available' : 'hidden'}">${st.active ? 'Running' : 'Paused'}</span></div>
+        <div class="muted">@${esc(st.bot_username || '')} · admin ID ${esc(st.store_admin_telegram_id || 'not set')}</div>
+        <div class="spec" style="margin-top:10px"><div><span>Squads for sale</span><b>${st.squads}</b></div><div><span>Coin packs</span><b>${st.coin_packs}</b></div><div><span>Need payment check</span><b>${st.need_check}</b></div><div><span>Paid, waiting delivery</span><b>${st.to_deliver}</b></div><div><span>Delivered</span><b>${st.delivered}</b></div></div>
+        <div class="actions"><button class="btn sm" data-id="${st.id}">Manage this store</button></div></div>`).join('')}`;
+    $app.onclick = (e) => { const b = e.target.closest('button[data-id]'); if (!b) return; const st = stores.find((x) => x.id === Number(b.dataset.id)); if (st) open(st); };
+  } catch (e) {
+    if (e.status === 401) { localStorage.removeItem('admin_token'); token = null; return showLogin(); }
+    $app.innerHTML = `<div class="pad">${notice('err', e.message)}</div>`;
+  }
+}
+
 function showAdmin() {
-  stopTimer(); setBar('');
-  setTop({ nav: '', extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['msg', 'Post'], ['pay', 'Payment']], adminState, null, 'seg five') });
+  stopTimer(); setBar(''); $app.onclick = null;
+  if (!IN_TG && !currentStore) return showStores();
+  if (!IN_TG) document.getElementById('title').textContent = currentStoreName || 'Store';
+  setTop({ nav: IN_TG ? '' : 'All stores', navFn: () => showStores(false), extra: seg('aSeg', 'tab', [['items', 'Squads'], ['coins', 'Coins'], ['orders', 'Orders'], ['msg', 'Post'], ['pay', 'Payment']], adminState, null, 'seg five') });
   bindSeg('aSeg', 'tab', adminState, showAdmin);
   ({ items: adminItems, coins: adminCoins, orders: adminOrders, msg: adminMsg, pay: adminPay })[adminState.tab]();
 }
@@ -629,7 +658,7 @@ const sectionList = (packs) => `<datalist id="secs">${[...new Set(packs.map((p) 
 
 function openPackForm(p, packs) {
   $dlgBody.innerHTML = `<h3>${p ? 'Edit coin pack' : 'Add coin pack'}</h3>
-    <label>Section name</label><input type="text" id="k_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
+    <label>Section (country or platform)</label><input type="text" id="k_sec" list="secs" maxlength="60" placeholder="e.g. Ethiopia">${sectionList(packs)}
     <label>Note under the section (optional)</label><input type="text" id="k_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
     <div class="g2"><div><label>Coins</label><input type="number" id="k_coins" min="1" inputmode="numeric"></div><div><label>Price (ETB)</label><input type="number" id="k_price" min="1" step="0.01" inputmode="decimal"></div></div>
     <label>Order in list (small number shows first)</label><input type="number" id="k_sort" inputmode="numeric" value="0">
@@ -649,8 +678,8 @@ function openPackForm(p, packs) {
 }
 
 function openBulk(packs) {
-  $dlgBody.innerHTML = `<h3>Paste your coin list</h3><p class="muted">One pack per line: the coins, then the price. For example <b>1040 1850</b>. Arrows and the word BIRR are fine.</p>
-    <label>Section name</label><input type="text" id="b_sec" list="secs" maxlength="60" placeholder="e.g. All platforms">${sectionList(packs)}
+  $dlgBody.innerHTML = `<h3>Paste your coin list</h3><p class="muted">One pack per line: the coins, then the price. For example <b>1040 1850</b>. Arrows and the word BIRR are fine. Everything you paste goes into one section, such as a country.</p>
+    <label>Section (country or platform)</label><input type="text" id="b_sec" list="secs" maxlength="60" placeholder="e.g. Ethiopia">${sectionList(packs)}
     <label>Note (optional)</label><input type="text" id="b_note" maxlength="80" placeholder="e.g. Konami ID login only, Android">
     <label>Lines</label><textarea id="b_lines" rows="8" placeholder="300 » 550 BIRR&#10;550 » 999 BIRR&#10;1040 » 1850 BIRR"></textarea>
     <div id="b_msg"></div><div class="actions"><button class="btn" id="b_save" style="flex:1">Add to list</button><button class="btn ghost" id="b_cancel" style="flex:0 0 auto;width:auto;padding:14px 18px">Cancel</button></div>`;
@@ -890,7 +919,7 @@ document.getElementById('modeSwitch').onclick = (e) => { const b = e.target.clos
     return setMode(wantAdmin ? 'admin' : 'shop');
   }
   // Outside Telegram: only the password-protected admin page (store-admin.html).
-  if (qs.get('admin') === '1') return token ? showAdmin() : showLogin();
+  if (qs.get('admin') === '1') return token ? showStores(true) : showLogin();
   $app.innerHTML = `<div class="pad" style="margin-top:30px">${notice('info', 'Open this store from the Telegram bot to browse and buy.')}</div>`;
 })();
 </script>
