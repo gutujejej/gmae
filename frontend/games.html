@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aviator</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#0D3B2C; --turf:#17694B; --turf-2:#1E7C58; --chalk:#EEF3F0; --paper:#FFFFFF;
+  --ink:#0B1B15; --muted:#587066; --line:#D3DFD8; --flood:#FFCE2E; --flood-ink:#3A2C00; --red:#D9453B; --redsoft:#FBE6E3;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{background:var(--chalk)}
+body{font-family:var(--body);color:var(--ink);background:var(--chalk);min-height:100vh;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:36px;user-select:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+input,textarea{user-select:text}
+:focus-visible{outline:3px solid var(--flood);outline-offset:2px;border-radius:8px}
+.wrap{width:min(640px,100%);margin:0 auto}
+.pad{padding:0 16px}
+
+/* ---------- header (same as the store) ---------- */
+.top{background:var(--pitch);color:#fff;position:sticky;top:0;z-index:20;overflow:hidden}
+.top::after{content:"";position:absolute;right:-46px;top:-60px;width:170px;height:170px;border-radius:50%;border:2px solid rgba(255,255,255,.12);pointer-events:none}
+.top::before{content:"";position:absolute;right:-6px;top:-26px;width:90px;height:90px;border-radius:50%;border:2px solid rgba(255,255,255,.1);pointer-events:none}
+.top .wrap{padding:14px 16px 16px;position:relative;z-index:1}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:25px;letter-spacing:.01em;min-width:0}
+.logo svg{width:30px;height:30px;flex:none}
+.logo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{background:rgba(255,255,255,.14);padding:7px 13px;border-radius:999px;font-weight:700;font-size:13px;color:#fff;white-space:nowrap}
+.pill.sound{padding:7px 10px;font-size:15px;line-height:1}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:rgba(0,0,0,.28);border-radius:14px;padding:4px;margin-top:12px}
+.seg button{padding:9px 6px;border-radius:10px;font-weight:700;font-size:14px;color:#BFD4C9;transition:background .18s,color .18s;text-align:center;text-decoration:none;display:block}
+.seg button[aria-pressed=true]{background:var(--flood);color:var(--flood-ink)}
+
+/* ---------- common ---------- */
+.msg{padding:11px 13px;border-radius:12px;margin:12px 0;font-size:14px;line-height:1.45}
+.msg.err{background:var(--redsoft);color:#8E2A22}.msg.ok{background:#DDF1E6;color:#0F5133}.msg.info{background:#E1EEE7;color:#0F4B35}
+.btn{display:block;width:100%;padding:14px;border-radius:14px;background:var(--turf);color:#fff;font-weight:700;font-size:16px;box-shadow:0 8px 16px -8px rgba(23,105,75,.7);transition:transform .12s;text-align:center}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5;box-shadow:none}
+.btn.go{background:var(--flood);color:var(--flood-ink);box-shadow:0 8px 16px -8px rgba(255,206,46,.8)}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.btn.red{background:var(--red);box-shadow:0 8px 16px -8px rgba(217,69,59,.7)}
+label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+input[type=text],input[type=number],input[type=tel],textarea{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);font-size:15px;outline:none}
+input:focus,textarea:focus{border-color:var(--turf)}
+textarea{resize:none}
+.muted{color:var(--muted);font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chipbtn{padding:7px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);font-weight:600;font-size:13.5px;color:var(--muted)}
+.chipbtn[aria-pressed=true]{border-color:var(--turf);color:var(--turf);background:#E4F2EB}
+.st{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.st.ok{background:#DDF1E6;color:#0F5133}.st.wait{background:#FFF1C2;color:#6A4F00}.st.bad{background:var(--redsoft);color:#8E2A22}
+.card{background:var(--paper);border-radius:18px;border:1px solid var(--line);padding:16px}
+.empty{text-align:center;color:var(--muted);padding:48px 20px}
+
+/* ---------- history strip ---------- */
+.hist{display:flex;gap:7px;overflow-x:auto;padding:14px 16px 4px;scrollbar-width:none}
+.hist::-webkit-scrollbar{display:none}
+.hist i{flex:none;font-style:normal;font-weight:800;font-size:12.5px;padding:5px 10px;border-radius:999px;background:#E1EEE7;color:var(--turf)}
+.hist i.mid{background:#FFF1C2;color:#6A4F00}
+.hist i.hi{background:var(--flood);color:var(--flood-ink)}
+.hist i.low{background:var(--redsoft);color:#8E2A22}
+
+/* ---------- the stage: the plane flies over the pitch ---------- */
+.stage{position:relative;margin:12px 16px 0;border-radius:20px;overflow:hidden;aspect-ratio:16/11;border:1px solid rgba(0,0,0,.08);background:
+  radial-gradient(60% 40% at 0% 0%,rgba(255,246,196,.5),transparent 72%),
+  radial-gradient(60% 40% at 100% 0%,rgba(255,246,196,.5),transparent 72%),
+  repeating-linear-gradient(90deg,var(--turf) 0 28px,var(--turf-2) 28px 56px)}
+.stage::before{content:"";position:absolute;left:-6%;right:-6%;top:0;height:22%;border-radius:0 0 50% 50%/0 0 100% 100%;
+  background:radial-gradient(circle at 5px 5px,rgba(255,255,255,.3) 1.3px,transparent 1.8px) 0 0/11px 11px,linear-gradient(#08241B,#0F3A2C);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.mult{position:absolute;left:0;right:0;top:50%;transform:translateY(-58%);text-align:center;font-family:var(--display);font-weight:900;font-size:76px;line-height:1;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.28);pointer-events:none}
+.mult small{display:block;font-family:var(--body);font-size:13px;font-weight:700;letter-spacing:.02em;margin-top:6px;text-shadow:none;color:rgba(255,255,255,.92)}
+.stage.crashed .mult{color:#FFD7D2}
+.stage.crashed .mult small{color:#FFD7D2}
+.stage.crashed{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-5px)}50%{transform:translateX(5px)}80%{transform:translateX(-3px)}}
+.countbar{position:absolute;left:14px;right:14px;bottom:12px;height:7px;border-radius:99px;background:rgba(0,0,0,.28);overflow:hidden}
+.countbar i{display:block;height:100%;width:100%;background:var(--flood);border-radius:99px}
+.live{position:absolute;left:12px;top:12px;z-index:2;background:var(--flood);color:var(--flood-ink);font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:8px}
+.net{position:absolute;right:12px;top:12px;z-index:2;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.3);padding:4px 9px;border-radius:8px}
+
+/* ---------- bet panels ---------- */
+.bets{display:grid;gap:12px;padding:14px 16px 0}
+.bp{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px}
+.bp .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bp .head b{font-family:var(--display);font-size:20px;font-weight:800}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);font-size:22px;font-weight:700;color:var(--turf);background:var(--paper)}
+.stepper input{text-align:center;font-weight:800;font-size:19px;height:44px;padding:0}
+.quick{display:flex;gap:6px;margin:10px 0}
+.quick button{flex:1;padding:8px 0;border-radius:10px;background:#E1EEE7;color:var(--turf);font-weight:700;font-size:13.5px}
+.auto{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.auto span{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+.auto input{height:40px;padding:0 12px}
+.bp .btn{font-size:17px;padding:15px}
+.bp .btn.cash{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(255,206,46,.35)}}
+.bp .note{font-size:12.5px;margin-top:8px;text-align:center;font-weight:600}
+.bp .note.win{color:#0F5133}.bp .note.lose{color:#8E2A22}
+
+/* ---------- live bets ---------- */
+.sec{font-family:var(--display);font-weight:800;font-size:22px;padding:20px 16px 8px}
+.list{margin:0 16px;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.li{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;font-size:14px;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li b{font-weight:700}
+.li.won{background:#EAF6EF}
+.li .w{color:#0F5133;font-weight:800}
+.fair{margin:16px;font-size:12px;color:var(--muted);word-break:break-all;line-height:1.5}
+.fair a{color:var(--turf);font-weight:700;text-decoration:underline;cursor:pointer}
+
+/* ---------- wallet ---------- */
+.wal{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 16px 0}
+.wc{border-radius:18px;padding:14px;color:#fff;position:relative;overflow:hidden;min-height:112px}
+.wc.bingo{background:linear-gradient(150deg,var(--turf),var(--pitch))}
+.wc.av{background:linear-gradient(150deg,#C9971A,#7A5A00)}
+.wc small{display:block;font-weight:700;font-size:12px;opacity:.9}
+.wc b{display:block;font-family:var(--display);font-size:34px;font-weight:900;line-height:1.05;margin-top:4px}
+.wc em{display:block;font-style:normal;font-size:11.5px;margin-top:6px;opacity:.9;font-weight:600}
+.wc::after{content:"";position:absolute;right:-26px;bottom:-30px;width:90px;height:90px;border-radius:50%;border:2px solid rgba(255,255,255,.16)}
+.panel{margin:14px 16px 0;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px}
+.panel h3{font-family:var(--display);font-size:24px;font-weight:800;line-height:1.1}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.acc{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#E1EEE7;border-radius:12px;padding:11px 13px;margin-top:10px}
+.acc b{font-family:var(--display);font-size:24px;letter-spacing:.03em}
+.acc button{background:var(--turf);color:#fff;border-radius:9px;padding:7px 12px;font-weight:700;font-size:13px}
+.dep{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.dep:last-child{border-bottom:0}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;z-index:60;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.win{background:var(--flood);color:var(--flood-ink)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="bar">
+    <div class="logo">
+      <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#fff"/><path d="M6 20l20-9-6 14-4-5-4 4-1-6z" fill="#0D3B2C"/></svg>
+      <span id="botName">Aviator</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="pill sound" id="soundBtn" aria-label="Sound">🔊</button>
+      <button class="pill" id="balPill">–</button>
+    </div>
+  </div>
+  <div class="seg" id="tabs">
+    <button data-tab="av" aria-pressed="true">✈ Aviator</button>
+    <button data-tab="bingo" aria-pressed="false">🎯 Bingo</button>
+    <button data-tab="wallet" aria-pressed="false">💰 Wallet</button>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <div id="authFail" class="empty" hidden>Please open this from the bot inside Telegram.</div>
+
+  <!-- ================= AVIATOR ================= -->
+  <section id="viewAv">
+    <div class="hist" id="hist"></div>
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="live" id="phaseTag">STARTING</div>
+      <div class="net" id="netTag" hidden>reconnecting…</div>
+      <div class="mult" id="mult">1.00x<small id="multSub"></small></div>
+      <div class="countbar" id="countbar" hidden><i id="countfill"></i></div>
+    </div>
+
+    <div class="pad" id="avMsg"></div>
+
+    <div class="bets" id="bets"></div>
+
+    <div class="sec">Players this round <span class="muted" id="playersCount"></span></div>
+    <div class="list" id="liveList"><div class="empty" style="padding:22px">No bets yet.</div></div>
+
+    <div class="sec">My recent bets</div>
+    <div class="list" id="myList"><div class="empty" style="padding:22px">Nothing yet.</div></div>
+
+    <div class="fair" id="fair"></div>
+  </section>
+
+  <!-- ================= WALLET ================= -->
+  <section id="viewWallet" hidden>
+    <div class="wal">
+      <div class="wc bingo"><small>BINGO WALLET</small><b id="wBingo">0.00</b><em id="wBingoSub"></em></div>
+      <div class="wc av"><small>AVIATOR WALLET</small><b id="wAv">0.00</b><em>Deposits only</em></div>
+    </div>
+    <div class="pad" id="walMsg"></div>
+
+    <div class="panel">
+      <h3>Deposit</h3>
+      <p class="muted" style="margin-top:4px">Pay first, then paste the payment SMS. It is checked automatically and credited right away.</p>
+      <label>Deposit to</label>
+      <div class="chips" id="depWallet">
+        <button class="chipbtn" data-v="aviator" aria-pressed="true">✈ Aviator wallet</button>
+        <button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button>
+      </div>
+      <label>Pay with</label>
+      <div class="chips" id="depMethod"></div>
+      <div class="acc"><div><div class="muted" id="accLabel">Send money to</div><b id="accNum">–</b></div><button id="copyAcc">Copy</button></div>
+      <label>Payment SMS or transaction number</label>
+      <textarea id="depRef" rows="4" placeholder="Paste the whole SMS here, or just the transaction number (e.g. DJE9T39EU9)"></textarea>
+      <label>Amount (ETB) <span style="font-weight:500">— optional if you pasted the SMS</span></label>
+      <input type="number" id="depAmt" inputmode="decimal" placeholder="e.g. 100">
+      <div id="depMsg"></div>
+      <button class="btn go" id="depBtn" style="margin-top:14px">Verify &amp; deposit</button>
+    </div>
+
+    <div class="panel">
+      <h3>Recent deposits</h3>
+      <div id="depList"><p class="muted" style="margin-top:8px">No deposits yet.</p></div>
+    </div>
+
+    <div class="panel">
+      <h3>Withdraw</h3>
+      <p class="muted" style="margin-top:4px" id="wdRule"></p>
+      <label>Withdraw from</label>
+      <div class="chips" id="wdWallet">
+        <button class="chipbtn" data-v="aviator" aria-pressed="true">✈ Aviator wallet</button>
+        <button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button>
+      </div>
+      <label>Amount (ETB)</label>
+      <input type="number" id="wdAmt" inputmode="decimal" placeholder="e.g. 200">
+      <label>Telebirr phone number</label>
+      <input type="tel" id="wdPhone" inputmode="tel" placeholder="09xxxxxxxx">
+      <div id="wdMsg"></div>
+      <button class="btn" id="wdBtn" style="margin-top:14px">Request withdrawal</button>
+      <p class="muted" style="margin-top:10px">The registration bonus can only be used in Bingo.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const API_URL = 'https://gmae-production-aa21.up.railway.app'; // same backend as the other pages
+const tg = window.Telegram && window.Telegram.WebApp;
+const BOT = new URLSearchParams(location.search).get('b');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+async function api(path, method = 'GET', body) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+function toast(text, win) {
+  const t = document.createElement('div'); t.className = 'toast' + (win ? ' win' : ''); t.textContent = text;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
+}
+
+/* ---------------------------------------------------------------- */
+/* Sound — put Crash.mp3, Claim.mp3 and Background.mp3 in public/     */
+/* ---------------------------------------------------------------- */
+const Sound = (() => {
+  let muted = localStorage.getItem('av_muted') === '1';
+  const make = (name, loop, vol) => {
+    const bases = ['/public/', '/', 'public/'];
+    const a = new Audio(); a.preload = 'auto'; a.loop = !!loop; a.volume = vol;
+    let i = 0; a.onerror = () => { if (++i < bases.length) a.src = bases[i] + name; else a.dataset.missing = '1'; };
+    a.src = bases[0] + name; return a;
+  };
+  const crash = make('Crash.mp3', false, 0.9), claim = make('Claim.mp3', false, 0.9), bg = make('Background.mp3', true, 0.22);
+  let ctx = null;
+  const beep = (f1, f2, d, v) => { // fallback if an mp3 is missing
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume();
+      const o = ctx.createOscillator(), g = ctx.createGain(), n = ctx.currentTime;
+      o.type = 'triangle'; o.frequency.setValueAtTime(f1, n); o.frequency.exponentialRampToValueAtTime(Math.max(f2, 1), n + d);
+      g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d); o.connect(g); g.connect(ctx.destination); o.start(n); o.stop(n + d + .05);
+    } catch (_) {}
+  };
+  const play = (a, fb) => { if (muted) return; if (a.dataset.missing) return fb && fb(); a.currentTime = 0; a.play().catch(() => fb && fb()); };
+  return {
+    crash: () => play(crash, () => beep(220, 55, .4, .25)),
+    claim: () => play(claim, () => { beep(660, 990, .18, .2); setTimeout(() => beep(990, 1320, .2, .16), 100); }),
+    bet: () => beep(440, 660, .08, .12),
+    startBg() { if (!muted && !bg.dataset.missing) bg.play().catch(() => {}); },
+    stopBg() { bg.pause(); },
+    get muted() { return muted; },
+    toggle() { muted = !muted; localStorage.setItem('av_muted', muted ? '1' : '0'); muted ? bg.pause() : bg.play().catch(() => {}); return muted; },
+  };
+})();
+document.addEventListener('pointerdown', () => Sound.startBg(), { once: true });
+$('soundBtn').textContent = Sound.muted ? '🔇' : '🔊';
+$('soundBtn').onclick = () => { $('soundBtn').textContent = Sound.toggle() ? '🔇' : '🔊'; };
+
+/* ---------------------------------------------------------------- */
+/* Tabs                                                               */
+/* ---------------------------------------------------------------- */
+let tab = 'av';
+function setTab(t) {
+  if (t === 'bingo') { location.href = `bingo?b=${encodeURIComponent(BOT)}`; return; }
+  tab = t;
+  document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tab === t));
+  $('viewAv').hidden = t !== 'av'; $('viewWallet').hidden = t !== 'wallet';
+  if (t === 'wallet') loadWallet();
+  history.replaceState(null, '', t === 'wallet' ? '#wallet' : location.pathname + location.search);
+}
+$('tabs').onclick = (e) => { const b = e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); };
+$('balPill').onclick = () => setTab('wallet');
+
+/* ---------------------------------------------------------------- */
+/* Aviator state                                                      */
+/* ---------------------------------------------------------------- */
+const G = { phase: 'starting', offset: 0, flyingSince: 0, bettingEndsAt: 0, crash: null, roundId: null, hash: '', history: [], live: [], players: 0 };
+const me = { balance: 0, min: 5, max: 5000, bets: {}, enabled: true };
+const mult = (t) => Math.round((1 + 0.05 * t + 0.02 * t * t) * 100) / 100; // same curve as the server
+const serverNow = () => Date.now() + G.offset;
+const curMult = () => G.phase === 'flying' ? mult(Math.max(0, (serverNow() - G.flyingSince) / 1000)) : (G.phase === 'ended' ? G.crash : 1);
+const slotState = [null, { amt: 10, auto: '' }, { amt: 10, auto: '' }];
+const wonShown = new Set();
+
+function sync(d) { if (d.now) G.offset = d.now - Date.now(); }
+function applyHistory(h) { if (h) { G.history = h; renderHistory(); } }
+function renderHistory() {
+  $('hist').innerHTML = G.history.map((c) => `<i class="${c >= 10 ? 'hi' : c >= 2 ? 'mid' : c < 1.2 ? 'low' : ''}">${c.toFixed(2)}x</i>`).join('');
+}
+
+function connect() {
+  const es = new EventSource(`${API_URL}/api/aviator/stream`);
+  es.onopen = () => { $('netTag').hidden = true; };
+  es.onerror = () => { $('netTag').hidden = false; };
+  es.addEventListener('state', (e) => {
+    const d = JSON.parse(e.data); sync(d);
+    G.phase = d.phase; G.roundId = d.round_id || null; G.hash = d.server_seed_hash || '';
+    G.flyingSince = d.flying_since || 0; G.bettingEndsAt = d.betting_ends_at || 0; G.crash = d.crash_point || null;
+    G.live = d.bets || []; G.players = d.players || 0; applyHistory(d.history); renderLive(); renderFair(); loadMe();
+  });
+  es.addEventListener('betting', (e) => {
+    const d = JSON.parse(e.data); sync(d);
+    Object.assign(G, { phase: 'betting', roundId: d.round_id, hash: d.server_seed_hash, bettingEndsAt: d.betting_ends_at, crash: null, live: [], players: 0 });
+    applyHistory(d.history); $('stage').classList.remove('crashed'); renderLive(); renderFair(); loadMe();
+  });
+  es.addEventListener('flying', (e) => {
+    const d = JSON.parse(e.data); sync(d);
+    G.phase = 'flying'; G.flyingSince = d.flying_since; renderBets();
+  });
+  es.addEventListener('crash', (e) => {
+    const d = JSON.parse(e.data); sync(d);
+    G.phase = 'ended'; G.crash = d.crash_point; applyHistory(d.history);
+    $('stage').classList.add('crashed'); Sound.crash(); renderFair(d); loadMe(); loadMyBets();
+  });
+  es.addEventListener('live', (e) => { const d = JSON.parse(e.data); G.live = d.bets || []; G.players = d.players || 0; renderLive(); });
+}
+
+async function loadMe() {
+  try {
+    const m = await api(`/api/mini/${BOT}/aviator/me`);
+    const prev = me.bets;
+    me.balance = m.balance; me.min = m.min; me.max = m.max; me.enabled = m.enabled;
+    me.bets = {}; (m.bets || []).forEach((b) => { me.bets[b.slot] = b; });
+    // a bet that turned into a win without us pressing the button = auto cash-out
+    Object.values(me.bets).forEach((b) => {
+      const k = `${m.round_id}:${b.slot}`;
+      if (b.status === 'cashed_out' && !wonShown.has(k)) {
+        wonShown.add(k);
+        if (!(prev[b.slot] && prev[b.slot].status === 'cashed_out')) { Sound.claim(); toast(`+${fmt(b.payout)} ETB  @ ${b.mult.toFixed(2)}x`, true); }
+      }
+    });
+    $('balPill').textContent = `✈ ${fmt(me.balance)} ETB`;
+    renderBets();
+  } catch (e) { $('avMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+async function loadMyBets() {
+  try {
+    const r = await api(`/api/mini/${BOT}/aviator/my-bets`);
+    $('myList').innerHTML = r.bets.length ? r.bets.map((b) => `
+      <div class="li ${b.status === 'cashed_out' ? 'won' : ''}"><span><b>${fmt(b.amount)}</b> ETB${b.mult ? ` · ${b.mult.toFixed(2)}x` : ''}</span>
+      ${b.status === 'cashed_out' ? `<span class="w">+${fmt(b.payout)}</span>` : b.status === 'refunded' ? '<span class="muted">refunded</span>' : '<span class="muted">lost</span>'}</div>`).join('')
+      : '<div class="empty" style="padding:22px">Nothing yet.</div>';
+  } catch (_) {}
+}
+
+/* ---------------- bet panels ---------------- */
+function renderBets() {
+  if (!me.enabled) { $('bets').innerHTML = '<div class="msg info">Aviator is switched off for now.</div>'; return; }
+  const box = $('bets');
+  if (!box.children.length) {
+    box.innerHTML = [1, 2].map((s) => `
+      <div class="bp" data-s="${s}">
+        <div class="head"><b>Bet ${s}</b><span class="muted" data-r="hint"></span></div>
+        <div class="stepper"><button data-a="dec">−</button><input type="number" inputmode="decimal" data-r="amt"><button data-a="inc">+</button></div>
+        <div class="quick">${[10, 20, 50, 100].map((q) => `<button data-q="${q}">${q}</button>`).join('')}</div>
+        <div class="auto"><span>Auto cash-out</span><input type="number" inputmode="decimal" data-r="auto" placeholder="e.g. 2.00 (optional)"></div>
+        <button class="btn go" data-r="btn"></button>
+        <div class="note" data-r="note"></div>
+      </div>`).join('');
+    box.querySelectorAll('.bp').forEach((p) => {
+      const s = Number(p.dataset.s), amt = p.querySelector('[data-r=amt]'), auto = p.querySelector('[data-r=auto]');
+      amt.value = slotState[s].amt;
+      amt.oninput = () => { slotState[s].amt = Number(amt.value) || 0; paint(); };
+      auto.oninput = () => { slotState[s].auto = auto.value; };
+      p.onclick = (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.q) { slotState[s].amt = Number(b.dataset.q); amt.value = b.dataset.q; paint(); }
+        if (b.dataset.a) { const v = Math.max(me.min, (Number(amt.value) || me.min) + (b.dataset.a === 'inc' ? me.min : -me.min)); slotState[s].amt = v; amt.value = v; paint(); }
+        if (b.dataset.r === 'btn') act(s);
+      };
+    });
+  }
+  paint();
+}
+function paint() {
+  document.querySelectorAll('.bp').forEach((p) => {
+    const s = Number(p.dataset.s), b = me.bets[s], btn = p.querySelector('[data-r=btn]'), note = p.querySelector('[data-r=note]');
+    const amtEl = p.querySelector('[data-r=amt]'), autoEl = p.querySelector('[data-r=auto]');
+    p.querySelector('[data-r=hint]').textContent = `${me.min}–${me.max} ETB`;
+    const locked = !!b; amtEl.disabled = locked; autoEl.disabled = locked;
+    btn.className = 'btn go'; btn.disabled = false; note.textContent = ''; note.className = 'note';
+    const ph = G.phase;
+    if (b && b.status === 'placed' && ph === 'flying') {
+      btn.className = 'btn go cash'; btn.textContent = `CASH OUT  ${fmt(b.amount * curMult())} ETB`;
+    } else if (b && b.status === 'placed' && ph === 'betting') {
+      btn.className = 'btn ghost'; btn.textContent = `Cancel bet (${fmt(b.amount)} ETB)`;
+    } else if (b && b.status === 'cashed_out') {
+      btn.className = 'btn ghost'; btn.disabled = true; btn.textContent = 'Cashed out';
+      note.className = 'note win'; note.textContent = `Won +${fmt(b.payout)} ETB at ${b.mult.toFixed(2)}x`;
+    } else if (b && b.status === 'lost') {
+      btn.className = 'btn ghost'; btn.disabled = true; btn.textContent = 'Plane flew away';
+      note.className = 'note lose'; note.textContent = `Lost ${fmt(b.amount)} ETB`;
+    } else if (ph === 'betting') {
+      btn.textContent = `BET  ${fmt(Number(amtEl.value) || 0)} ETB`;
+    } else {
+      btn.className = 'btn ghost'; btn.disabled = true; btn.textContent = ph === 'flying' ? 'Wait for next round' : 'Next round starting…';
+    }
+  });
+}
+let acting = false;
+async function act(slot) {
+  if (acting) return; acting = true; $('avMsg').innerHTML = '';
+  const b = me.bets[slot];
+  try {
+    if (b && b.status === 'placed' && G.phase === 'flying') {
+      const r = await api(`/api/mini/${BOT}/aviator/cashout`, 'POST', { slot });
+      Sound.claim(); toast(`+${fmt(r.payout)} ETB  @ ${r.mult.toFixed(2)}x`, true);
+      wonShown.add(`${G.roundId}:${slot}`);
+    } else if (b && b.status === 'placed') {
+      await api(`/api/mini/${BOT}/aviator/cancel`, 'POST', { slot });
+    } else if (G.phase === 'betting') {
+      const amount = Number(document.querySelector(`.bp[data-s="${slot}"] [data-r=amt]`).value);
+      const auto = document.querySelector(`.bp[data-s="${slot}"] [data-r=auto]`).value;
+      await api(`/api/mini/${BOT}/aviator/bet`, 'POST', { slot, amount, auto_cashout_at: auto ? Number(auto) : null });
+      Sound.bet();
+    }
+  } catch (e) {
+    $('avMsg').innerHTML = `<div class="msg err">${esc(e.message)}${/wallet/i.test(e.message) ? ' <a href="#wallet" onclick="setTab(\'wallet\')" style="font-weight:700;text-decoration:underline">Deposit</a>' : ''}</div>`;
+  } finally { acting = false; loadMe(); }
+}
+
+function renderLive() {
+  $('playersCount').textContent = G.players ? `· ${G.players}` : '';
+  $('liveList').innerHTML = G.live.length ? G.live.map((b) => `
+    <div class="li ${b.status === 'cashed_out' ? 'won' : ''}"><span>${esc(b.name)} · <b>${fmt(b.amount)}</b></span>
+    ${b.status === 'cashed_out' ? `<span class="w">${b.mult.toFixed(2)}x · +${fmt(b.payout)}</span>` : b.status === 'lost' ? '<span class="muted">lost</span>' : '<span class="muted">in play</span>'}</div>`).join('')
+    : '<div class="empty" style="padding:22px">No bets yet.</div>';
+}
+function renderFair(crashed) {
+  const verify = crashed ? `<br>Last round: <a onclick="verifyRound('${esc(crashed.round_id)}')">verify</a>` : '';
+  $('fair').innerHTML = `Round hash (published before the round): <br><code>${esc(G.hash || '…')}</code>${verify}
+    <br>Payouts are limited to what the platform has collected; a round limited for that reason is marked when you verify it.`;
+}
+async function verifyRound(id) {
+  try {
+    const r = await fetch(`${API_URL}/api/aviator/verify/${encodeURIComponent(id)}`).then((x) => x.json());
+    alert(r.error ? r.error : `Hash matches seed: ${r.hash_matches ? 'YES' : 'NO'}\nSeed crash point: ${r.seed_crash_point}x\nPlayed crash point: ${r.crash_point}x${r.limited ? ' (limited to platform funds)' : ''}`);
+  } catch (e) { alert('Could not verify right now.'); }
+}
+
+/* ---------------- stage drawing ---------------- */
+const cv = $('cv'), cx = cv.getContext('2d');
+function fit() { const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', fit); fit();
+let planeOff = 0; // after a crash the plane keeps going to the right and fades
+let lastPhase = '';
+
+function frame() {
+  const W = cv.clientWidth, H = cv.clientHeight; cx.clearRect(0, 0, W, H);
+  const ph = G.phase, m = curMult();
+  if (ph !== lastPhase) { if (ph === 'ended') planeOff = 0; lastPhase = ph; }
+  const tag = $('phaseTag'), mEl = $('mult'), sub = $('multSub'), bar = $('countbar');
+  const padL = 26, padB = 30, padT = H * .26, padR = 40;
+
+  if (ph === 'betting') {
+    const left = Math.max(0, G.bettingEndsAt - serverNow()), frac = left / 8000;
+    tag.textContent = 'PLACE YOUR BETS'; mEl.firstChild.nodeValue = `${(left / 1000).toFixed(1)}s`; sub.textContent = 'next take-off';
+    bar.hidden = false; $('countfill').style.width = `${frac * 100}%`; drawPlane(padL, H - padB, -0.2, 1);
+  } else if (ph === 'flying' || ph === 'ended') {
+    bar.hidden = true;
+    const t = ph === 'flying' ? Math.max(0, (serverNow() - G.flyingSince) / 1000) : tFor(G.crash);
+    const xMax = Math.max(5, t * 1.18), yMax = Math.max(2, m * 1.25);
+    const X = (tt) => padL + (tt / xMax) * (W - padL - padR);
+    const Y = (mm) => H - padB - ((mm - 1) / (yMax - 1)) * (H - padB - padT);
+    cx.beginPath(); cx.moveTo(X(0), Y(1));
+    const steps = 70; let px = X(0), py = Y(1), ang = -0.2;
+    for (let i = 1; i <= steps; i++) { const tt = t * i / steps, x = X(tt), y = Y(mult(tt)); cx.lineTo(x, y); ang = Math.atan2(y - py, x - px); px = x; py = y; }
+    cx.strokeStyle = ph === 'ended' ? '#FF9C93' : '#FFCE2E'; cx.lineWidth = 4; cx.lineCap = 'round'; cx.stroke();
+    cx.lineTo(px, H - padB); cx.lineTo(X(0), H - padB); cx.closePath();
+    const g = cx.createLinearGradient(0, padT, 0, H); g.addColorStop(0, ph === 'ended' ? 'rgba(255,120,110,.28)' : 'rgba(255,206,46,.34)'); g.addColorStop(1, 'rgba(255,206,46,0)');
+    cx.fillStyle = g; cx.fill();
+    if (ph === 'flying') {
+      tag.textContent = 'IN FLIGHT'; mEl.firstChild.nodeValue = `${m.toFixed(2)}x`; sub.textContent = '';
+      drawPlane(px, py, ang, 1);
+    } else {
+      planeOff += 16; tag.textContent = 'CRASHED'; mEl.firstChild.nodeValue = `${G.crash.toFixed(2)}x`; sub.textContent = 'FLEW AWAY';
+      drawPlane(px + planeOff, py - planeOff * .35, ang - .25, Math.max(0, 1 - planeOff / 240));
+    }
+  } else { tag.textContent = 'STARTING'; mEl.firstChild.nodeValue = '1.00x'; sub.textContent = 'connecting…'; bar.hidden = true; drawPlane(padL, H - padB, -0.2, 1); }
+  if (ph === 'flying') paint(); // keeps the cash-out amount moving
+  requestAnimationFrame(frame);
+}
+function tFor(mm) { const a = .02, b = .05, c = 1 - mm; return Math.max(0, (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a)); }
+function drawPlane(x, y, ang, alpha) {
+  if (alpha <= 0) return;
+  cx.save(); cx.globalAlpha = alpha; cx.translate(x, y); cx.rotate(ang);
+  cx.shadowColor = 'rgba(0,0,0,.35)'; cx.shadowBlur = 10; cx.shadowOffsetY = 4;
+  cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(26, 0); cx.lineTo(-6, -11); cx.lineTo(-14, -4); cx.lineTo(-22, -16); cx.lineTo(-26, -15); cx.lineTo(-20, 0);
+  cx.lineTo(-26, 15); cx.lineTo(-22, 16); cx.lineTo(-14, 4); cx.lineTo(-6, 11); cx.closePath(); cx.fill();
+  cx.shadowColor = 'transparent'; cx.fillStyle = '#0D3B2C'; cx.beginPath(); cx.arc(10, 0, 3.4, 0, 7); cx.fill();
+  cx.restore();
+}
+
+/* ---------------------------------------------------------------- */
+/* Wallet                                                             */
+/* ---------------------------------------------------------------- */
+const W = { depWallet: 'aviator', method: 'telebirr', wdWallet: 'aviator', data: null };
+function chips(id, key, after) {
+  $(id).onclick = (e) => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    W[key] = b.dataset.v; $(id).querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); if (after) after();
+  };
+}
+chips('depWallet', 'depWallet'); chips('wdWallet', 'wdWallet');
+
+function paintMethods() {
+  const ms = W.data.methods;
+  $('depMethod').innerHTML = ms.map((m) => `<button class="chipbtn" data-v="${m.id}" aria-pressed="${m.id === W.method}">${esc(m.label)}</button>`).join('');
+  const m = ms.find((x) => x.id === W.method) || ms[0];
+  $('accLabel').textContent = `Send money to ${m.label}`; $('accNum').textContent = m.number;
+}
+chips('depMethod', 'method', () => paintMethods());
+$('copyAcc').onclick = () => { navigator.clipboard && navigator.clipboard.writeText($('accNum').textContent).then(() => toast('Number copied')); };
+
+async function loadWallet() {
+  try {
+    const d = await api(`/api/mini/${BOT}/wallets`); W.data = d;
+    $('botName').textContent = d.name || 'Aviator';
+    $('wBingo').textContent = fmt(d.bingo.playable);
+    $('wBingoSub').textContent = d.bingo.bonus > 0 ? `Includes ${fmt(d.bingo.bonus)} bonus` : 'Deposit + bonus';
+    $('wAv').textContent = fmt(d.aviator.balance);
+    $('balPill').textContent = `✈ ${fmt(d.aviator.balance)} ETB`;
+    $('wdRule').textContent = d.canWithdraw ? 'Withdraw your winnings to Telebirr.' : `You need to deposit at least ${d.withdrawMinDeposit} ETB in total before you can withdraw.`;
+    if (!W.data.methods.find((m) => m.id === W.method)) W.method = 'telebirr';
+    paintMethods();
+    const l = await api(`/api/mini/${BOT}/deposits`);
+    $('depList').innerHTML = l.deposits.length ? l.deposits.map((x) => `
+      <div class="dep"><span><b>${fmt(x.amount)}</b> ETB · ${x.wallet === 'aviator' ? 'Aviator' : 'Bingo'}<br><span class="muted">${new Date(x.at).toLocaleString()}</span></span>
+      <span class="st ${x.status === 'rejected' ? 'bad' : x.status === 'pending' ? 'wait' : 'ok'}">${x.status === 'pending' ? 'checking' : x.status === 'rejected' ? 'rejected' : x.auto ? 'verified' : 'approved'}</span></div>`).join('')
+      : '<p class="muted" style="margin-top:8px">No deposits yet.</p>';
+  } catch (e) { $('walMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+
+$('depBtn').onclick = async () => {
+  const btn = $('depBtn'); $('depMsg').innerHTML = '';
+  const reference = $('depRef').value.trim(); if (!reference) { $('depMsg').innerHTML = '<div class="msg err">Paste the payment SMS or enter the transaction number.</div>'; return; }
+  btn.disabled = true; btn.textContent = 'Checking your payment…';
+  try {
+    const r = await api(`/api/mini/${BOT}/deposit`, 'POST', { wallet: W.depWallet, method: W.method, reference, amount: $('depAmt').value });
+    if (r.result === 'credited') { $('depMsg').innerHTML = `<div class="msg ok">✅ ${fmt(r.amount)} ETB added to your ${r.wallet === 'aviator' ? 'Aviator' : 'Bingo'} wallet.</div>`; Sound.claim(); $('depRef').value = ''; $('depAmt').value = ''; }
+    else $('depMsg').innerHTML = `<div class="msg info">${esc(r.message)}</div>`;
+    loadWallet();
+  } catch (e) { $('depMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+  btn.disabled = false; btn.textContent = 'Verify & deposit';
+};
+$('wdBtn').onclick = async () => {
+  const btn = $('wdBtn'); $('wdMsg').innerHTML = ''; btn.disabled = true;
+  try {
+    const r = await api(`/api/mini/${BOT}/withdraw`, 'POST', { wallet: W.wdWallet, amount: $('wdAmt').value, phone: $('wdPhone').value });
+    $('wdMsg').innerHTML = `<div class="msg ok">${esc(r.message)}</div>`; $('wdAmt').value = ''; loadWallet();
+  } catch (e) { $('wdMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+  btn.disabled = false;
+};
+
+/* ---------------------------------------------------------------- */
+(function init() {
+  if (!tg || !tg.initData || !BOT) { $('authFail').hidden = false; $('viewAv').hidden = true; return; }
+  tg.ready(); tg.expand();
+  connect(); loadMyBets(); requestAnimationFrame(frame);
+  api(`/api/mini/${BOT}/wallets`).then((d) => { $('botName').textContent = d.name || 'Aviator'; }).catch(() => {});
+  if (location.hash === '#wallet') setTab('wallet');
+  setInterval(() => { if (tab === 'av' && (G.phase === 'flying' && Object.keys(me.bets).length)) loadMe(); }, 900); // catches auto cash-outs
+})();
+</script>
+</body>
+</html>
