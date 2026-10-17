@@ -600,13 +600,15 @@ const avatar = (i, extra = '') => `<span class="ai ${extra}" style="background:$
 /* ---------- sound: put Crash.mp3, Claim.mp3, Background.mp3 in public/ ---------- */
 const Pref = { sound: ls('av_sound', '1') === '1', music: ls('av_music', '1') === '1', anim: ls('av_anim', '1') === '1' };
 const Sound = (() => {
-  const make = (name, loop, vol) => {
-    const bases = ['/public/', '/', 'public/'];
+  // File names are case-sensitive on GitHub/Vercel, so try lower and upper case, in public/ and in the main folder.
+  const make = (names, loop, vol) => {
+    const urls = [];
+    for (const base of ['/public/', '/', 'public/']) for (const n of names) urls.push(base + n);
     const a = new Audio(); a.preload = 'auto'; a.loop = !!loop; a.volume = vol;
-    let i = 0; a.onerror = () => { if (++i < bases.length) a.src = bases[i] + name; else a.dataset.missing = '1'; };
-    a.src = bases[0] + name; return a;
+    let i = 0; a.onerror = () => { if (++i < urls.length) a.src = urls[i]; else a.dataset.missing = '1'; };
+    a.src = urls[0]; return a;
   };
-  const crash = make('Crash.mp3', false, 0.9), claim = make('Claim.mp3', false, 0.9), bg = make('Background.mp3', true, 0.22);
+  const crash = make(['crash.mp3', 'Crash.mp3'], false, 0.9), claim = make(['claim.mp3', 'Claim.mp3', 'cashout.mp3'], false, 0.9), bg = make(['background.mp3', 'Background.mp3'], true, 0.22);
   let ctx = null;
   const beep = (f1, f2, d, v) => {
     try {
