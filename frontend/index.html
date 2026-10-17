@@ -1,47 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registration Bonus</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Aviator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#0D3B2C; --turf:#17694B; --turf-2:#1E7C58; --chalk:#EEF3F0; --paper:#FFFFFF;
+  --ink:#0B1B15; --muted:#587066; --line:#D3DFD8; --flood:#FFCE2E; --flood-ink:#3A2C00;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--body);background:var(--chalk);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{width:min(560px,100%);margin:0 auto}
+.hero{background:var(--pitch);color:#fff;position:relative;overflow:hidden;padding:26px 20px 70px}
+.hero::after{content:"";position:absolute;right:-60px;top:-80px;width:230px;height:230px;border-radius:50%;border:2px solid rgba(255,255,255,.12)}
+.hero::before{content:"";position:absolute;right:-6px;top:-30px;width:110px;height:110px;border-radius:50%;border:2px solid rgba(255,255,255,.1)}
+.hero .wrap{position:relative;z-index:1}
+.tag{display:inline-block;background:var(--flood);color:var(--flood-ink);font-weight:800;font-size:12px;padding:4px 10px;border-radius:8px}
+h1{font-family:var(--display);font-weight:900;font-size:62px;line-height:.95;margin:14px 0 8px}
+h1 em{font-style:normal;color:var(--flood)}
+.hero p{color:#BFD4C9;max-width:380px;font-size:16px}
+.sky{position:relative;margin:-48px 16px 0;border-radius:22px;overflow:hidden;aspect-ratio:16/8.5;border:1px solid rgba(0,0,0,.08);box-shadow:0 18px 30px -18px rgba(0,0,0,.5);background:
+  radial-gradient(60% 40% at 0% 0%,rgba(255,246,196,.5),transparent 72%),
+  radial-gradient(60% 40% at 100% 0%,rgba(255,246,196,.5),transparent 72%),
+  repeating-linear-gradient(90deg,var(--turf) 0 28px,var(--turf-2) 28px 56px)}
+.sky svg{position:absolute;inset:0;width:100%;height:100%}
+.sky .x{position:absolute;left:16px;top:12px;font-family:var(--display);font-weight:900;font-size:44px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.path{stroke-dasharray:420;stroke-dashoffset:420;animation:draw 5s ease-in infinite}
+@keyframes draw{0%{stroke-dashoffset:420}85%,100%{stroke-dashoffset:0}}
+.plane{offset-path:path("M20 150 C 120 148, 210 120, 330 30");offset-rotate:auto;animation:fly 5s ease-in infinite}
+@keyframes fly{0%{offset-distance:0%;opacity:1}85%{offset-distance:100%;opacity:1}100%{offset-distance:100%;opacity:0}}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px 16px 0}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.stat .num{font-family:var(--display);font-weight:900;font-size:34px;line-height:1}
+.stat .label{font-size:12px;color:var(--muted);font-weight:700;margin-top:4px}
+.sec{font-family:var(--display);font-weight:800;font-size:24px;padding:22px 16px 8px}
+.list{padding:0 16px;display:grid;gap:10px}
+.go{display:flex;align-items:center;justify-content:space-between;gap:10px;text-decoration:none;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px 16px;transition:transform .12s}
+.go:active{transform:scale(.98)}
+.go b{font-size:16px}
+.go span{display:block;color:var(--muted);font-size:13px}
+.go i{font-style:normal;background:var(--flood);color:var(--flood-ink);font-weight:800;padding:9px 14px;border-radius:12px;white-space:nowrap}
+.feat{display:grid;gap:10px;padding:0 16px}
+.feat div{background:#E1EEE7;border-radius:14px;padding:12px 14px;font-size:14px;color:#0F4B35;font-weight:600}
+.foot{text-align:center;padding:26px 16px;font-size:12px}
+.foot a{color:var(--muted);text-decoration:none}
+</style>
 </head>
-<body class="center">
-  <div class="card hero">
-    <h1>Registration Bonus</h1>
-    <p class="sub">Start a bot below and claim your bonus.</p>
+<body>
+  <section class="hero"><div class="wrap">
+    <span class="tag">LIVE · PLAY &amp; WIN</span>
+    <h1>Take off.<br><em>Cash out</em> in time.</h1>
+    <p>Watch the plane climb, cash out before it flies away. Plus Bingo, all inside Telegram.</p>
+  </div></section>
+
+  <div class="wrap">
+    <div class="sky">
+      <svg viewBox="0 0 340 170" preserveAspectRatio="none">
+        <path class="path" d="M20 150 C 120 148, 210 120, 330 30" fill="none" stroke="#FFCE2E" stroke-width="4" stroke-linecap="round"/>
+        <g class="plane"><path d="M14 0 L-3 -6 L-8 -2 L-12 -9 L-14 -8 L-11 0 L-14 8 L-12 9 L-8 2 L-3 6 Z" fill="#fff"/></g>
+      </svg>
+      <div class="x">Aviator</div>
+    </div>
 
     <div class="stats">
-      <div class="stat"><div class="num" id="users">–</div><div class="label">Total users</div></div>
+      <div class="stat"><div class="num" id="users">–</div><div class="label">Players</div></div>
       <div class="stat"><div class="num" id="claimed">–</div><div class="label">Bonuses claimed</div></div>
     </div>
 
-    <div id="bots"></div>
-    <a href="admin.html" class="sub" style="display:block;margin-top:20px;font-size:12px;color:var(--faint);text-decoration:none">Admin</a>
+    <div class="sec">Start playing</div>
+    <div class="list" id="bots"><p style="color:var(--muted);padding:6px 2px">Loading…</p></div>
+
+    <div class="sec">How it works</div>
+    <div class="feat">
+      <div>✈ Aviator — bet, watch the multiplier rise, cash out before it crashes.</div>
+      <div>🎯 Bingo — pick a card, win the pool. The registration bonus plays here.</div>
+      <div>✅ Deposits are verified automatically from your Telebirr SMS.</div>
+    </div>
+
+    <div class="foot"><a href="admin.html">Admin</a></div>
   </div>
 
   <script>
     // Set this to your backend URL
     const API_URL = 'https://gmae-production-aa21.up.railway.app';
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     fetch(`${API_URL}/api/public`)
       .then((r) => r.json())
       .then((d) => {
         document.getElementById('users').textContent = d.totalUsers;
         document.getElementById('claimed').textContent = d.bonusesClaimed;
-
         const box = document.getElementById('bots');
-        if (!d.bots.length) { box.innerHTML = '<p class="sub">No bots available yet.</p>'; return; }
-
+        if (!d.bots.length) { box.innerHTML = '<p style="color:var(--muted);padding:6px 2px">No bots available yet.</p>'; return; }
         box.innerHTML = d.bots.map((b) =>
-          `<a class="btn block" target="_blank" href="https://t.me/${b.bot_username}?start=web">
-             ${b.name} — ${b.bonus} birr
-           </a>`
-        ).join('');
+          `<a class="go" target="_blank" href="https://t.me/${esc(b.bot_username)}?start=web">
+             <div><b>${esc(b.name)}</b><span>Claim ${esc(b.bonus)} birr registration bonus</span></div><i>Play ✈</i>
+           </a>`).join('');
       })
-      .catch(() => {
-        document.getElementById('bots').innerHTML = '<p class="sub">Could not load bots.</p>';
-      });
+      .catch(() => { document.getElementById('bots').innerHTML = '<p style="color:var(--muted);padding:6px 2px">Could not load bots.</p>'; });
   </script>
 </body>
 </html>

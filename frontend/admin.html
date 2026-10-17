@@ -162,6 +162,16 @@
     </div>
 
     <div class="card" style="margin-top:20px">
+      <div class="section-title">Earnings</div>
+      <p class="note">Money in and out, and what the platform has kept from Aviator (stakes kept minus payouts). Deposits marked <i>auto</i> were checked by the automatic Telebirr/CBE verification.</p>
+      <div id="earnMsg" class="msg"></div>
+      <div id="earnBox"></div>
+      <div class="section-title" style="margin-top:18px">Aviator settings per bot</div>
+      <p class="note"><b>Payout reserve</b> is extra money you allow Aviator to pay winners from. Aviator never pays out more than the stakes in the round + the profit it has already made + this reserve. With a reserve of 0, a lone player can only win from other players' losses.</p>
+      <div id="avBots"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
       <div class="section-title">Pending deposits</div>
       <div id="depMsg" class="msg"></div>
       <div id="depList"></div>
@@ -385,7 +395,9 @@
       loadP2pOrders();
       loadDeposits();
       loadWithdrawals();
+      loadEarnings();
       setInterval(() => { loadDeposits(); loadWithdrawals(); loadP2pOrders(); }, 15000);
+      setInterval(loadEarnings, 60000);
     }
 
     $('loginBtn').onclick = async () => {
@@ -772,6 +784,59 @@
       catch (e) { alert(e.message); }
     }
 
+
+    /* ---------------- earnings + aviator settings ---------------- */
+    const etb = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    async function loadEarnings() {
+      hide($('earnMsg'));
+      try {
+        const e = await api('/api/admin/aviator/earnings');
+        const box = (label, val, sub) => `<div class="card" style="padding:12px;text-align:center;margin:0"><div class="note" style="margin:0">${label}</div><div style="font-size:21px;font-weight:800;margin:4px 0">${etb(val)}</div>${sub ? `<div class="note" style="margin:0">${sub}</div>` : ''}</div>`;
+        $('earnBox').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            ${box('Aviator profit (all time)', e.aviator_profit, `today ${etb(e.aviator_profit_today)}`)}
+            ${box('Total deposited', e.deposits_total, `auto-verified ${etb(e.deposits_auto)}`)}
+            ${box('Paid out to players', e.withdrawn_total, `waiting ${etb(e.withdraw_pending)}`)}
+            ${box('Money in player wallets (Aviator)', e.aviator_players_money, `${e.aviator_rounds} rounds played`)}
+            ${box('Aviator staked', e.aviator_staked, `paid back ${etb(e.aviator_paid)}`)}
+            ${box('Deposited today', e.deposits_today, `Aviator ${etb(e.deposits_aviator)} · Bingo ${etb(e.deposits_bingo)}`)}
+          </div>
+          <div class="note" style="margin-top:10px">Cash kept (deposits − withdrawals paid): <b>${etb(e.deposits_total - e.withdrawn_total)}</b> ETB</div>
+          ${(e.per_bot || []).map((b) => `<div class="note" style="margin:4px 0"><b>${esc(b.name)}</b> · deposits ${etb(b.deposits)} · withdrawn ${etb(b.withdrawn)} · Aviator profit ${etb(b.aviator_profit)}</div>`).join('')}`;
+        const bots = await api('/api/admin/aviator/bots');
+        $('avBots').innerHTML = bots.length ? bots.map((b) => `
+          <div class="card bot" style="margin-bottom:8px;display:block">
+            <h3>${esc(b.name)} <span class="badge ${b.aviator_enabled === false ? 'off' : ''}">${b.aviator_enabled === false ? 'Aviator off' : 'Aviator on'}</span></h3>
+            <div class="meta">Aviator profit so far: <b>${etb(b.profit)}</b> ETB</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+              <div><label>Payout reserve (ETB)</label><input type="number" id="av_res_${b.id}" value="${b.aviator_reserve ?? 0}"></div>
+              <div style="grid-column:1/-1"><label>Bot admin Telegram ID (can open the Admin tab in the app)</label><input type="text" id="av_admin_${b.id}" value="${esc(b.admin_telegram_id || '')}" inputmode="numeric" placeholder="e.g. 123456789"></div>
+              <div><label>Agent name shown to players</label><input type="text" id="av_holder_${b.id}" value="${esc(b.deposit_holder || '')}" placeholder="e.g. Baqale"></div>
+              <div><label>CBE account (optional)</label><input type="text" id="av_cbe_${b.id}" value="${esc(b.deposit_cbe_account || '')}" placeholder="for CBE deposits"></div>
+              <div><label>Min bet</label><input type="number" id="av_min_${b.id}" value="${b.aviator_min_bet ?? 5}"></div>
+              <div><label>Max bet</label><input type="number" id="av_max_${b.id}" value="${b.aviator_max_bet ?? 5000}"></div>
+            </div>
+            <div class="actions" style="margin-top:10px">
+              <button class="btn small" onclick="saveAviatorBot(${b.id}, ${b.aviator_enabled === false ? 'true' : 'false'}, false)">Save</button>
+              <button class="btn small" onclick="saveAviatorBot(${b.id}, ${b.aviator_enabled === false ? 'true' : 'false'}, true)">${b.aviator_enabled === false ? 'Turn Aviator on' : 'Turn Aviator off'}</button>
+            </div>
+          </div>`).join('') : '<p class="note">No game bots yet.</p>';
+      } catch (err) { show($('earnMsg'), err.message, 'error'); }
+    }
+
+    async function saveAviatorBot(id, wasOff, toggle) {
+      try {
+        await api(`/api/admin/aviator/bots/${id}`, 'POST', {
+          aviator_enabled: toggle ? wasOff : !wasOff,
+          aviator_reserve: $(`av_res_${id}`).value, aviator_min_bet: $(`av_min_${id}`).value,
+          aviator_max_bet: $(`av_max_${id}`).value, deposit_cbe_account: $(`av_cbe_${id}`).value,
+          deposit_holder: $(`av_holder_${id}`).value, admin_telegram_id: $(`av_admin_${id}`).value,
+        });
+        loadEarnings();
+      } catch (err) { alert(err.message); }
+    }
+
     /* ---------------- deposits / withdrawals queues ---------------- */
 
     function whoBrief(row) {
@@ -785,7 +850,7 @@
         $('depList').innerHTML = rows.length ? rows.map((d) => `
           <div class="card bot" style="margin-bottom:8px">
             <div>
-              <h3>${d.amount} birr <span class="badge off">pending</span></h3>
+              <h3>${d.amount} birr <span class="badge off">pending</span> <span class="badge">${d.wallet === 'aviator' ? 'Aviator wallet' : 'Bingo wallet'}</span></h3>
               <div class="meta">${whoBrief(d)} · ${ago(d.createdAt)}<br/>
                 Ref: <code>${esc(d.reference || '(none provided)')}</code></div>
             </div>
