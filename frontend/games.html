@@ -877,7 +877,7 @@ async function aOverview() {
         <div class="kpi"><small>WITHDRAWN</small><b>${fmt(s.withdrawn_total)}</b><em>${s.withdraw_pending} waiting</em></div>
         <div class="kpi"><small>AVIATOR PROFIT</small><b>${fmt(s.aviator_profit)}</b><em>staked ${fmt(s.aviator_staked)}</em></div>
         <div class="kpi"><small>IN AVIATOR WALLETS</small><b>${fmt(s.aviator_balances)}</b><em>players' money</em></div>
-        <div class="kpi"><small>BONUSES GIVEN</small><b>${fmt(Number(s.promo_first) + Number(s.promo_cashback) + Number(s.promo_coupon))}</b><em>first ${fmt(s.promo_first)} · cashback ${fmt(s.promo_cashback)} · coupons ${fmt(s.promo_coupon)}</em></div>
+        <div class="kpi"><small>BONUSES GIVEN</small><b>${fmt(Number(s.promo_first) + Number(s.promo_cashback) + Number(s.promo_coupon) + Number(s.promo_referral || 0))}</b><em>first ${fmt(s.promo_first)} · cashback ${fmt(s.promo_cashback)} · coupons ${fmt(s.promo_coupon)} · promoters ${fmt(s.promo_referral || 0)}</em></div>
         <div class="kpi"><small>PENDING REQUESTS</small><b>${s.deposits_pending + s.withdraw_pending}</b><em>${s.deposits_pending} deposits · ${s.withdraw_pending} withdrawals</em></div></div>`;
     } catch (e) { aErr(e); }
   };
@@ -1010,6 +1010,7 @@ async function aSettings() {
       <div class="panel"><h3>Bonuses</h3><p class="muted" style="margin-top:4px">All bonuses are added to the player's Bingo bonus. Use 0 to switch one off.</p><div class="field2">
         ${f('sFirst', 'First deposit bonus (%)', v.first_deposit_bonus_pct, 'e.g. 10')}
         ${f('sFirstMax', 'First bonus max (ETB, 0 = none)', v.first_deposit_bonus_max)}
+        ${f('sRef', 'Promoter bonus on invited players\' deposits (%)', v.referral_deposit_bonus_pct, 'e.g. 10')}
         ${f('sCb', 'Cashback (% of net loss)', v.cashback_pct, 'e.g. 5')}
         ${f('sCbMax', 'Cashback max (ETB, 0 = none)', v.cashback_max)}
       </div></div>
@@ -1025,7 +1026,7 @@ async function aSettings() {
       try {
         await adm('/settings', 'PUT', {
           min_deposit: $('sMin').value, withdraw_min_deposit: $('sWdMin').value, deposit_phone: $('sPhone').value, deposit_cbe_account: $('sCbe').value, deposit_holder: $('sHolder').value,
-          first_deposit_bonus_pct: $('sFirst').value, first_deposit_bonus_max: $('sFirstMax').value, cashback_pct: $('sCb').value, cashback_max: $('sCbMax').value,
+          first_deposit_bonus_pct: $('sFirst').value, first_deposit_bonus_max: $('sFirstMax').value, referral_deposit_bonus_pct: $('sRef').value, cashback_pct: $('sCb').value, cashback_max: $('sCbMax').value,
           aviator_enabled: av, aviator_min_bet: $('sBmin').value, aviator_max_bet: $('sBmax').value, aviator_reserve: $('sRes').value,
         });
         $('sMsg').innerHTML = '<div class="msg ok">Saved.</div>';
@@ -1455,7 +1456,7 @@ function frame() {
   tg.ready(); tg.expand();
   api(`/api/mini/${BOT}/wallets`).then((d) => { PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name; $('balPill').textContent = `✈ ${fmt(d.aviator.balance)} ETB`; me.balance = d.aviator.balance; }).catch(() => {});
   fetch(`${API_URL}/api/aviator/state`).then((r) => r.json()).then((d) => { if (d.online) $('tileLive').textContent = `LIVE · ${d.online}`; }).catch(() => {});
-  api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) $('adminTab').hidden = false; }).catch(() => {});
+  api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) { $('adminTab').hidden = false; if (location.hash === '#admin') setTab('admin'); } }).catch(() => {});
   if (location.hash === '#wallet') setTab('wallet');
   if (new URLSearchParams(location.search).get('game') === 'aviator') openGame();
 })();

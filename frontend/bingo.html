@@ -119,6 +119,7 @@
       <button data-go="games">🎮 Games</button>
       <button aria-pressed="true">🎯 Bingo</button>
       <button data-go="wallet">💰 Wallet</button>
+      <button data-go="admin" id="adminTab" hidden>🛠 Admin</button>
     </div>
   </div></header>
 
@@ -474,7 +475,7 @@ const goGames = (hash) => { location.href = `games?b=${encodeURIComponent(BOT)}$
 $('walletBtn').onclick = () => goGames('#wallet');
 $('tabs').onclick = (e) => {
   const b = e.target.closest('button[data-go]'); if (!b) return;
-  goGames(b.dataset.go === 'wallet' ? '#wallet' : '');
+  goGames(b.dataset.go === 'wallet' ? '#wallet' : b.dataset.go === 'admin' ? '#admin' : '');
 };
 
 (async function init(){
@@ -486,6 +487,7 @@ $('tabs').onclick = (e) => {
   window.__myId = tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
   $('lobby').classList.remove('hidden');
   loadLobby();
+  api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) $('adminTab').hidden = false; }).catch(() => {});
 })();
 </script>
 </body>
