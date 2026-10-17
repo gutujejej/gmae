@@ -1,4 +1,5 @@
 require('dotenv').config();
+const presence = require('./presence');
 const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
@@ -34,6 +35,7 @@ app.use('/api/p2p', express.json({ limit: '1mb' }));
 app.use(/^\/api\/store\/\d+\/admin/, express.json({ limit: '12mb' })); // admin uploads squad photos inside Telegram
 app.use('/api/store', express.json({ limit: '2mb' }));
 app.use('/api/admin/store', express.json({ limit: '12mb' }));
+app.use(/^\/api\/mini\/\d+\/gadmin\/broadcast/, express.json({ limit: '4mb' })); // broadcast photo
 app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL || '*' }));
 
@@ -361,7 +363,7 @@ function attachHandlers(entry) {
       }
 
       // Invite & Promote both need the referral program to be on.
-      if (!(Number(r.referral_bonus) > 0 && r.bot_username)) {
+      if (!((Number(r.referral_bonus) > 0 || Number(r.referral_deposit_bonus_pct) > 0) && r.bot_username)) {
         return bot.sendMessage(chatId, 'Invitations are not available right now.', { reply_markup: mainMenu() });
       }
       const code = await ensureReferralCode(r.id, user);
@@ -371,7 +373,8 @@ function attachHandlers(entry) {
         const c = await inviteCounts(r.id, user.telegram_id);
         return bot.sendMessage(chatId,
           `🔗 *Invite & Earn*\n` +
-          `Earn *${Number(r.referral_bonus)} birr* for every friend who joins and claims their bonus.\n\n` +
+          (Number(r.referral_bonus) > 0 ? `Earn *${Number(r.referral_bonus)} birr* for every friend who joins and claims their bonus.\n` : '') +
+          (Number(r.referral_deposit_bonus_pct) > 0 ? `Plus *${Number(r.referral_deposit_bonus_pct)}%* of every deposit your friends make.\n` : '') + '\n' +
           `Your link:\n${link}\n\n` +
           `Invited: *${c.invited}*\nCompleted: *${c.completed}*`,
           { parse_mode: 'Markdown', disable_web_page_preview: true, reply_markup: mainMenu() });
@@ -563,6 +566,7 @@ const walletBot = require('./wallet-bot')(app, db, { requireAdmin, MINIAPP_BASE 
 require('./bingo')(app, db, { requireAdmin, miniAuth, mainMenuFor: mainMenu, sendMessage: null });
 require('./payments')(app, db, { miniAuth });   // two wallets + auto-verified deposits
 require('./aviator')(app, db, { miniAuth, requireAdmin }); // Aviator game + admin earnings
+require('./game-admin')(app, db, { miniAuth, MINIAPP_BASE, presence }); // per-bot admins: stats, settings, coupons, broadcast
 const p2p = require('./p2p')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 const store = require('./store')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 channels = require('./channels')(app, db, {
@@ -920,6 +924,7 @@ function miniAuth(req, res) {
   const initData = (req.get('Authorization') || '').replace(/^tma\s+/i, '');
   const user = verifyInitData(initData, entry.row.token);
   if (!user) { res.status(401).json({ error: 'Please open this page from Telegram.' }); return null; }
+  presence.touch(entry.row.id, user.id);
   return { entry, user };
 }
 

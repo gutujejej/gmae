@@ -10,6 +10,7 @@
 // refused. The amount credited is the amount verify.et reports, never the
 // amount the player typed.
 
+const crypto = require('crypto');
 const { verifyPayment, parseReceiptText, maskMatchesAccount, round2 } = require('./verify-payment');
 
 const DEFAULT_PHONE = '0930008319';
@@ -162,6 +163,38 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       }
       res.json({ result: 'credited', amount, wallet, balance: Number(cr.new_balance), bonus });
     } catch (e) { console.error('deposit error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
+  });
+
+  /* ------------------------------ promoter (invite) ------------------------------ */
+  // The invite link, how many friends joined, and what the player earned from their deposits.
+  const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const newCode = () => Array.from(crypto.randomBytes(8), (b) => CODE_CHARS[b % CODE_CHARS.length]).join('');
+  app.get('/api/mini/:botId/referral', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    try {
+      const row = a.entry.row;
+      const { data: bot } = await db.from('bots').select('referral_deposit_bonus_pct,referral_bonus,bot_username').eq('id', row.id).maybeSingle();
+      const { data: me } = await db.from('bot_users').select('referral_code').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
+      let code = me && me.referral_code;
+      if (me && !code) {           // older players do not have a code yet: give them one
+        for (let i = 0; i < 5 && !code; i++) {
+          const c = newCode();
+          const { data: clash } = await db.from('bot_users').select('telegram_id').eq('bot_id', row.id).eq('referral_code', c).maybeSingle();
+          if (!clash) { await db.from('bot_users').update({ referral_code: c }).eq('bot_id', row.id).eq('telegram_id', a.user.id); code = c; }
+        }
+      }
+      const { count: invited } = await db.from('bot_users').select('telegram_id', { count: 'exact', head: true }).eq('bot_id', row.id).eq('referred_by', a.user.id);
+      const { data: led } = await db.from('promo_ledger').select('amount').eq('bot_id', row.id).eq('telegram_id', a.user.id).eq('kind', 'referral_deposit');
+      const username = (bot && bot.bot_username) || row.bot_username;
+      res.set('Cache-Control', 'no-store');
+      res.json({
+        pct: Number(bot && bot.referral_deposit_bonus_pct) || 0,
+        fixed: Number(bot && bot.referral_bonus) || 0,
+        invited: invited || 0,
+        earned: round2((led || []).reduce((sum, x) => sum + Number(x.amount), 0)),
+        link: code && username ? `https://t.me/${username}?start=${code}` : null,
+      });
+    } catch (e) { console.error('referral error:', e); err(res, 500, 'Could not load your invite details.'); }
   });
 
   /* ------------------------------ coupons ------------------------------ */
