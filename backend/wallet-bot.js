@@ -6,7 +6,7 @@
 // this to a table or Redis.
 
 const MENU_EXTRA = {
-  play: '🎮 ቢንጎ ተጫወት',          // Play bingo
+  play: '✈️ ጨዋታ ተጫወት',          // Play (Aviator + Bingo)
   language: '🌐 ቋንቋ',            // Language
   deposit: '💰 ገንዘብ አስገባ',      // Deposit
   withdraw: '💸 ገንዘብ አውጣ',      // Withdraw
@@ -20,6 +20,7 @@ const MENU_EXTRA = {
 // (The Balance and Invite labels here must match MENU in server.js.)
 const LEGACY_LABELS = {
   '🎯 ጫወታ ጀምር': MENU_EXTRA.play,
+  '🎮 ቢንጎ ተጫወት': MENU_EXTRA.play,
   '🌐 ቋንቋ (Language)': MENU_EXTRA.language,
   '💵 ገንዘብ ማስገባት': MENU_EXTRA.deposit,
   '🏧 ገንዘብ ማውጣት': MENU_EXTRA.withdraw,
@@ -241,13 +242,18 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
 
     // --- menu button taps ---
     if (text === MENU_EXTRA.deposit) {
-      // Clear any half-finished deposit, then let the user pick a bank.
+      // Deposits are now made in the Mini App wallet, where the payment is
+      // checked automatically and credited to the Bingo or Aviator wallet.
       pending.delete(key);
-      const lang = getLang(row.id, msg.from.id);
-      await bot.sendMessage(chatId, t(lang, 'pickBank'), {
-        reply_markup: { inline_keyboard: [[
-          { text: BANKS.telebirr.label, callback_data: 'dep_bank:telebirr' },
-        ]] },
+      if (!MINIAPP_BASE) {
+        await bot.sendMessage(chatId, 'Deposits are not available right now.');
+        return true;
+      }
+      await bot.sendMessage(chatId, '💰 Open your wallet to deposit. Your payment is checked automatically.', {
+        reply_markup: { inline_keyboard: [[{
+          text: '💰 Deposit',
+          web_app: { url: `${MINIAPP_BASE}/games?b=${row.id}#wallet` },
+        }]] },
       });
       return true;
     }
@@ -288,10 +294,10 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
         await bot.sendMessage(chatId, 'The game is not available right now.');
         return true;
       }
-      await bot.sendMessage(chatId, `Tap below to play ${row.bingo_name || 'Bingo'}.`, {
+      await bot.sendMessage(chatId, 'Tap below to play Aviator or Bingo.', {
         reply_markup: { inline_keyboard: [[{
-          text: `🎯 Play ${row.bingo_name || 'Bingo'}`,
-          web_app: { url: `${MINIAPP_BASE}/bingo?b=${row.id}` },
+          text: '✈️ Play Aviator & Bingo',
+          web_app: { url: `${MINIAPP_BASE}/games?b=${row.id}` },
         }]] },
       });
       return true;
@@ -345,22 +351,23 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
     if (error) return res.status(500).json({ error: error.message });
     res.json(data.map((d) => ({
       id: d.id, botId: d.bot_id, botName: d.bots ? d.bots.name : `#${d.bot_id}`,
-      telegramId: d.telegram_id, amount: Number(d.amount), reference: d.note || '',
+      telegramId: d.telegram_id, amount: Number(d.amount), reference: d.note || '', wallet: d.wallet || 'bingo',
       status: d.status, createdAt: d.created_at,
     })));
   });
 
   app.post('/api/admin/deposits/:id/approve', requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
-    const { data, error } = await db.rpc('approve_deposit', { p_deposit_id: id, p_admin: 'admin' });
+    const { data, error } = await db.rpc('credit_deposit_wallet', { p_deposit_id: id, p_admin: 'admin' });
     if (error) return res.status(500).json({ error: error.message });
-    const r = Array.isArray(data) ? data[0] : data;
-    if (!r.ok) return res.status(409).json({ error: 'Already decided or not found.' });
+    const r = data;
+    if (!r || !r.ok) return res.status(409).json({ error: 'Already decided or not found.' });
 
     const entry = req.app.get('botRegistry') && req.app.get('botRegistry').get(r.bot_id);
     if (entry) {
+      const wl = r.wallet === 'aviator' ? 'Aviator' : 'Bingo';
       entry.bot.sendMessage(r.telegram_id,
-        `✅ Your deposit of *${Number(r.amount)} birr* has been approved.\nGame balance: *${Number(r.new_balance)} birr*`,
+        `✅ Your deposit of *${Number(r.amount)} birr* has been approved.\n${wl} wallet: *${Number(r.new_balance)} birr*`,
         { parse_mode: 'Markdown' }).catch(() => {});
     }
     res.json({ ok: true });
@@ -417,7 +424,9 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
     const id = Number(req.params.id);
     const { data: w } = await db.from('withdrawals').select('*').eq('id', id).maybeSingle();
     if (!w) return res.status(404).json({ error: 'Not found.' });
-    const { data, error } = await db.rpc('reject_withdrawal', { p_withdrawal_id: id, p_admin: 'admin' });
+    const { data, error } = w.wallet === 'aviator'
+      ? await db.rpc('wallet_reject_withdrawal_aviator', { p_withdrawal_id: id })
+      : await db.rpc('reject_withdrawal', { p_withdrawal_id: id, p_admin: 'admin' });
     if (error) return res.status(500).json({ error: error.message });
     const r = Array.isArray(data) ? data[0] : data;
     if (!r.ok) return res.status(409).json({ error: 'Already decided or not found.' });
@@ -425,7 +434,7 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
     const entry = req.app.get('botRegistry') && req.app.get('botRegistry').get(w.bot_id);
     if (entry) {
       entry.bot.sendMessage(w.telegram_id,
-        `❌ Your withdrawal request of ${Number(w.amount)} birr was rejected and refunded to your game balance.`
+        `❌ Your withdrawal request of ${Number(w.amount)} birr was rejected and refunded to your wallet.`
       ).catch(() => {});
     }
     res.json({ ok: true });
