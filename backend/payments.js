@@ -13,7 +13,8 @@
 const { verifyPayment, parseReceiptText, maskMatchesAccount, round2 } = require('./verify-payment');
 
 const DEFAULT_PHONE = '0930008319';
-const MIN_DEPOSIT = 10;
+const DEFAULT_MIN_DEPOSIT = 10;
+const minDepOf = (row) => (Number(row.min_deposit) > 0 ? Number(row.min_deposit) : DEFAULT_MIN_DEPOSIT);
 const MAX_FAILS_PER_HOUR = 6;
 
 module.exports = function attachPayments(app, db, { miniAuth }) {
@@ -48,15 +49,26 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       const bonus = Number((u && u.balance) || 0);
       const lifetime = Number((u && u.lifetime_deposit) || 0);
       const minWd = Number(row.withdraw_min_deposit || 100);
-      const methods = [{ id: 'telebirr', label: 'TeleBirr', number: receiverOf(row, 'telebirr') }];
-      if (row.deposit_cbe_account) methods.push({ id: 'cbe', label: 'CBE', number: row.deposit_cbe_account });
+      const fPct = Number(row.first_deposit_bonus_pct) || 0;
+      let eligible = false;
+      if (fPct > 0) {
+        const { count } = await db.from('deposits').select('id', { count: 'exact', head: true })
+          .eq('bot_id', row.id).eq('telegram_id', a.user.id).not('status', 'in', '(pending,rejected)');
+        eligible = !count;
+      }
+      const firstBonus = { pct: fPct, max: Number(row.first_deposit_bonus_max) || 0, eligible };
+      const holder = row.deposit_holder || 'Baqale';
+      const methods = [{ id: 'telebirr', label: 'Telebirr', bank: 'TELEBIRR', number: receiverOf(row, 'telebirr'), holder }];
+      if (row.deposit_cbe_account) methods.push({ id: 'cbe', label: 'CBE Birr', bank: 'CBE', number: row.deposit_cbe_account, holder });
       res.set('Cache-Control', 'no-store');
       res.json({
         name: row.name,
         bingo: { deposit: dep, bonus, playable: round2(dep + bonus) },
         aviator: { balance: Number((u && u.aviator_balance) || 0), enabled: row.aviator_enabled !== false },
+        total: round2(dep + bonus + Number((u && u.aviator_balance) || 0)),
+        withdrawable: round2(dep + Number((u && u.aviator_balance) || 0)), locked: bonus,
         lifetimeDeposit: lifetime, withdrawMinDeposit: minWd, canWithdraw: lifetime >= minWd,
-        minDeposit: MIN_DEPOSIT, methods, autoCheck: !!process.env.CHECK_API_KEY,
+        minDeposit: minDepOf(row), methods, firstBonus, cashbackPct: Number(row.cashback_pct) || 0, autoCheck: !!process.env.CHECK_API_KEY,
       });
     } catch (e) { console.error('wallets error:', e); err(res, 500, 'Could not load your wallets.'); }
   });
@@ -96,7 +108,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         return err(res, 400, `The amount you typed (${typed}) is different from the amount in the SMS (${parsed.amount}).`);
       }
       const claimed = typed != null ? typed : parsed.amount;
-      if (claimed != null && claimed < MIN_DEPOSIT) return err(res, 400, `The minimum deposit is ${MIN_DEPOSIT} ETB.`);
+      if (claimed != null && claimed < minDepOf(row)) return err(res, 400, `The minimum deposit is ${minDepOf(row)} ETB.`);
 
       const fk = failKey(row.id, a.user.id);
       if (tooManyFails(fk)) return err(res, 429, 'Too many wrong attempts. Please try again in an hour.');
@@ -143,9 +155,91 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         console.error('credit_deposit_wallet failed:', crErr && crErr.message);
         return res.json({ result: 'pending', amount, wallet, message: 'Payment confirmed. Your wallet will be credited by the admin in a moment.' });
       }
-      tell(req, row.id, a.user.id, `✅ Deposit of *${amount} birr* confirmed.\n${WALLET_LABEL[wallet]} wallet: *${Number(cr.new_balance)} birr*`);
-      res.json({ result: 'credited', amount, wallet, balance: Number(cr.new_balance) });
+      const bonus = Number(cr.bonus) || 0;
+      tell(req, row.id, a.user.id, `✅ Deposit of *${amount} birr* confirmed.\n${WALLET_LABEL[wallet]} wallet: *${Number(cr.new_balance)} birr*${bonus > 0 ? `\n🎁 First deposit bonus: *${bonus} birr* (Bingo bonus)` : ''}`);
+      res.json({ result: 'credited', amount, wallet, balance: Number(cr.new_balance), bonus });
     } catch (e) { console.error('deposit error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
+  });
+
+  /* ------------------------------ coupons ------------------------------ */
+  const couponFails = new Map();
+  app.post('/api/mini/:botId/coupon/redeem', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    try {
+      const row = a.entry.row, k = `${row.id}:${a.user.id}`, now = Date.now();
+      const code = String((req.body && req.body.code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+      if (code.length < 4) return err(res, 400, 'Enter your coupon code.');
+      const recent = (couponFails.get(k) || []).filter((t) => now - t < 3600_000);
+      if (recent.length >= 6) return err(res, 429, 'Too many wrong codes. Please try again in an hour.');
+      const { data, error } = await db.rpc('coupon_redeem', { p_bot_id: row.id, p_telegram_id: a.user.id, p_code: code });
+      if (error) throw error;
+      if (!data || !data.ok) {
+        if (['invalid', 'inactive', 'expired', 'used_up'].includes(data && data.reason)) { recent.push(now); couponFails.set(k, recent); }
+        const msgs = {
+          invalid: 'That coupon code is not valid.', inactive: 'This coupon is not active.', expired: 'This coupon has expired.',
+          used_up: 'This coupon has been fully used.', already: 'You already used this coupon.', no_account: 'Please send /start to the bot first.',
+          deposit_required: `You need to deposit at least ${Number(data && data.need)} ETB in total to use this coupon.`,
+        };
+        return err(res, 400, msgs[data && data.reason] || 'Could not use this coupon.');
+      }
+      res.json({ ok: true, amount: Number(data.amount), message: `🎁 ${Number(data.amount)} ETB bonus added. You can play it in Bingo.` });
+    } catch (e) { console.error('coupon error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
+  });
+
+  /* ------------------------------ cashback ------------------------------ */
+  app.get('/api/mini/:botId/cashback', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { data, error } = await db.rpc('cashback_status', { p_bot_id: a.entry.row.id, p_telegram_id: a.user.id });
+    if (error) return err(res, 500, 'Could not load cashback.');
+    res.set('Cache-Control', 'no-store');
+    res.json(data);
+  });
+  app.post('/api/mini/:botId/cashback/claim', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { data, error } = await db.rpc('cashback_claim', { p_bot_id: a.entry.row.id, p_telegram_id: a.user.id });
+    if (error) return err(res, 500, 'Could not claim cashback.');
+    if (!data || !data.ok) {
+      const msgs = { off: 'Cashback is not active right now.', no_loss: 'You have no cashback to claim yet.', still_has_balance: 'Cashback opens when your deposit balance is used up.' };
+      return err(res, 400, msgs[data && data.reason] || 'Could not claim cashback.');
+    }
+    res.json({ ok: true, amount: Number(data.amount), message: `🎁 ${Number(data.amount)} ETB cashback added. You can play it in Bingo.` });
+  });
+
+  /* ------------------------- saved withdraw accounts ------------------------- */
+  app.get('/api/mini/:botId/withdraw-accounts', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { data, error } = await db.from('withdraw_accounts').select('id,name,method,account')
+      .eq('bot_id', a.entry.row.id).eq('telegram_id', a.user.id).order('id');
+    if (error) return err(res, 500, 'Could not load your accounts.');
+    res.set('Cache-Control', 'no-store');
+    res.json({ accounts: data || [] });
+  });
+
+  app.post('/api/mini/:botId/withdraw-accounts', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    try {
+      const name = String((req.body && req.body.name) || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+      const method = req.body && req.body.method === 'cbe' ? 'cbe' : 'telebirr';
+      const account = String((req.body && req.body.account) || '').replace(/[^\d+]/g, '');
+      if (name.length < 2) return err(res, 400, 'Enter the account holder name.');
+      if (account.length < 9 || account.length > 16) return err(res, 400, 'Enter a valid account / phone number.');
+      const { count } = await db.from('withdraw_accounts').select('id', { count: 'exact', head: true })
+        .eq('bot_id', a.entry.row.id).eq('telegram_id', a.user.id);
+      if ((count || 0) >= 5) return err(res, 400, 'You can save up to 5 accounts. Remove one first.');
+      const { data, error } = await db.from('withdraw_accounts')
+        .upsert({ bot_id: a.entry.row.id, telegram_id: a.user.id, name, method, account }, { onConflict: 'bot_id,telegram_id,method,account' })
+        .select('id,name,method,account').single();
+      if (error) throw error;
+      res.json({ account: data });
+    } catch (e) { console.error('save account error:', e); err(res, 500, 'Could not save the account.'); }
+  });
+
+  app.delete('/api/mini/:botId/withdraw-accounts/:id', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { error } = await db.from('withdraw_accounts').delete()
+      .eq('id', Number(req.params.id)).eq('bot_id', a.entry.row.id).eq('telegram_id', a.user.id);
+    if (error) return err(res, 500, 'Could not remove the account.');
+    res.json({ ok: true });
   });
 
   /* ------------------------------ withdraw ------------------------------ */
@@ -156,7 +250,13 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       const body = req.body || {};
       const wallet = body.wallet === 'aviator' ? 'aviator' : 'bingo';
       const amount = round2(body.amount);
-      const phone = String(body.phone || '').replace(/[^\d+]/g, '');
+      let phone = String(body.phone || '').replace(/[^\d+]/g, '');
+      if (body.account_id) {
+        const { data: acc } = await db.from('withdraw_accounts').select('account')
+          .eq('id', Number(body.account_id)).eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
+        if (!acc) return err(res, 400, 'Choose one of your saved accounts.');
+        phone = acc.account;
+      }
       if (!(amount > 0)) return err(res, 400, 'Enter a valid amount.');
       if (phone.length < 9) return err(res, 400, 'Enter a valid Telebirr phone number.');
       const minDep = Number(row.withdraw_min_deposit || 100);

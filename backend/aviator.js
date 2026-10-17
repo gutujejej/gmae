@@ -54,6 +54,10 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   const clients = new Set(); // SSE connections
   let recent = [];           // last crash points, newest first
   let liveDirty = false;
+  let prevRound = null;      // { crash, players, cashed, win, bets } of the round before
+  const chat = [];           // last chat messages
+  let chatSeq = 0;
+  const lastChat = new Map();
 
   /* ---------------------------------------------------------------- */
   /* live stream                                                       */
@@ -63,20 +67,25 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   }
   function broadcast(event, data) { for (const c of clients) send(c, event, data); }
 
-  function liveBets() {
-    if (!round) return [];
-    return [...round.bets.values()]
-      .sort((a, b) => b.amount - a.amount).slice(0, 40)
-      .map((b) => ({ name: b.name, amount: b.amount, status: b.status === 'settling' ? 'placed' : b.status, mult: b.mult || null, payout: b.payout || 0 }));
+  const stateOf = (b) => (b.status === 'settling' ? 'placed' : b.status);
+  function liveSummary(r = round) {
+    const all = r ? [...r.bets.values()] : [];
+    const won = all.filter((b) => b.status === 'cashed_out');
+    return {
+      players: all.length,
+      cashed: won.length,
+      win: round2(won.reduce((sum, b) => sum + (b.payout || 0), 0)),
+      bets: all.sort((a, b) => b.amount - a.amount).slice(0, 60)
+        .map((b) => ({ name: b.name, avatar: b.avatar || 0, amount: b.amount, status: stateOf(b), mult: b.mult || null, payout: b.payout || 0 })),
+    };
   }
 
   function snapshot() {
-    const s = { now: Date.now(), phase: round ? round.phase : 'starting', history: recent.slice(0, 25) };
+    const s = { now: Date.now(), phase: round ? round.phase : 'starting', history: recent.slice(0, 40),
+                online: clients.size, chat: chat.slice(-40), prev: prevRound, ...liveSummary() };
     if (round) {
       s.round_id = round.id;
       s.server_seed_hash = round.hash;
-      s.players = round.bets.size;
-      s.bets = liveBets();
       if (round.phase === 'betting') s.betting_ends_at = round.bettingEndsAt;
       if (round.phase === 'flying') s.flying_since = round.flyingSince;
       if (round.phase === 'ended') { s.crash_point = round.crash; s.flying_since = round.flyingSince; }
@@ -105,7 +114,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
 
   setInterval(() => { for (const c of clients) { try { c.write(': ping\n\n'); } catch (_) { /* closed */ } } }, 15000).unref();
   setInterval(() => {
-    if (liveDirty && clients.size) { liveDirty = false; broadcast('live', { players: round ? round.bets.size : 0, bets: liveBets() }); }
+    if (liveDirty && clients.size) { liveDirty = false; broadcast('live', liveSummary()); }
   }, 1000).unref();
 
   /* ---------------------------------------------------------------- */
@@ -129,7 +138,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
 
     round = { id, seed, hash, base, crash: base, limited: false, phase: 'betting',
               bettingEndsAt: Date.now() + BETTING_MS, flyingSince: null, bets: new Map() };
-    broadcast('betting', { round_id: id, server_seed_hash: hash, betting_ends_at: round.bettingEndsAt, now: Date.now(), history: recent.slice(0, 25) });
+    broadcast('betting', { round_id: id, server_seed_hash: hash, betting_ends_at: round.bettingEndsAt, now: Date.now(), history: recent.slice(0, 40) });
     nextTimer = setTimeout(() => startFlying().catch(console.error), BETTING_MS);
   }
 
@@ -215,8 +224,9 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
 
     recent.unshift(r.crash);
     recent = recent.slice(0, 40);
-    broadcast('crash', { round_id: r.id, crash_point: r.crash, server_seed: r.seed, server_seed_hash: r.hash, now: Date.now(), history: recent.slice(0, 25) });
-    broadcast('live', { players: r.bets.size, bets: liveBets() });
+    broadcast('crash', { round_id: r.id, crash_point: r.crash, server_seed: r.seed, server_seed_hash: r.hash, now: Date.now(), history: recent.slice(0, 40) });
+    prevRound = { crash: r.crash, ...liveSummary(r) };
+    broadcast('live', liveSummary(r));
     nextTimer = setTimeout(() => startBetting().catch(console.error), POST_ROUND_MS);
   }
 
@@ -247,7 +257,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
         }
       }
       res.set('Cache-Control', 'no-store');
-      res.json({ balance: await walletOf(row.id, a.user.id), enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
+      res.json({ name: maskName(a.user), balance: await walletOf(row.id, a.user.id), enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
     } catch (err) { console.error('aviator me error:', err); fail(res, 500, 'Could not load Aviator.'); }
   });
 
@@ -281,7 +291,8 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
         await db.rpc('aviator_cancel_bet', { p_bet_id: data.bet_id });
         return fail(res, 400, 'Betting just closed. Your money was not taken.');
       }
-      r.bets.set(keyOf(row.id, a.user.id, slot), { id: data.bet_id, botId: row.id, tg: a.user.id, slot, amount, auto, status: 'placed', name: maskName(a.user) });
+      const avatar = Math.max(0, Math.min(11, parseInt(req.body && req.body.avatar, 10) || 0));
+      r.bets.set(keyOf(row.id, a.user.id, slot), { id: data.bet_id, botId: row.id, tg: a.user.id, slot, amount, auto, status: 'placed', name: maskName(a.user), avatar });
       liveDirty = true;
       res.json({ ok: true, balance: Number(data.balance) });
     } catch (err) { console.error('aviator bet error:', err); fail(res, 500, 'Could not place the bet. Please try again.'); }
@@ -343,6 +354,38 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   });
 
   /* ---------------------------------------------------------------- */
+  /* chat, online count, top wins                                       */
+  /* ---------------------------------------------------------------- */
+  setInterval(() => { if (clients.size) broadcast('online', { online: clients.size }); }, 5000).unref();
+
+  app.post('/api/mini/:botId/aviator/chat', (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const key = `${a.entry.row.id}:${a.user.id}`;
+    const text = String((req.body && req.body.text) || '')
+      .replace(/(https?:\/\/\S+|t\.me\/\S+|www\.\S+)/gi, '***').replace(/\s+/g, ' ').trim().slice(0, 160);
+    if (!text) return fail(res, 400, 'Write a message first.');
+    const now = Date.now();
+    if (now - (lastChat.get(key) || 0) < 3000) return fail(res, 429, 'Slow down a little.');
+    lastChat.set(key, now);
+    const msg = { id: ++chatSeq, name: maskName(a.user), avatar: Math.max(0, Math.min(11, parseInt(req.body && req.body.avatar, 10) || 0)), text, at: now };
+    chat.push(msg); if (chat.length > 60) chat.shift();
+    broadcast('chat', msg);
+    res.json({ ok: true });
+  });
+
+  let topCache = { at: 0, rows: [] };
+  app.get('/api/aviator/top', async (req, res) => {
+    if (Date.now() - topCache.at > 60000) {
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { data } = await db.from('aviator_bets').select('username,amount,cashed_out_at,payout')
+        .eq('status', 'cashed_out').gte('created_at', since).order('payout', { ascending: false }).limit(25);
+      topCache = { at: Date.now(), rows: (data || []).map((b) => ({ name: b.username || 'P***', amount: Number(b.amount), mult: Number(b.cashed_out_at), payout: Number(b.payout) })) };
+    }
+    res.set('Cache-Control', 'no-store');
+    res.json({ rows: topCache.rows });
+  });
+
+  /* ---------------------------------------------------------------- */
   /* admin: earnings + per-bot Aviator settings                         */
   /* ---------------------------------------------------------------- */
   app.get('/api/admin/aviator/earnings', requireAdmin, async (req, res) => {
@@ -353,7 +396,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
 
   app.get('/api/admin/aviator/bots', requireAdmin, async (req, res) => {
     const { data, error } = await db.from('bots')
-      .select('id,name,bot_type,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_phone,deposit_cbe_account').order('id');
+      .select('id,name,bot_type,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_phone,deposit_cbe_account,deposit_holder,admin_telegram_id').order('id');
     if (error) return fail(res, 500, error.message);
     const out = [];
     for (const b of (data || []).filter((x) => (x.bot_type || 'bingo') === 'bingo')) {
@@ -374,6 +417,16 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
         patch[k] = round2(n);
       }
     }
+    if ('admin_telegram_id' in b) {
+      const v = b.admin_telegram_id;
+      if (v === '' || v === null) patch.admin_telegram_id = null;
+      else {
+        const n = Number(v);
+        if (!Number.isSafeInteger(n) || n <= 0) return fail(res, 400, 'The bot admin Telegram ID must be a number.');
+        patch.admin_telegram_id = n;
+      }
+    }
+    if ('deposit_holder' in b) patch.deposit_holder = String(b.deposit_holder || '').trim().slice(0, 40) || null;
     if ('deposit_cbe_account' in b) patch.deposit_cbe_account = String(b.deposit_cbe_account || '').replace(/\D/g, '') || null;
     if (patch.aviator_min_bet && patch.aviator_max_bet && patch.aviator_min_bet > patch.aviator_max_bet) return fail(res, 400, 'Min bet is above max bet.');
     if (!Object.keys(patch).length) return fail(res, 400, 'Nothing to change.');
