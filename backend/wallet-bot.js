@@ -369,6 +369,11 @@ module.exports = function attachWalletBot(app, db, { requireAdmin, MINIAPP_BASE 
       entry.bot.sendMessage(r.telegram_id,
         `✅ Your deposit of *${Number(r.amount)} birr* has been approved.\n${wl} wallet: *${Number(r.new_balance)} birr*${r.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(r.bonus)} birr* (Bingo bonus)` : ''}`,
         { parse_mode: 'Markdown' }).catch(() => {});
+      if (Number(r.promoter_bonus) > 0 && r.promoter_id) {
+        entry.bot.sendMessage(r.promoter_id,
+          `🎁 A player you invited made a deposit. You earned *${Number(r.promoter_bonus)} birr* (Bingo bonus).`,
+          { parse_mode: 'Markdown' }).catch(() => {});
+      }
     }
     res.json({ ok: true });
   });

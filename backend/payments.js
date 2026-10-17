@@ -157,6 +157,9 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       }
       const bonus = Number(cr.bonus) || 0;
       tell(req, row.id, a.user.id, `✅ Deposit of *${amount} birr* confirmed.\n${WALLET_LABEL[wallet]} wallet: *${Number(cr.new_balance)} birr*${bonus > 0 ? `\n🎁 First deposit bonus: *${bonus} birr* (Bingo bonus)` : ''}`);
+      if (Number(cr.promoter_bonus) > 0 && cr.promoter_id) {
+        tell(req, row.id, cr.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(cr.promoter_bonus)} birr* (Bingo bonus).`);
+      }
       res.json({ result: 'credited', amount, wallet, balance: Number(cr.new_balance), bonus });
     } catch (e) { console.error('deposit error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
   });

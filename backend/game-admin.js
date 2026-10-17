@@ -83,7 +83,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
   });
 
   /* ----------------------------- settings ----------------------------- */
-  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,cashback_pct,cashback_max,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
+  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
   adminRoute('get', '/settings', async (req, res) => {
     const { data, error } = await db.from('bots').select(SETTING_FIELDS).eq('id', req.g.botId).maybeSingle();
     if (error) throw error;
@@ -102,6 +102,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     num('min_deposit', { min: 1, max: 1e6 });
     num('first_deposit_bonus_pct', { max: 100 });
     num('first_deposit_bonus_max', { max: 1e6 });
+    num('referral_deposit_bonus_pct', { max: 100 });
     num('cashback_pct', { max: 100 });
     num('cashback_max', { max: 1e6 });
     num('aviator_min_bet', { min: 1, max: 1e6 });
@@ -304,6 +305,9 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     if (!data || !data.ok) throw new HttpError(409, 'Already decided.');
     const wl = data.wallet === 'aviator' ? 'Aviator' : 'Bingo';
     tell(req, data.telegram_id, `✅ Your deposit of *${Number(data.amount)} birr* has been approved.\n${wl} wallet: *${Number(data.new_balance)} birr*${data.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(data.bonus)} birr* (Bingo bonus)` : ''}`, { parse_mode: 'Markdown' });
+    if (Number(data.promoter_bonus) > 0 && data.promoter_id) {
+      tell(req, data.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(data.promoter_bonus)} birr* (Bingo bonus).`, { parse_mode: 'Markdown' });
+    }
     res.json({ ok: true });
   });
 
