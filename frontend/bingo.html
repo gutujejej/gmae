@@ -175,11 +175,17 @@ let currentRoundId = null;
 let pollTimer = null;
 
 async function api(path, method = 'GET', body) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 20000);
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
+      body: body ? JSON.stringify(body) : undefined, signal: ctl.signal,
+    });
+  } catch (e) {
+    throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer.' : 'Could not reach the server. Check your internet connection.');
+  } finally { clearTimeout(timer); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
@@ -261,7 +267,8 @@ async function loadLobby(){
     const taken = await api(`/api/mini/${BOT}/bingo/taken-cards?stake=${selectedStake}`);
     renderPicker(taken.taken || []);
   }catch(e){
-    showLobbyMsg(e.message);
+    showLobbyMsg(esc(e.message) + ' <a href="#" id="retryLobby" style="font-weight:800;text-decoration:underline">Retry</a>');
+    const r = $('retryLobby'); if (r) r.onclick = (ev) => { ev.preventDefault(); loadLobby(); };
   }
 }
 
@@ -486,6 +493,7 @@ $('tabs').onclick = (e) => {
   tg.ready(); tg.expand();
   window.__myId = tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
   $('lobby').classList.remove('hidden');
+  $('pickerGrid').innerHTML = '<div class="center-msg" style="grid-column:1/-1">Loading cards…</div>';
   loadLobby();
   api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) $('adminTab').hidden = false; }).catch(() => {});
 })();

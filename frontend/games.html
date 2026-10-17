@@ -345,6 +345,13 @@ textarea{resize:none}
 .imgprev{max-width:100%;border-radius:14px;margin-top:10px;display:block}
 .smallbtn{padding:8px 13px;border-radius:10px;font-weight:800;font-size:13px;background:#E4F2EB;color:var(--turf)}
 .smallbtn.red{background:var(--redsoft);color:#8E2A22}
+.refbox{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.refbox div{background:#F0F6F3;border:1px solid var(--line);border-radius:14px;padding:11px 13px}
+.refbox small{display:block;color:var(--muted);font-size:11px;font-weight:700}
+.refbox b{font-family:var(--display);font-size:26px;font-weight:800}
+.reflink{display:flex;gap:8px;margin-top:12px}
+.reflink input{flex:1;min-width:0;font-size:13px}
+.reflink button{flex:none;padding:0 14px;border-radius:12px;background:var(--turf);color:#fff;font-weight:800}
 </style>
 </head>
 <body>
@@ -418,6 +425,13 @@ textarea{resize:none}
       <div class="methods" id="methods"></div>
       <div class="shead"><h3>Deposit Order History</h3></div>
       <div class="panel" style="margin-top:0"><div id="depList"><p class="muted">No deposits yet.</p></div></div>
+      <div class="panel" id="refPanel" hidden>
+        <h3>Invite friends &amp; earn <span id="refPct">10</span>%</h3>
+        <p class="muted" style="margin-top:4px">Every time a friend you invited makes a deposit, you get <b><span id="refPct2">10</span>%</b> of it as Bingo bonus. No limit.</p>
+        <div class="refbox"><div><small>FRIENDS INVITED</small><b id="refInvited">0</b></div><div><small>YOU EARNED</small><b id="refEarned">0.00</b></div></div>
+        <div class="reflink"><input type="text" id="refLink" readonly><button id="refCopy">Copy</button></div>
+        <button class="btn go" id="refShare" style="margin-top:12px">Share my link</button>
+      </div>
       <div class="panel">
         <h3>Have a coupon?</h3>
         <p class="muted" style="margin-top:4px">Enter your code to get a bonus you can play in Bingo.</p>
@@ -546,10 +560,16 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
 const PLATFORM = { name: 'Games' };
 
 async function api(path, method = 'GET', body) {
-  const res = await fetch(`${API_URL}${path}`, {
-    method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 20000);
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` },
+      body: body ? JSON.stringify(body) : undefined, signal: ctl.signal,
+    });
+  } catch (e) {
+    throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Could not reach the server. Check your internet connection.');
+  } finally { clearTimeout(timer); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
@@ -670,6 +690,7 @@ async function loadWallet() {
       : '<p class="muted">No deposits yet.</p>';
     await loadAccounts();
     showResume();
+    loadReferral();
   } catch (e) { $('walMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
 }
 
@@ -822,6 +843,25 @@ $('wdBtn').onclick = async () => {
   btn.disabled = false;
 };
 
+
+
+/* ---------------- promoter (invite) panel ---------------- */
+async function loadReferral() {
+  try {
+    const r = await api(`/api/mini/${BOT}/referral`);
+    $('refPanel').hidden = !(r.pct > 0 && r.link);
+    if ($('refPanel').hidden) return;
+    $('refPct').textContent = r.pct; $('refPct2').textContent = r.pct;
+    $('refInvited').textContent = r.invited; $('refEarned').textContent = fmt(r.earned); $('refLink').value = r.link;
+  } catch (_) { $('refPanel').hidden = true; }
+}
+$('refCopy').onclick = () => copy($('refLink').value);
+$('refShare').onclick = () => {
+  const link = $('refLink').value; if (!link) return;
+  const text = `Join me and play Aviator & Bingo 🎮`;
+  const url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+};
 
 /* ---------------- coupons + cashback ---------------- */
 $('cpBtn').onclick = async () => {
