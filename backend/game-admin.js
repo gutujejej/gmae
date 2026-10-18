@@ -83,7 +83,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
   });
 
   /* ----------------------------- settings ----------------------------- */
-  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
+  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_cashback_pct,aviator_cashback_max,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
   adminRoute('get', '/settings', async (req, res) => {
     const { data, error } = await db.from('bots').select(SETTING_FIELDS).eq('id', req.g.botId).maybeSingle();
     if (error) throw error;
@@ -105,6 +105,8 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     num('referral_deposit_bonus_pct', { max: 100 });
     num('cashback_pct', { max: 100 });
     num('cashback_max', { max: 1e6 });
+    num('aviator_cashback_pct', { max: 100 });
+    num('aviator_cashback_max', { max: 1e6 });
     num('aviator_min_bet', { min: 1, max: 1e6 });
     num('aviator_max_bet', { min: 1, max: 1e7 });
     num('aviator_reserve', { max: 1e9 });
@@ -133,7 +135,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
   /* ----------------------------- coupons ----------------------------- */
   adminRoute('get', '/coupons', async (req, res) => {
     const { data, error } = await db.from('coupons')
-      .select('id,code,amount,max_uses,used_count,min_lifetime_deposit,expires_at,active,created_at')
+      .select('id,code,amount,wallet,max_uses,used_count,min_lifetime_deposit,expires_at,active,created_at')
       .eq('bot_id', req.g.botId).order('id', { ascending: false }).limit(100);
     if (error) throw error;
     res.json({ coupons: (data || []).map((c) => ({ ...c, amount: Number(c.amount), min_lifetime_deposit: Number(c.min_lifetime_deposit) })) });
@@ -159,6 +161,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     if (!code) code = crypto.randomBytes(4).toString('hex').toUpperCase();
     const { data, error } = await db.from('coupons').insert({
       bot_id: req.g.botId, code, amount, max_uses: maxUses, min_lifetime_deposit: minDep, expires_at: expires,
+      wallet: b.wallet === 'aviator' ? 'aviator' : 'bingo',
     }).select('id,code').single();
     if (error) {
       if (error.code === '23505') throw new HttpError(409, 'You already have a coupon with that code.');

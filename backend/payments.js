@@ -45,7 +45,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
     try {
       const row = a.entry.row;
       const { data: u } = await db.from('bot_users')
-        .select('game_balance,balance,aviator_balance,lifetime_deposit').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
+        .select('game_balance,balance,aviator_balance,aviator_bonus,lifetime_deposit').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
       const dep = Number((u && u.game_balance) || 0);
       const bonus = Number((u && u.balance) || 0);
       const lifetime = Number((u && u.lifetime_deposit) || 0);
@@ -65,11 +65,11 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       res.json({
         name: row.name,
         bingo: { deposit: dep, bonus, playable: round2(dep + bonus) },
-        aviator: { balance: Number((u && u.aviator_balance) || 0), enabled: row.aviator_enabled !== false },
-        total: round2(dep + bonus + Number((u && u.aviator_balance) || 0)),
-        withdrawable: round2(dep + Number((u && u.aviator_balance) || 0)), locked: bonus,
+        aviator: { balance: Number((u && u.aviator_balance) || 0), bonus: Number((u && u.aviator_bonus) || 0), enabled: row.aviator_enabled !== false },
+        total: round2(dep + bonus + Number((u && u.aviator_balance) || 0) + Number((u && u.aviator_bonus) || 0)),
+        withdrawable: round2(dep + Number((u && u.aviator_balance) || 0)), locked: round2(bonus + Number((u && u.aviator_bonus) || 0)),
         lifetimeDeposit: lifetime, withdrawMinDeposit: minWd, canWithdraw: lifetime >= minWd,
-        minDeposit: minDepOf(row), methods, firstBonus, cashbackPct: Number(row.cashback_pct) || 0, autoCheck: !!process.env.CHECK_API_KEY,
+        minDeposit: minDepOf(row), methods, firstBonus, cashbackPct: Number(row.cashback_pct) || 0, aviatorCashbackPct: Number(row.aviator_cashback_pct) || 0, autoCheck: !!process.env.CHECK_API_KEY,
       });
     } catch (e) { console.error('wallets error:', e); err(res, 500, 'Could not load your wallets.'); }
   });
@@ -218,7 +218,8 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         };
         return err(res, 400, msgs[data && data.reason] || 'Could not use this coupon.');
       }
-      res.json({ ok: true, amount: Number(data.amount), message: `🎁 ${Number(data.amount)} ETB bonus added. You can play it in Bingo.` });
+      const game = data.wallet === 'aviator' ? 'Aviator' : 'Bingo';
+      res.json({ ok: true, amount: Number(data.amount), wallet: data.wallet || 'bingo', message: `🎁 ${Number(data.amount)} ETB bonus added. You can play it in ${game}.` });
     } catch (e) { console.error('coupon error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
   });
 
@@ -239,6 +240,25 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       return err(res, 400, msgs[data && data.reason] || 'Could not claim cashback.');
     }
     res.json({ ok: true, amount: Number(data.amount), message: `🎁 ${Number(data.amount)} ETB cashback added. You can play it in Bingo.` });
+  });
+
+  /* ------------------------------ Aviator cashback ------------------------------ */
+  app.get('/api/mini/:botId/aviator-cashback', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { data, error } = await db.rpc('aviator_cashback_status', { p_bot_id: a.entry.row.id, p_telegram_id: a.user.id });
+    if (error) return err(res, 500, 'Could not load cashback.');
+    res.set('Cache-Control', 'no-store');
+    res.json(data);
+  });
+  app.post('/api/mini/:botId/aviator-cashback/claim', async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    const { data, error } = await db.rpc('aviator_cashback_claim', { p_bot_id: a.entry.row.id, p_telegram_id: a.user.id });
+    if (error) return err(res, 500, 'Could not claim cashback.');
+    if (!data || !data.ok) {
+      const msgs = { off: 'Aviator cashback is not active right now.', no_loss: 'You have no Aviator cashback to claim yet.', still_has_balance: 'Aviator cashback opens when your Aviator wallet is used up.' };
+      return err(res, 400, msgs[data && data.reason] || 'Could not claim cashback.');
+    }
+    res.json({ ok: true, amount: Number(data.amount), message: `🎁 ${Number(data.amount)} ETB Aviator cashback added. Play it in Aviator.` });
   });
 
   /* ------------------------- saved withdraw accounts ------------------------- */

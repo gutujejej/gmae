@@ -1,7 +1,9 @@
 // Aviator (crash game) — one shared round for every player of every bot.
 //
 // Wallet: Aviator uses ONLY bot_users.aviator_balance (money the player
-// deposited to the Aviator wallet). The registration bonus can never be bet here.
+// deposited to the Aviator wallet) plus the Aviator bonus (Aviator cashback and Aviator coupons).
+// The registration bonus can never be bet here. A bet uses the Aviator bonus first. Free-bet style: the
+// bonus part of a stake is not paid back, only the winnings on it are (paid into the real Aviator wallet).
 //
 // Money safety (the platform must never pay more than it has):
 //   Before the plane takes off, the server looks at every bet in the round and,
@@ -202,7 +204,8 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   async function cashOut(bet, mult) {
     if (bet.status !== 'placed') return null;
     bet.status = 'settling';
-    const payout = round2(bet.amount * mult);
+    const bonus = bet.bonus || 0;
+    const payout = round2((bet.amount - bonus) * mult + bonus * (mult - 1));   // real part pays stake x multiplier, bonus part pays only the winnings
     const { data, error } = await db.rpc('aviator_settle_bet', { p_bet_id: bet.id, p_status: 'cashed_out', p_mult: mult, p_payout: payout });
     if (error) { console.error('aviator cashout error:', error.message); bet.status = 'placed'; return null; }
     if (!data || !data.ok) { bet.status = 'done'; return null; }
@@ -241,8 +244,8 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   const fail = (res, code, msg) => res.status(code).json({ error: msg });
 
   async function walletOf(botId, tg) {
-    const { data } = await db.from('bot_users').select('aviator_balance').eq('bot_id', botId).eq('telegram_id', tg).maybeSingle();
-    return data ? Number(data.aviator_balance) : 0;
+    const { data } = await db.from('bot_users').select('aviator_balance,aviator_bonus').eq('bot_id', botId).eq('telegram_id', tg).maybeSingle();
+    return { balance: data ? Number(data.aviator_balance) : 0, bonus: data ? Number(data.aviator_bonus) || 0 : 0 };
   }
 
   app.get('/api/mini/:botId/aviator/me', async (req, res) => {
@@ -253,11 +256,12 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
       if (round) {
         for (let slot = 1; slot <= MAX_SLOTS; slot++) {
           const b = round.bets.get(keyOf(row.id, a.user.id, slot));
-          if (b) bets.push({ slot, amount: b.amount, auto: b.auto, status: b.status === 'settling' ? 'placed' : b.status, mult: b.mult || null, payout: b.payout || 0 });
+          if (b) bets.push({ slot, amount: b.amount, auto: b.auto, status: b.status === 'settling' ? 'placed' : b.status, mult: b.mult || null, payout: b.payout || 0, bonus: b.bonus || 0 });
         }
       }
       res.set('Cache-Control', 'no-store');
-      res.json({ name: maskName(a.user), balance: await walletOf(row.id, a.user.id), enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
+      const w = await walletOf(row.id, a.user.id);
+      res.json({ name: maskName(a.user), balance: w.balance, bonus: w.bonus, enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
     } catch (err) { console.error('aviator me error:', err); fail(res, 500, 'Could not load Aviator.'); }
   });
 
@@ -292,9 +296,9 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
         return fail(res, 400, 'Betting just closed. Your money was not taken.');
       }
       const avatar = Math.max(0, Math.min(11, parseInt(req.body && req.body.avatar, 10) || 0));
-      r.bets.set(keyOf(row.id, a.user.id, slot), { id: data.bet_id, botId: row.id, tg: a.user.id, slot, amount, auto, status: 'placed', name: maskName(a.user), avatar });
+      r.bets.set(keyOf(row.id, a.user.id, slot), { id: data.bet_id, botId: row.id, tg: a.user.id, slot, amount, bonus: Number(data.bonus_used) || 0, auto, status: 'placed', name: maskName(a.user), avatar });
       liveDirty = true;
-      res.json({ ok: true, balance: Number(data.balance) });
+      res.json({ ok: true, balance: Number(data.balance), bonus: Number(data.bonus) || 0 });
     } catch (err) { console.error('aviator bet error:', err); fail(res, 500, 'Could not place the bet. Please try again.'); }
   });
 
@@ -311,7 +315,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
       if (error || !data || !data.ok) { bet.status = 'placed'; return fail(res, 400, 'Could not cancel.'); }
       round.bets.delete(k);
       liveDirty = true;
-      res.json({ ok: true, balance: Number(data.balance) });
+      res.json({ ok: true, balance: Number(data.balance), bonus: Number(data.bonus) || 0 });
     } catch (err) { console.error('aviator cancel error:', err); fail(res, 500, 'Could not cancel. Please try again.'); }
   });
 
