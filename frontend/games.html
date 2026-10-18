@@ -542,7 +542,7 @@ textarea{resize:none}
   <div class="splash" id="splash" hidden>
     <div class="pb">POWERED BY</div>
     <div class="pn" id="splashName">GAMES</div>
-    <div class="pt">Insightful entertainment</div>
+    <div class="pt" id="splashStat">Loading…</div>
     <div class="dots"><i></i><i></i><i></i></div>
   </div>
 </div>
@@ -600,16 +600,51 @@ const avatar = (i, extra = '') => `<span class="ai ${extra}" style="background:$
 /* ---------- sound: put Crash.mp3, Claim.mp3, Background.mp3 in public/ ---------- */
 const Pref = { sound: ls('av_sound', '1') === '1', music: ls('av_music', '1') === '1', anim: ls('av_anim', '1') === '1' };
 const Sound = (() => {
-  // File names are case-sensitive on GitHub/Vercel, so try lower and upper case, in public/ and in the main folder.
-  const make = (names, loop, vol) => {
-    const urls = [];
-    for (const base of ['/public/', '/', 'public/']) for (const n of names) urls.push(base + n);
-    const a = new Audio(); a.preload = 'auto'; a.loop = !!loop; a.volume = vol;
-    let i = 0; a.onerror = () => { if (++i < urls.length) a.src = urls[i]; else a.dataset.missing = '1'; };
-    a.src = urls[0]; return a;
+  // The sound files are plain static files on the frontend site (never the backend). Each one is downloaded
+  // completely first and then played from memory, so there is no waiting or buffering while you play.
+  const FILES = {
+    crash: ['crash.mp3', 'Crash.mp3'],
+    claim: ['claim.mp3', 'Claim.mp3', 'cashout.mp3'],
+    bg: ['background.mp3', 'Background.mp3'],
   };
-  const crash = make(['crash.mp3', 'Crash.mp3'], false, 0.9), claim = make(['claim.mp3', 'Claim.mp3', 'cashout.mp3'], false, 0.9), bg = make(['background.mp3', 'Background.mp3'], true, 0.22);
-  let ctx = null;
+  const KEY = 'snd_url_';
+  const blobs = {};   // key -> Promise<objectURL | null>
+  const auds = {};    // key -> Audio
+  let bgWant = false, ctx = null;
+
+  async function fetchFile(key) {
+    const urls = [];
+    const known = ls(KEY + key, ''); if (known) urls.push(known);
+    for (const base of ['/', '/public/']) for (const n of FILES[key]) { const u = base + n; if (!urls.includes(u)) urls.push(u); }
+    for (const u of urls) {
+      try {
+        const r = await fetch(u);
+        if (!r.ok || /text\/html/i.test(r.headers.get('content-type') || '')) continue;
+        const b = await r.blob(); if (!b.size) continue;
+        lsSet(KEY + key, u); return URL.createObjectURL(b);
+      } catch (_) { /* try the next spelling */ }
+    }
+    return null;                                     // file not found: a built-in beep is used instead
+  }
+  const load = (key) => (blobs[key] || (blobs[key] = fetchFile(key)));
+  async function audio(key) {
+    if (auds[key]) return auds[key];
+    const url = await load(key); if (!url) return null;
+    const a = new Audio(url); a.volume = key === 'bg' ? 0.22 : 0.9; a.loop = key === 'bg';
+    return (auds[key] = a);
+  }
+
+  // Downloads what is needed (and reports progress). Never waits longer than `maxMs`.
+  function preload(onProgress, maxMs = 12000) {
+    const keys = []; if (Pref.sound) keys.push('crash', 'claim'); if (Pref.music) keys.push('bg');
+    return new Promise((resolve) => {
+      if (!keys.length) return resolve();
+      let done = 0; const fin = () => { done++; if (onProgress) onProgress(done, keys.length); if (done >= keys.length) resolve(); };
+      keys.forEach((k) => audio(k).then(fin, fin));
+      setTimeout(resolve, maxMs);
+    });
+  }
+
   const beep = (f1, f2, d, v) => {
     try {
       ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume();
@@ -618,13 +653,20 @@ const Sound = (() => {
       g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d); o.connect(g); g.connect(ctx.destination); o.start(n); o.stop(n + d + .05);
     } catch (_) {}
   };
-  const play = (a, fb) => { if (!Pref.sound) return; if (a.dataset.missing) return fb && fb(); a.currentTime = 0; a.play().catch(() => fb && fb()); };
+  const fallback = { crash: () => beep(220, 55, .4, .25), claim: () => { beep(660, 990, .18, .2); setTimeout(() => beep(990, 1320, .2, .16), 100); } };
+  async function effect(key) {
+    if (!Pref.sound) return;
+    const a = auds[key] || await audio(key);
+    if (!a) return fallback[key]();
+    a.currentTime = 0; a.play().catch(() => fallback[key]());
+  }
   return {
-    crash: () => play(crash, () => beep(220, 55, .4, .25)),
-    claim: () => play(claim, () => { beep(660, 990, .18, .2); setTimeout(() => beep(990, 1320, .2, .16), 100); }),
+    preload,
+    crash: () => effect('crash'),
+    claim: () => effect('claim'),
     bet: () => { if (Pref.sound) beep(440, 660, .08, .12); },
-    startBg() { if (Pref.music && !bg.dataset.missing) bg.play().catch(() => {}); },
-    stopBg() { bg.pause(); },
+    async startBg() { bgWant = true; if (!Pref.music) return; const a = await audio('bg'); if (a && bgWant && Pref.music) a.play().catch(() => {}); },
+    stopBg() { bgWant = false; if (auds.bg) auds.bg.pause(); },
   };
 })();
 
@@ -1125,8 +1167,12 @@ function openGame() {
   $('game').classList.toggle('noanim', !Pref.anim);
   $('splashName').textContent = PLATFORM.name.toUpperCase();
   const sp = $('splash'); sp.hidden = false; sp.classList.remove('out');
-  setTimeout(() => { sp.classList.add('out'); setTimeout(() => { sp.hidden = true; }, 480); }, 1800);
-  Sound.startBg();
+  const t0 = Date.now(); $('splashStat').textContent = 'Loading sounds…';
+  Sound.preload((d, t) => { $('splashStat').textContent = `Loading sounds ${d}/${t}`; }).then(() => {
+    if (!G.open) return;
+    $('splashStat').textContent = 'Starting…';
+    setTimeout(() => { if (!G.open) return; sp.classList.add('out'); setTimeout(() => { sp.hidden = true; }, 480); Sound.startBg(); }, Math.max(0, 1800 - (Date.now() - t0)));
+  });
   renderPanels(); renderHistory(); renderTable(); renderPlayers(); renderFoot(); paintBal();
   connectStream(); loadMe();
   fit(); cancelAnimationFrame(rafId); rafId = requestAnimationFrame(frame);
