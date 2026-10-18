@@ -361,7 +361,7 @@ textarea{resize:none}
       <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#fff"/><path d="M6 20l20-9-6 14-4-5-4 4-1-6z" fill="#0D3B2C"/></svg>
       <span id="botName">Games</span>
     </div>
-    <button class="pill" id="balPill">–</button>
+    <div style="display:flex;gap:8px;align-items:center"><button class="pill" id="musicBtn" aria-label="Music" hidden>🎵</button><button class="pill" id="balPill">–</button></div>
   </div>
   <div class="seg" id="tabs">
     <button data-tab="lobby" aria-pressed="true">🎮 Games</button>
@@ -542,7 +542,6 @@ textarea{resize:none}
   <div class="splash" id="splash" hidden>
     <div class="pb">POWERED BY</div>
     <div class="pn" id="splashName">GAMES</div>
-    <div class="pt" id="splashStat">Loading…</div>
     <div class="dots"><i></i><i></i><i></i></div>
   </div>
 </div>
@@ -667,8 +666,12 @@ const Sound = (() => {
     bet: () => { if (Pref.sound) beep(440, 660, .08, .12); },
     async startBg() { bgWant = true; if (!Pref.music) return; const a = await audio('bg'); if (a && bgWant && Pref.music) a.play().catch(() => {}); },
     stopBg() { bgWant = false; if (auds.bg) auds.bg.pause(); },
+    pauseBg() { if (auds.bg) auds.bg.pause(); },
+    resumeBg() { if (bgWant && Pref.music && auds.bg) auds.bg.play().catch(() => {}); },
   };
 })();
+document.addEventListener('visibilitychange', () => { if (document.hidden) Sound.pauseBg(); else Sound.resumeBg(); });
+addEventListener('pagehide', () => Sound.pauseBg());
 
 /* ================================================================= */
 /* Tabs: Games · Bingo · Wallet                                        */
@@ -687,6 +690,12 @@ function setTab(t) {
 }
 $('tabs').onclick = (e) => { const b = e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); };
 $('balPill').onclick = () => setTab('wallet');
+function paintMusicBtn() { $('musicBtn').textContent = Pref.music ? '🎵' : '🔇'; }
+$('musicBtn').onclick = () => {
+  Pref.music = !Pref.music; lsSet('av_music', Pref.music ? '1' : '0');
+  if (Pref.music) Sound.startBg(); else Sound.stopBg();
+  paintMusicBtn();
+};
 $('tileBingo').onclick = () => setTab('bingo');
 $('tileAv').onclick = () => openGame();
 
@@ -1167,12 +1176,12 @@ function openGame() {
   $('game').classList.toggle('noanim', !Pref.anim);
   $('splashName').textContent = PLATFORM.name.toUpperCase();
   const sp = $('splash'); sp.hidden = false; sp.classList.remove('out');
-  const t0 = Date.now(); $('splashStat').textContent = 'Loading sounds…';
-  Sound.preload((d, t) => { $('splashStat').textContent = `Loading sounds ${d}/${t}`; }).then(() => {
+  const t0 = Date.now();
+  Sound.preload().then(() => {                       // the red loading screen stays until the sounds are downloaded
     if (!G.open) return;
-    $('splashStat').textContent = 'Starting…';
     setTimeout(() => { if (!G.open) return; sp.classList.add('out'); setTimeout(() => { sp.hidden = true; }, 480); Sound.startBg(); }, Math.max(0, 1800 - (Date.now() - t0)));
   });
+  $('musicBtn').hidden = false; paintMusicBtn();
   renderPanels(); renderHistory(); renderTable(); renderPlayers(); renderFoot(); paintBal();
   connectStream(); loadMe();
   fit(); cancelAnimationFrame(rafId); rafId = requestAnimationFrame(frame);
@@ -1182,7 +1191,7 @@ function openGame() {
 function closeGame() {
   G.open = false; G.connected = false; $('game').hidden = true; document.body.style.overflow = '';
   if (es) { es.close(); es = null; }
-  cancelAnimationFrame(rafId); clearInterval(pollId); Sound.stopBg();
+  cancelAnimationFrame(rafId); clearInterval(pollId);
   $('gMenu').hidden = true; $('chat').hidden = true; $('gModal').hidden = true;
   $('balPill').textContent = `✈ ${fmt(me.balance)} ETB`;
 }
@@ -1445,7 +1454,7 @@ $('gMenu').onclick = async (e) => {
   const sw = e.target.closest('[data-sw]'), mm = e.target.closest('[data-m]');
   if (sw) {
     const k = sw.dataset.sw; Pref[k] = !Pref[k]; lsSet(`av_${k}`, Pref[k] ? '1' : '0');
-    if (k === 'music') { if (Pref.music) Sound.startBg(); else Sound.stopBg(); }
+    if (k === 'music') { if (Pref.music) Sound.startBg(); else Sound.stopBg(); paintMusicBtn(); }
     if (k === 'anim') $('game').classList.toggle('noanim', !Pref.anim);
     paintMenu(); return;
   }
