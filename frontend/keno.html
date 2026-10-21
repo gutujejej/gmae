@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fast Keno</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c1511;--card:#14221c;--card2:#1b2f26;--cell:#26322d;--line:#233a2f;--ink:#eef4f0;--muted:#8aa196;--green:#2bd47d;--green2:#16a35c;--yellow:#ffd24a;--red:#ff5d5d;--blue:#3aa0ff;--purple:#9b6bff;--orange:#ff9a3d;--display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--body:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;user-select:none}
+body{min-height:100vh;padding-bottom:78px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+input{user-select:text}
+.wrap{width:min(640px,100%);margin:0 auto}
+.bar0{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#000;font-weight:700;font-size:17px}
+.x0{width:44px;height:44px;border-radius:50%;background:#1d1d20;font-size:20px;font-weight:700}
+.head{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.logo{font-family:var(--display);font-weight:900;font-style:italic;font-size:28px;line-height:.9;color:#fff;transform:skewX(-8deg);flex:none}
+.logo b{display:block;color:var(--green)}
+.pillrow{flex:1;display:flex;align-items:center;border:1px solid var(--green2);border-radius:999px;background:#0f2019;overflow:hidden;min-width:0}
+.pillrow div{padding:9px 12px;font-size:14px;white-space:nowrap}
+.pillrow .bal{color:var(--yellow);font-weight:700;flex:1}
+.pillrow .id{border-left:1px solid var(--line);color:#cfe3d8;flex:1.1;overflow:hidden;text-overflow:ellipsis}
+.ic{width:38px;height:38px;border-radius:10px;color:var(--green);display:flex;align-items:center;justify-content:center;flex:none}
+.ic svg{width:26px;height:26px}
+.timer{text-align:center;font-family:"Courier New",monospace;font-size:30px;font-weight:700;letter-spacing:.06em;color:#cdeedd;text-shadow:0 0 12px rgba(43,212,125,.5);padding:2px 0 6px}
+.timer.go{color:var(--yellow);text-shadow:0 0 12px rgba(255,210,74,.5)}
+.intro{position:relative;margin:4px 12px 10px;border-radius:16px;background:linear-gradient(160deg,#16281f,#0f1c16);border:1px solid var(--line);padding:16px 16px 14px 120px;min-height:116px;overflow:hidden}
+.intro h2{font-size:28px;line-height:1.15;font-weight:700}
+.intro p{color:var(--green);font-weight:700;font-size:22px;margin-top:4px}
+.intro .q{position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;background:#1d3a2c;color:var(--green);font-weight:700;font-size:18px}
+.ball{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:#fff;box-shadow:inset -4px -6px 10px rgba(0,0,0,.35),inset 3px 3px 6px rgba(255,255,255,.25);flex:none}
+.b1{background:radial-gradient(circle at 30% 30%,#5dbcff,#1a63b8)}.b2{background:radial-gradient(circle at 30% 30%,#b99bff,#5a35b5)}.b3{background:radial-gradient(circle at 30% 30%,#ffbb6b,#c4631a)}.b4{background:radial-gradient(circle at 30% 30%,#6cf0a8,#13854a)}
+.intro .deco{position:absolute;left:12px;top:10px}
+.intro .deco .ball{position:absolute}
+.drawn{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 12px 10px;min-height:34px}
+.drawn .ball{width:32px;height:32px;font-size:13px;animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.2);opacity:0}}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:0 10px}
+.cell{position:relative;aspect-ratio:1/0.95;border-radius:7px;background:var(--cell);font-weight:500;font-size:clamp(14px,4.6vw,22px);color:#dfe9e3;display:flex;align-items:center;justify-content:center;transition:transform .1s,background .15s}
+.cell:active{transform:scale(.94)}
+.cell.sel{background:linear-gradient(160deg,#25c777,#12804a);color:#fff;box-shadow:0 0 0 2px rgba(43,212,125,.5)}
+.cell.drawn{background:#4b3d12;color:#ffe08a;box-shadow:0 0 0 2px var(--yellow)}
+.cell.hit{background:linear-gradient(160deg,#35f09a,#0e9b57);color:#fff;box-shadow:0 0 0 3px #fff,0 0 14px rgba(43,212,125,.9)}
+.cell.mine:not(.hit){box-shadow:0 0 0 2px var(--green)}
+.cell i{position:absolute;left:3px;top:2px;width:7px;height:7px;border-radius:50%}
+.cell i.hot{background:#ff4b4b}.cell i.cold{background:#4ab6ff}
+.grid.off .cell{pointer-events:none}
+.betrow{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;padding:12px 10px 0;align-items:stretch}
+.stepbox{display:flex;align-items:center;background:var(--card);border-radius:10px;border:1px solid var(--line)}
+.stepbox button{width:48px;font-size:26px;font-weight:700;color:#cfe3d8;height:54px}
+.stepbox input{flex:1;min-width:0;background:none;border:0;outline:none;text-align:center;font-size:24px;font-weight:700;font-family:inherit;color:#fff}
+.sq{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 14px;color:var(--green);font-size:20px;font-weight:700;height:54px}
+.betbtn{display:block;width:calc(100% - 20px);margin:10px 10px 0;height:62px;border-radius:12px;background:linear-gradient(180deg,#3a8f66,#1f6a47);color:#fff;font-size:28px;font-weight:700;letter-spacing:.04em;box-shadow:0 6px 0 #124a31}
+.betbtn:active{transform:translateY(3px);box-shadow:0 3px 0 #124a31}
+.betbtn:disabled{background:#26342e;color:#6e8579;box-shadow:0 6px 0 #1a2420}
+.betbtn.cancel{background:linear-gradient(180deg,#c43a3a,#8c2323);box-shadow:0 6px 0 #5e1717}
+.note{margin:10px 12px 0;padding:10px 14px;border-radius:12px;font-size:14px;background:#3a1a1a;color:#ffb3b3}
+.note.ok{background:#12301f;color:#9be8bd}.note a{color:#fff;text-decoration:underline;font-weight:700}
+.tabsrow{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#000;border-top:1px solid var(--line)}
+.tabsrow .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.tabsrow button{padding:14px 2px 16px;color:#9fb4a9;font-weight:500;font-size:15px;letter-spacing:.02em;text-transform:uppercase;border-bottom:3px solid transparent}
+.tabsrow button.on{color:var(--green);border-bottom-color:var(--green)}
+.sub{display:flex;justify-content:space-between;padding:16px 18px 10px;font-size:20px;color:var(--muted)}
+.sub button{color:var(--muted);font-size:20px;padding:4px 0;border-bottom:2px solid transparent}
+.sub button.on{color:#fff;border-bottom-color:var(--green)}
+.sub b{color:var(--green);font-weight:500;margin-left:6px}
+.tk{margin:0 10px 10px;background:var(--card);border-radius:12px;padding:10px;border:1px solid var(--line)}
+.tk .nm{color:var(--green);font-size:22px;font-weight:500;margin-bottom:8px}
+.tk .nm small{color:var(--muted);font-size:13px;margin-left:8px;font-weight:400}
+.slots{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.slot{aspect-ratio:1/1.05;border-radius:6px;background:#0e1814;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,3.6vw,16px);font-weight:500;color:#cfe3d8}
+.slot.f{background:#2a3b34}.slot.h{background:var(--green2);color:#fff;box-shadow:0 0 8px rgba(43,212,125,.7)}
+.tk .foot{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.tk .foot div{background:#0e1814;border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500}
+.tk .foot .st{text-align:right;color:var(--yellow);font-weight:700}
+.tk .foot .st.w{color:var(--green)}.tk .foot .st.l{color:#7d8e86}
+.empty{text-align:center;color:var(--muted);padding:34px 20px}
+.res{margin:0 10px 10px;background:var(--card);border-radius:12px;padding:12px;border:1px solid var(--line)}
+.res .t{color:var(--muted);font-size:13px;margin-bottom:8px}
+.res .balls{display:flex;flex-wrap:wrap;gap:5px}.res .ball{width:30px;height:30px;font-size:12px}
+.heat{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:0 10px}
+.heat div{aspect-ratio:1/1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:500}
+.heat small{font-size:9px;opacity:.8}
+.modalbg{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{width:min(430px,100%);max-height:86vh;overflow:auto;background:var(--card);border-radius:18px;padding:18px 16px;border:1px solid var(--line)}
+.modal h3{font-size:22px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.modal h3 button{width:34px;height:34px;border-radius:50%;background:#26382f;color:#aac}
+.modal p,.modal li{color:#bcd0c5;font-size:15px;line-height:1.55}.modal ul{padding-left:18px}
+.modal code{color:var(--green);word-break:break-all;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:17px}
+.row:last-child{border-bottom:0}
+.sw{width:48px;height:26px;border-radius:99px;background:#2a3b34;position:relative;flex:none}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#9ab;transition:left .18s}
+.sw.on{background:var(--green2)}.sw.on::after{left:25px;background:#fff}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pills button{padding:7px 13px;border-radius:99px;background:#22352c;color:#bcd0c5;font-weight:500}
+.pills button.on{background:var(--green2);color:#fff}
+.pt{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pt div{background:#0e1814;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;font-size:16px}
+.pt b{color:var(--yellow)}
+.btn2{width:100%;padding:13px;border-radius:12px;background:var(--green2);font-weight:700;font-size:16px;margin-top:10px}
+.btn2.g{background:#26382f;color:#cfe3d8}
+.conn{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:40;background:#3a1a1a;color:#ffb3b3;padding:6px 14px;border-radius:99px;font-size:13px}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--yellow);color:#3a2c00;padding:12px 18px;border-radius:14px;font-weight:700;z-index:80;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<div class="bar0"><span>Fast Keno</span><button class="x0" id="close" aria-label="Close">✕</button></div>
+<div class="wrap">
+  <div id="authFail" class="empty" hidden>Please open this from the bot inside Telegram.</div>
+  <div id="app">
+    <div class="head">
+      <div class="logo">FAST<b>KENO</b></div>
+      <div class="pillrow"><div class="bal"><span id="bal">0.00</span> <small>ETB</small></div><div class="id" id="pid">ID</div></div>
+      <button class="ic" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+    <div class="conn" id="conn" hidden>Connecting to the live draw…</div>
+    <div class="timer" id="timer">00:00</div>
+
+    <section id="vGame">
+      <div class="intro">
+        <div class="deco"><span class="ball b4" style="left:6px;top:24px;width:58px;height:58px;font-size:26px">1</span><span class="ball b2" style="left:56px;top:0;width:40px;height:40px;font-size:16px">70</span><span class="ball b3" style="left:22px;top:-4px;width:28px;height:28px;font-size:12px">80</span></div>
+        <h2>Choose up to 10 numbers</h2><p id="introP">From 1 to 80</p>
+        <button class="q" id="payBtn" aria-label="Payouts">?</button>
+      </div>
+      <div class="drawn" id="drawn"></div>
+      <div class="grid" id="grid"></div>
+      <div class="betrow">
+        <div class="stepbox"><button id="dec">−</button><input id="stake" type="number" inputmode="decimal" step="0.01"><button id="inc">+</button></div>
+        <button class="sq" id="x2">X2</button><button class="sq" id="max">MAX</button><button class="sq" id="gear" aria-label="Settings">⚙</button>
+      </div>
+      <button class="betbtn" id="bet">BET</button>
+      <div id="msg"></div>
+      <div class="sub" id="lt"><button data-l="all" class="on">All <b id="nAll">0</b></button><button data-l="mine">My Tickets <b id="nMine">0</b></button><button data-l="bets">My Bets <b id="nBets">0</b></button></div>
+      <div id="list"></div>
+    </section>
+
+    <section id="vHist" hidden><div class="sub"><span>My bets</span></div><div id="histList"></div></section>
+    <section id="vRes" hidden><div class="sub"><span>Latest draws</span></div><div id="resList"></div></section>
+    <section id="vStat" hidden><div class="sub"><span id="statT">Statistics</span></div><div class="heat" id="heat"></div><p class="empty" id="statN"></p></section>
+  </div>
+</div>
+
+<div class="tabsrow"><div class="wrap" id="tabs">
+  <button data-t="game" class="on">▶ Game</button><button data-t="hist">↻ History</button><button data-t="res">✓ Results</button><button data-t="stat">▥ Statistics</button>
+</div></div>
+<div id="modalHost"></div>
+
+<script>
+const API_URL = 'https://gmae-production-aa21.up.railway.app';
+const tg = window.Telegram && window.Telegram.WebApp;
+const BOT = new URLSearchParams(location.search).get('b');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const r2 = (n) => Math.round(Number(n) * 100) / 100;
+const ls = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+
+async function api(path, method = 'GET', body) {
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 20000); let res;
+  try { res = await fetch(`${API_URL}${path}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` }, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal }); }
+  catch (e) { throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Could not reach the server. Check your internet connection.'); }
+  finally { clearTimeout(timer); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+const pub = (path) => fetch(`${API_URL}${path}`).then((r) => r.json());
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+
+/* ---------- small sounds ---------- */
+let sfx = ls('kn_sfx', '1') === '1', actx = null;
+function beep(f1, f2, d, v) {
+  if (!sfx) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain(), n = actx.currentTime;
+    o.type = 'sine'; o.frequency.setValueAtTime(f1, n); o.frequency.exponentialRampToValueAtTime(Math.max(f2, 1), n + d);
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d); o.connect(g); g.connect(actx.destination); o.start(n); o.stop(n + d + .05);
+  } catch (_) {}
+}
+const tick = () => beep(700, 520, .07, .08), win = () => { beep(660, 990, .18, .15); setTimeout(() => beep(990, 1320, .2, .12), 110); };
+
+/* ---------- state ---------- */
+const S = { phase: 'starting', offset: 0, endsAt: 0, hash: '', roundId: null, numbers: null, revealAt: 0, revealMs: 14000, results: [], live: [], count: 0, connected: false, lastRound: null };
+const me = { balance: 0, min: 5, max: 1000, maxPayout: 20000, maxTickets: 5, paytable: {}, tickets: [], name: 'Player', enabled: true };
+let picks = new Set(), stake = 5, tab = 'game', list = 'all', history = [], stats = null, repeatOn = ls('kn_repeat', '0') === '1', lastPicks = null, shown = 0, busy = false;
+const serverNow = () => Date.now() + S.offset;
+const sync = (d) => { if (d.now) S.offset = d.now - Date.now(); };
+const ballClass = (n) => (n <= 20 ? 'b1' : n <= 40 ? 'b2' : n <= 60 ? 'b3' : 'b4');
+const ball = (n, size) => `<span class="ball ${ballClass(n)}" style="width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px">${n}</span>`;
+const myNums = () => { const s = new Set(); me.tickets.forEach((t) => t.picks.forEach((n) => s.add(n))); return s; };
+
+/* ---------- grid ---------- */
+function buildGrid() { $('grid').innerHTML = Array.from({ length: 80 }, (_, i) => `<button class="cell" data-n="${i + 1}">${i + 1}</button>`).join(''); }
+function paintGrid() {
+  const drawn = new Set((S.numbers || []).slice(0, shown)), mine = myNums(), hot = new Set(stats ? stats.hot.slice(0, 6) : []), cold = new Set(stats ? stats.cold.slice(0, 6) : []);
+  const betting = S.phase === 'betting';
+  $('grid').classList.toggle('off', !betting);
+  $('grid').querySelectorAll('.cell').forEach((c) => {
+    const n = Number(c.dataset.n), d = drawn.has(n), m = mine.has(n) && !betting;
+    c.className = 'cell' + (betting && picks.has(n) ? ' sel' : '') + (d ? (m ? ' hit' : ' drawn') : (m ? ' mine' : ''));
+    const mark = hot.has(n) ? 'hot' : cold.has(n) ? 'cold' : '';
+    const i = c.querySelector('i'); if (mark && !i) c.insertAdjacentHTML('afterbegin', `<i class="${mark}"></i>`); else if (i && !mark) i.remove(); else if (i) i.className = mark;
+  });
+}
+$('grid').onclick = (e) => {
+  const c = e.target.closest('.cell'); if (!c || S.phase !== 'betting') return;
+  const n = Number(c.dataset.n);
+  if (picks.has(n)) picks.delete(n); else if (picks.size < 10) picks.add(n); else toast('You can choose up to 10 numbers.');
+  paintGrid(); paintBet(); beep(520, 640, .05, .06);
+};
+
+/* ---------- bet controls ---------- */
+const setStake = (v) => { stake = Math.min(me.max, Math.max(me.min, r2(v))); $('stake').value = stake.toFixed(2); paintBet(); };
+$('dec').onclick = () => setStake(stake - me.min);
+$('inc').onclick = () => setStake(stake + me.min);
+$('x2').onclick = () => setStake(stake * 2);
+$('max').onclick = () => setStake(Math.min(me.max, Math.max(me.min, Math.floor(me.balance / me.min) * me.min)));
+$('stake').oninput = () => { stake = Number($('stake').value) || 0; paintBet(); };
+$('stake').onblur = () => setStake(stake || me.min);
+
+function paintBet() {
+  const b = $('bet'), bt = S.phase === 'betting';
+  $('introP').textContent = picks.size ? `${picks.size} of 10 chosen` : 'From 1 to 80';
+  b.className = 'betbtn';
+  if (!me.enabled) { b.disabled = true; b.textContent = 'KENO IS OFF'; return; }
+  if (!bt) { b.disabled = true; b.textContent = S.phase === 'drawing' ? 'DRAWING…' : 'WAIT…'; return; }
+  const full = me.tickets.length >= me.maxTickets;
+  b.disabled = !picks.size || full;
+  b.textContent = full ? `MAX ${me.maxTickets} TICKETS` : picks.size ? `BET ${fmt(stake)}` : 'CHOOSE NUMBERS';
+}
+function say(text, ok, dep) {
+  $('msg').innerHTML = `<div class="note ${ok ? 'ok' : ''}">${esc(text)}${dep ? ` <a href="games?b=${encodeURIComponent(BOT)}#wallet">Deposit</a>` : ''}</div>`;
+  clearTimeout(say.t); say.t = setTimeout(() => { $('msg').innerHTML = ''; }, 5000);
+}
+async function place(nums, st, silent) {
+  if (busy) return; busy = true;
+  try {
+    const r = await api(`/api/mini/${BOT}/keno/bet`, 'POST', { picks: [...nums], stake: st });
+    me.balance = r.balance; me.tickets.push(r.ticket); lastPicks = [...nums]; picks.clear();
+    beep(440, 660, .08, .12); if (!silent) say(`Ticket placed — ${nums.length} numbers, ${fmt(st)} ETB.`, true);
+  } catch (e) { say(e.message, false, /wallet|deposit/i.test(e.message)); }
+  busy = false; paintAll();
+}
+$('bet').onclick = () => {
+  if (S.phase !== 'betting') return;
+  if (!picks.size) return;
+  if (stake < me.min || stake > me.max) return say(`Bet between ${me.min} and ${me.max} ETB.`, false);
+  place(picks, stake);
+};
+async function cancelTicket(id) {
+  try { const r = await api(`/api/mini/${BOT}/keno/cancel`, 'POST', { id }); me.balance = r.balance; me.tickets = me.tickets.filter((t) => t.id !== id); } catch (e) { say(e.message, false); }
+  paintAll();
+}
+
+/* ---------- lists ---------- */
+function ticketHtml(t, name, drawnSet) {
+  const slots = Array.from({ length: 10 }, (_, i) => {
+    const n = t.picks[i]; if (n == null) return '<div class="slot"></div>';
+    return `<div class="slot f${drawnSet && drawnSet.has(n) ? ' h' : ''}">${n}</div>`;
+  }).join('');
+  const st = t.status === 'won' ? `<div class="st w">Win +${fmt(t.payout)}</div>` : t.status === 'lost' ? '<div class="st l">No win</div>' : '<div class="st">Waiting</div>';
+  return `<div class="tk"><div class="nm">${esc(name)}${t.hits != null ? `<small>${t.hits} hit${t.hits === 1 ? '' : 's'}</small>` : ''}</div><div class="slots">${slots}</div><div class="foot"><div>Bet ${fmt(t.stake)}</div>${st}</div></div>`;
+}
+function paintList() {
+  const drawn = S.numbers && (S.phase === 'drawing' || S.phase === 'ended') ? new Set(S.numbers.slice(0, shown)) : null;
+  $('nAll').textContent = S.count; $('nMine').textContent = me.tickets.length; $('nBets').textContent = history.length;
+  document.querySelectorAll('#lt button').forEach((b) => b.classList.toggle('on', b.dataset.l === list));
+  let html = '';
+  if (list === 'all') html = S.live.map((t) => ticketHtml(t, t.name, drawn)).join('');
+  else if (list === 'mine') html = me.tickets.map((t) => ticketHtml(t, me.name, drawn) + (S.phase === 'betting' && t.status === 'placed' ? `<button class="btn2 g" style="margin:-4px 10px 10px;width:calc(100% - 20px)" data-cancel="${t.id}">Cancel this ticket</button>` : '')).join('');
+  else html = history.map((t) => ticketHtml({ ...t, picks: t.picks }, me.name, new Set(t.drawn))).join('');
+  $('list').innerHTML = html || '<div class="empty">Nothing here yet.</div>';
+}
+$('lt').onclick = async (e) => { const b = e.target.closest('button[data-l]'); if (!b) return; list = b.dataset.l; if (list === 'bets') await loadHistory(); paintList(); };
+$('list').onclick = (e) => { const b = e.target.closest('[data-cancel]'); if (b) cancelTicket(Number(b.dataset.cancel)); };
+
+async function loadHistory() { try { history = (await api(`/api/mini/${BOT}/keno/history`)).tickets; } catch (_) {} }
+function paintHistTab() { $('histList').innerHTML = history.length ? history.map((t) => ticketHtml(t, me.name, new Set(t.drawn))).join('') : '<div class="empty">No bets yet.</div>'; }
+function paintResTab() {
+  $('resList').innerHTML = S.results.length ? S.results.map((r, i) => `<div class="res"><div class="t">${i === 0 && S.phase !== 'betting' ? 'Latest draw' : `Draw ${i + 1} back`}</div><div class="balls">${r.numbers.map((n) => ball(n, 30)).join('')}</div></div>`).join('') : '<div class="empty">No draws yet.</div>';
+}
+function paintStatTab() {
+  if (!stats) { $('heat').innerHTML = ''; $('statN').textContent = 'Loading…'; return; }
+  const max = Math.max(1, ...stats.counts);
+  $('statT').textContent = `How often each number came out (last ${stats.draws} draws)`;
+  $('heat').innerHTML = stats.counts.map((c, i) => `<div style="background:rgba(43,212,125,${(0.08 + 0.7 * c / max).toFixed(2)})">${i + 1}<small>${c}</small></div>`).join('');
+  $('statN').textContent = stats.hot.length ? `Hot: ${stats.hot.join(', ')}   ·   Cold: ${stats.cold.join(', ')}` : '';
+}
+$('tabs').onclick = async (e) => {
+  const b = e.target.closest('button[data-t]'); if (!b) return; tab = b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  ['Game', 'Hist', 'Res', 'Stat'].forEach((k) => { $('v' + k).hidden = k.toLowerCase() !== tab; });
+  if (tab === 'hist') { await loadHistory(); paintHistTab(); }
+  if (tab === 'res') paintResTab();
+  if (tab === 'stat') { paintStatTab(); try { stats = await pub('/api/keno/stats'); paintStatTab(); paintGrid(); } catch (_) {} }
+};
+
+/* ---------- live ---------- */
+function paintAll() { $('bal').textContent = fmt(me.balance); paintGrid(); paintBet(); paintList(); }
+async function loadMe() {
+  try {
+    const m = await api(`/api/mini/${BOT}/keno/me`);
+    Object.assign(me, { name: m.name, balance: m.balance, min: m.min, max: m.max, maxPayout: m.maxPayout, maxTickets: m.maxTickets, paytable: m.paytable, enabled: m.enabled, tickets: m.tickets || [] });
+    if (stake < me.min) stake = me.min; $('stake').value = Number(stake).toFixed(2);
+    paintAll();
+  } catch (e) { say(e.message, false); }
+}
+function connect() {
+  const es = new EventSource(`${API_URL}/api/keno/stream`);
+  es.onopen = () => { S.connected = true; $('conn').hidden = true; };
+  es.onerror = () => { S.connected = false; $('conn').hidden = false; };
+  const apply = (d) => { if (d.results) S.results = d.results; if (d.tickets) { S.live = d.tickets; S.count = d.count; } };
+  es.addEventListener('state', (e) => {
+    const d = JSON.parse(e.data); sync(d); apply(d);
+    Object.assign(S, { phase: d.phase, roundId: d.round_id || null, hash: d.server_seed_hash || '', endsAt: d.betting_ends_at || 0, numbers: d.numbers || null, revealAt: d.reveal_started_at || 0, revealMs: d.reveal_ms || 14000 });
+    shown = d.phase === 'ended' && d.numbers ? 20 : 0; S.connected = true; $('conn').hidden = true; loadMe();
+  });
+  es.addEventListener('betting', async (e) => {
+    const d = JSON.parse(e.data); sync(d); apply(d);
+    Object.assign(S, { phase: 'betting', roundId: d.round_id, hash: d.server_seed_hash, endsAt: d.betting_ends_at, numbers: null }); shown = 0; S.live = []; S.count = 0; me.tickets = [];
+    paintAll(); await loadMe();
+    if (repeatOn && lastPicks && me.tickets.length < me.maxTickets && me.balance >= stake) place(lastPicks, stake, true);
+  });
+  es.addEventListener('draw', (e) => { const d = JSON.parse(e.data); sync(d); Object.assign(S, { phase: 'drawing', numbers: d.numbers, revealAt: d.reveal_started_at, revealMs: d.reveal_ms }); shown = 0; picks.clear(); paintAll(); });
+  es.addEventListener('result', async (e) => {
+    const d = JSON.parse(e.data); sync(d); apply(d); S.phase = 'ended'; S.numbers = d.numbers; S.lastRound = d.round_id; shown = 20;
+    await loadMe(); const won = me.tickets.filter((t) => t.status === 'won'); const total = won.reduce((s, t) => s + t.payout, 0);
+    if (total > 0) { win(); toast(`You won +${fmt(total)} ETB`); }
+    loadHistory().then(paintList);
+  });
+  es.addEventListener('live', (e) => { const d = JSON.parse(e.data); S.live = d.tickets || []; S.count = d.count || 0; paintList(); });
+}
+function frame() {
+  const t = $('timer');
+  if (S.phase === 'betting') { const left = Math.max(0, Math.ceil((S.endsAt - serverNow()) / 1000)); t.textContent = `00:${String(Math.min(left, 99)).padStart(2, '0')}`; t.className = 'timer' + (left <= 5 ? ' go' : ''); }
+  else { t.textContent = S.phase === 'drawing' ? 'DRAW' : '--:--'; t.className = 'timer go'; }
+  if (S.phase === 'drawing' && S.numbers) {
+    const n = Math.min(20, Math.floor((serverNow() - S.revealAt) / (S.revealMs / 20)) + 1);
+    if (n > shown) { for (let i = shown; i < n; i++) tick(); shown = n; paintGrid(); paintList(); }
+  }
+  const dn = S.numbers && (S.phase === 'drawing' || S.phase === 'ended') ? S.numbers.slice(0, shown) : [];
+  const key = dn.join(',');
+  if (frame.k !== key) { frame.k = key; $('drawn').innerHTML = dn.map((n) => ball(n, 32)).join(''); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- menus ---------- */
+function modal(html) {
+  $('modalHost').innerHTML = `<div class="modalbg" id="mbg"><div class="modal">${html}</div></div>`;
+  $('mbg').onclick = (e) => { if (e.target.id === 'mbg' || e.target.closest('[data-x]')) $('modalHost').innerHTML = ''; };
+}
+function payModal(k) {
+  k = k || Math.max(1, picks.size) ; const pt = me.paytable[k] || {};
+  modal(`<h3>Payouts <button data-x>✕</button></h3><p style="margin-bottom:10px">Pick numbers, then win by how many of them are drawn. Payout = your bet × the multiplier.</p>
+    <div class="pills" id="pp">${Array.from({ length: 10 }, (_, i) => `<button data-k="${i + 1}" class="${i + 1 === k ? 'on' : ''}">${i + 1}</button>`).join('')}</div>
+    <div class="pt">${Object.keys(pt).map((h) => `<div><span>${h} hits</span><b>x${pt[h]}</b></div>`).join('') || '<p>No payout.</p>'}</div>
+    <p style="margin-top:10px">One ticket can win at most ${fmt(me.maxPayout)} ETB.</p>`);
+  $('pp').onclick = (e) => { const b = e.target.closest('button[data-k]'); if (b) payModal(Number(b.dataset.k)); };
+}
+$('payBtn').onclick = () => payModal();
+$('gear').onclick = () => {
+  modal(`<h3>Settings <button data-x>✕</button></h3>
+    <div class="pills" id="qp"><span style="color:var(--muted);align-self:center">Quick pick:</span>${[3, 5, 8, 10].map((n) => `<button data-q="${n}">${n}</button>`).join('')}<button data-q="0">Clear</button></div>
+    <div class="row"><span>Repeat my last ticket every draw</span><span class="sw ${repeatOn ? 'on' : ''}" id="swR"></span></div>
+    <div class="row"><span>Sound</span><span class="sw ${sfx ? 'on' : ''}" id="swS"></span></div>`);
+  $('qp').onclick = (e) => {
+    const b = e.target.closest('button[data-q]'); if (!b) return; const q = Number(b.dataset.q); picks.clear();
+    if (q) { while (picks.size < q) picks.add(1 + Math.floor(Math.random() * 80)); }
+    paintGrid(); paintBet(); $('modalHost').innerHTML = '';
+  };
+  $('swR').onclick = () => { repeatOn = !repeatOn; lsSet('kn_repeat', repeatOn ? '1' : '0'); $('swR').classList.toggle('on', repeatOn); };
+  $('swS').onclick = () => { sfx = !sfx; lsSet('kn_sfx', sfx ? '1' : '0'); $('swS').classList.toggle('on', sfx); };
+};
+$('menuBtn').onclick = () => modal(`<h3>Fast Keno <button data-x>✕</button></h3>
+  <div class="row" data-m="pay" style="cursor:pointer"><span>Payouts</span><span>›</span></div>
+  <div class="row" data-m="how" style="cursor:pointer"><span>How to play</span><span>›</span></div>
+  <div class="row" data-m="fair" style="cursor:pointer"><span>Provably fair</span><span>›</span></div>
+  <div class="row" data-m="games" style="cursor:pointer"><span>Back to games</span><span>›</span></div>`);
+$('modalHost').addEventListener('click', async (e) => {
+  const r = e.target.closest('[data-m]'); if (!r) return; const k = r.dataset.m;
+  if (k === 'pay') payModal();
+  if (k === 'games') goGames();
+  if (k === 'how') modal('<h3>How to play <button data-x>✕</button></h3><ul><li>Choose 1 to 10 numbers from 1 to 80 before the timer ends.</li><li>Pick your bet and press BET. You can play up to 5 tickets per draw.</li><li>20 numbers are drawn. The more of your numbers are drawn, the bigger the win.</li><li>Red dots mark numbers that came out often lately, blue dots mark numbers that came out rarely.</li><li>Payouts never go above what the platform can afford; a draw limited for that reason is marked when you verify it.</li></ul>');
+  if (k === 'fair') {
+    let extra = ''; if (S.lastRound) { try { const v = await pub(`/api/keno/verify/${encodeURIComponent(S.lastRound)}`); extra = v.error ? `<p>${esc(v.error)}</p>` : `<p style="margin-top:10px">Last draw: hash matches seed — <b>${v.hash_matches ? 'YES' : 'NO'}</b><br>Seed used with nonce <b>${v.nonce}</b>${v.limited ? ' (limited to platform funds)' : ''}.</p>`; } catch (_) {} }
+    modal(`<h3>Provably fair <button data-x>✕</button></h3><p>Before betting starts, a secret seed is chosen and its hash is shown. After the draw the seed is revealed so anyone can check the numbers.</p><p style="margin-top:10px">Current hash:<br><code>${esc(S.hash || '…')}</code></p>${extra}`);
+  }
+});
+const goGames = (h) => { location.href = `games?b=${encodeURIComponent(BOT)}${h || ''}`; };
+$('close').onclick = () => goGames();
+
+(function init() {
+  if (!tg || !tg.initData || !BOT) { $('authFail').hidden = false; $('app').hidden = true; return; }
+  tg.ready(); tg.expand();
+  const u = tg.initDataUnsafe && tg.initDataUnsafe.user; $('pid').textContent = `ID: ${u ? u.id : ''}`;
+  buildGrid(); stake = Number(ls('kn_stake', '5')) || 5; $('stake').value = stake.toFixed(2); paintAll();
+  pub('/api/keno/stats').then((s) => { stats = s; paintGrid(); }).catch(() => {});
+  connect(); requestAnimationFrame(frame);
+  window.addEventListener('beforeunload', () => lsSet('kn_stake', String(stake)));
+})();
+</script>
+</body>
+</html>

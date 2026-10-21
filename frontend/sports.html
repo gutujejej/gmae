@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sports</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a2216;--bg2:#0e2b1c;--card:#0f3020;--card2:#14402b;--line:#1f5236;--ink:#eaf5ee;--muted:#8fb09d;--head:#17803a;--yellow:#f1d94a;--red:#e5303a;--green:#34d27b;--orange:#ff9a3d;--display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--body:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;user-select:none}
+body{min-height:100vh;padding-bottom:84px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+input,select,textarea{user-select:text}
+.wrap{width:min(640px,100%);margin:0 auto}
+.bar0{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#000;font-weight:700;font-size:17px}
+.x0{width:44px;height:44px;border-radius:50%;background:#1d1d20;font-size:20px;font-weight:700}
+.top{background:var(--head);padding:14px 14px 12px;display:flex;align-items:center;gap:10px}
+.brand{font-family:var(--display);font-weight:900;font-size:25px;letter-spacing:.01em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wal{display:flex;align-items:center;background:rgba(0,0,0,.25);border-radius:999px;overflow:hidden}
+.wal span{padding:9px 14px;font-weight:700;font-size:15px}
+.wal button{background:var(--red);padding:9px 16px;font-size:24px;font-weight:700;line-height:1}
+.adm{width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.25);font-size:19px}
+.filters{display:flex;align-items:center;gap:6px;padding:12px 10px 4px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.sport{flex:none;display:flex;align-items:center;gap:8px;padding:11px 16px;border:1.5px solid #8ab42a;border-radius:10px;background:#2a3d12;font-weight:700;font-size:17px}
+.tab{flex:none;padding:10px 12px;font-size:17px;color:#cfe3d8;border-bottom:3px solid transparent}
+.tab.on{color:var(--yellow);border-bottom-color:var(--yellow);font-weight:700}
+.dates{display:flex;gap:4px;padding:6px 10px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:6px}
+.dates::-webkit-scrollbar{display:none}
+.dates button{flex:none;padding:10px 14px;font-size:17px;color:#cfe3d8;border-bottom:3px solid transparent}
+.dates button.on{color:var(--yellow);border-bottom-color:var(--yellow);font-weight:700}
+.leagues{display:flex;gap:8px;padding:10px;overflow-x:auto;scrollbar-width:none}
+.leagues::-webkit-scrollbar{display:none}
+.lg{flex:none;padding:12px 18px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-weight:500;font-size:16px;color:#dcebe2}
+.lg.on{border-color:var(--yellow);background:#2a3d12;color:#fff}
+.search{margin:6px 10px 0}
+.search input{width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);font-size:16px;outline:none}
+.lhead{display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:700;font-size:19px;background:var(--bg2)}
+.lhead button{border:1.5px solid #8ab42a;background:#2a3d12;color:var(--yellow);padding:8px 14px;border-radius:999px;font-size:15px;font-weight:700}
+.ev{padding:14px 12px 16px;border-bottom:1px solid var(--line)}
+.ev .t{color:var(--muted);font-size:17px}
+.ev .m{font-size:20px;font-weight:700;text-transform:uppercase;margin:8px 0 12px;line-height:1.25}
+.odds{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.odd{background:var(--card2);border-radius:7px;padding:8px 2px;text-align:center;border:1.5px solid transparent;transition:transform .1s}
+.odd:active{transform:scale(.95)}
+.odd small{display:block;color:#cfe3d8;font-size:16px}
+.odd b{display:block;color:var(--yellow);font-size:19px;font-weight:700}
+.odd.on{background:var(--yellow);border-color:#fff}
+.odd.on small,.odd.on b{color:#1b2a05}
+.empty{text-align:center;color:var(--muted);padding:46px 20px;font-size:16px}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#06180f;border-top:1px solid var(--line)}
+.nav .wrap{display:grid;grid-template-columns:repeat(5,1fr)}
+.nav button{padding:9px 0 12px;color:#aec5b8;font-size:15px;position:relative}
+.nav button span{display:block;font-size:24px;line-height:1.1}
+.nav button.on{color:var(--yellow)}
+.nav .bd{position:absolute;top:2px;left:55%;background:var(--red);color:#fff;font-size:12px;font-weight:700;border-radius:99px;padding:1px 7px}
+.sheetbg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:min(640px,100%);max-height:90vh;overflow:auto;background:var(--bg2);border-radius:22px 22px 0 0;padding:16px 14px 22px;border:1px solid var(--line);animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-size:24px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sheet h2 button{width:36px;height:36px;border-radius:50%;background:#1a3a28;color:#bcd}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:#06180f;border-radius:12px;padding:4px;margin-bottom:12px}
+.seg button{padding:11px;border-radius:9px;font-weight:700;color:#9fb8a9}.seg button.on{background:var(--head);color:#fff}
+.sel{background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.sel .n{font-size:15px;font-weight:700;text-transform:uppercase}.sel .p{color:var(--muted);font-size:14px;margin-top:2px}
+.sel b{color:var(--yellow);font-size:20px}
+.sel .rm{color:#f88;font-size:20px;padding:4px 8px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;font-size:17px}
+.row b{color:var(--yellow);font-size:20px}
+input.in,select.in,textarea.in{width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);font-size:17px;outline:none}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
+.chips button{padding:9px 16px;border-radius:99px;background:var(--card2);font-weight:500}
+.chips button.on{background:var(--head);color:#fff}
+.go{display:block;width:100%;padding:15px;border-radius:12px;background:var(--yellow);color:#1b2a05;font-weight:700;font-size:18px;margin-top:10px}
+.go:disabled{opacity:.45}
+.go.g{background:var(--card2);color:#dcebe2}
+.msg{padding:11px 13px;border-radius:10px;margin:10px 0;font-size:15px;background:#3a1a1a;color:#ffb3b3}
+.msg.ok{background:#123a24;color:#9be8bd}.msg a{color:#fff;font-weight:700;text-decoration:underline}
+.bet{background:var(--card);border-radius:14px;margin:10px;padding:12px;border:1px solid var(--line)}
+.bet .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:#26543a}
+.chip.won{background:#1c7a43}.chip.lost{background:#7a2020}.chip.void{background:#4a4a2a}.chip.open{background:#6a5a12;color:#ffe9a0}
+.leg{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.leg .s{font-size:13px;color:var(--muted)}
+.leg.won b{color:var(--green)}.leg.lost b{color:#ff8b8b}
+.card{background:var(--card);border-radius:14px;margin:10px;padding:14px;border:1px solid var(--line)}
+.card h3{font-size:20px;margin-bottom:8px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px;font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tgl{width:50px;height:28px;border-radius:99px;background:#2a4a38;position:relative;flex:none}
+.tgl::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#9bb;transition:left .18s}.tgl.on{background:var(--head)}.tgl.on::after{left:25px;background:#fff}
+.sm{padding:8px 13px;border-radius:9px;font-weight:700;font-size:14px;background:#1d5a38}.sm.red{background:#6a2222}.sm.y{background:#6a5a12}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.lgchk{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lgchk button{padding:10px;border-radius:9px;background:var(--card2);text-align:left;font-size:14px}.lgchk button.on{background:var(--head)}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--yellow);color:#1b2a05;padding:12px 18px;border-radius:14px;font-weight:700;z-index:90;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<div class="bar0"><span>Sports</span><button class="x0" id="close" aria-label="Close">✕</button></div>
+<div class="wrap">
+  <div id="authFail" class="empty" hidden>Please open this from the bot inside Telegram.</div>
+  <div id="app">
+    <div class="top">
+      <div class="brand" id="brand">Sports</div>
+      <button class="adm" id="admBtn" hidden aria-label="Admin">🛠</button>
+      <div class="wal"><span id="bal">0.0</span><button id="dep" aria-label="Deposit">+</button></div>
+    </div>
+
+    <section id="vHome">
+      <div class="filters"><div class="sport">⚽ Soccer ▾</div><button class="tab on" data-t="all">⏳ Upcoming</button><button class="tab" data-t="top">🔥 Hot</button><button class="tab" data-t="today">Today</button><button class="tab" id="sBtn" aria-label="Search">🔍</button></div>
+      <div class="search" id="sBox" hidden><input id="q" placeholder="Search team or league…"></div>
+      <div class="dates" id="dates"></div>
+      <div class="leagues" id="leagues"></div>
+      <div id="events"></div>
+    </section>
+
+    <section id="vHist" hidden><div id="hist"></div></section>
+
+    <section id="vAdmin" hidden>
+      <div class="filters" id="aTabs"></div>
+      <div id="aMsg" style="padding:0 10px"></div>
+      <div id="aBody"></div>
+    </section>
+  </div>
+</div>
+
+<div class="nav"><div class="wrap" id="nav">
+  <button data-n="home" class="on"><span>🏠</span>Home</button>
+  <button data-n="games"><span>🎮</span>Games</button>
+  <button data-n="slip"><span>🧾</span>Slip<i class="bd" id="bd" hidden>0</i></button>
+  <button data-n="hist"><span>🕘</span>Histories</button>
+  <button data-n="invite"><span>👥</span>Invite</button>
+</div></div>
+<div id="sheetHost"></div>
+
+<script>
+const API_URL = 'https://gmae-production-aa21.up.railway.app';
+const tg = window.Telegram && window.Telegram.WebApp;
+const BOT = new URLSearchParams(location.search).get('b');
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const r2 = (n) => Math.round(Number(n) * 100) / 100;
+async function api(path, method = 'GET', body) {
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 20000); let res;
+  try { res = await fetch(`${API_URL}${path}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` }, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal }); }
+  catch (e) { throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Could not reach the server. Check your internet connection.'); }
+  finally { clearTimeout(timer); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+const goGames = (h) => { location.href = `games?b=${encodeURIComponent(BOT)}${h || ''}`; };
+const when = (iso) => { const d = new Date(iso), p = (n) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+const NAME = { '1': 'Home win', X: 'Draw', '2': 'Away win', '1X': 'Home or draw', '12': 'Home or away', X2: 'Draw or away' };
+const MK = ['1', 'X', '2', '1X', '12', 'X2'];
+
+/* ---------------- state ---------------- */
+const info = { balance: 0, min: 10, max: 5000, maxPayout: 50000, maxLegs: 20, enabled: true, name: 'Sports' };
+let events = [], leagues = [], slip = [], mode = 'single', stake = 10;
+const F = { tab: 'all', day: 'all', league: '', q: '' };
+let isAdmin = false, view = 'home';
+
+function paintBal() { $('bal').textContent = Number(info.balance).toFixed(1); }
+function dayRange(day) {
+  if (day === 'all') return {};
+  const d = day === 'today' ? new Date() : new Date(day); d.setHours(0, 0, 0, 0);
+  const to = new Date(d); to.setDate(to.getDate() + 1);
+  return { from: (day === 'today' ? new Date() : d).toISOString(), to: to.toISOString() };
+}
+function paintDates() {
+  const days = [['all', 'All'], ['today', 'Today']];
+  for (let i = 1; i <= 5; i++) { const d = new Date(); d.setDate(d.getDate() + i); d.setHours(0, 0, 0, 0); days.push([d.toISOString(), d.toLocaleDateString('en-US', { weekday: 'short' })]); }
+  $('dates').innerHTML = days.map(([k, l]) => `<button data-d="${k}" class="${F.day === k ? 'on' : ''}">${l}</button>`).join('') + `<button data-d="pick">📅 Date</button>`;
+}
+$('dates').onclick = (e) => {
+  const b = e.target.closest('button[data-d]'); if (!b) return;
+  if (b.dataset.d === 'pick') { const inp = document.createElement('input'); inp.type = 'date'; inp.style.cssText = 'position:fixed;opacity:0;pointer-events:none'; document.body.appendChild(inp); inp.onchange = () => { if (inp.value) { F.day = new Date(`${inp.value}T00:00:00`).toISOString(); F.tab = 'all'; loadEvents(); } inp.remove(); }; if (inp.showPicker) inp.showPicker(); else inp.click(); return; }
+  F.day = b.dataset.d; loadEvents();
+};
+document.querySelector('.filters').onclick = (e) => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  if (b.id === 'sBtn') { $('sBox').hidden = !$('sBox').hidden; if (!$('sBox').hidden) $('q').focus(); return; }
+  F.tab = b.dataset.t; F.day = b.dataset.t === 'today' ? 'today' : 'all'; F.league = '';
+  document.querySelectorAll('.filters .tab[data-t]').forEach((x) => x.classList.toggle('on', x === b)); loadEvents();
+};
+$('q').oninput = () => { F.q = $('q').value.trim(); clearTimeout($('q').t); $('q').t = setTimeout(loadEvents, 350); };
+
+async function loadEvents() {
+  paintDates();
+  $('events').innerHTML = '<div class="empty">Loading matches…</div>';
+  try {
+    const r = dayRange(F.day); const p = new URLSearchParams();
+    if (r.from) p.set('from', r.from); if (r.to) p.set('to', r.to); if (F.tab === 'top') p.set('top', '1'); if (F.league) p.set('league', F.league); if (F.q) p.set('q', F.q);
+    const d = await api(`/api/mini/${BOT}/sports/events?${p}`);
+    events = d.events;
+    if (!F.league) leagues = d.leagues;
+    // keep the slip's odds in step with the latest odds
+    slip.forEach((s) => { const e = events.find((x) => x.id === s.event_id); if (e) s.odds = e.odds[s.market]; });
+    paintLeagues(); paintEvents(); paintSlipBadge();
+  } catch (e) { $('events').innerHTML = `<div class="empty">${esc(e.message)}<br><br><button class="go" style="width:auto;display:inline-block;padding:10px 20px" id="retry">Retry</button></div>`; $('retry').onclick = loadEvents; }
+}
+function paintLeagues() {
+  $('leagues').innerHTML = `<button class="lg ${F.league ? '' : 'on'}" data-l="">All leagues</button>` + leagues.map((l) => `<button class="lg ${F.league === l.key ? 'on' : ''}" data-l="${esc(l.key)}">${esc(l.country ? l.country + ' · ' : '')}${esc(l.name)} (${l.count})</button>`).join('');
+}
+$('leagues').onclick = (e) => { const b = e.target.closest('button[data-l]'); if (!b) return; F.league = b.dataset.l; loadEvents(); };
+function paintEvents() {
+  if (!events.length) { $('events').innerHTML = `<div class="empty">${info.enabled ? 'No matches here right now.<br>Try another day or league.' : 'Sports betting is switched off.'}</div>`; return; }
+  let html = '', last = null;
+  for (const e of events) {
+    const k = e.league_key || e.league;
+    if (k !== last) { last = k; html += `<div class="lhead"><span>${esc(e.country ? e.country + ' · ' : '')}${esc(e.league)}</span>${F.league ? '' : `<button data-all="${esc(k)}">All matches ›</button>`}</div>`; }
+    html += `<div class="ev"><div class="t">${when(e.kickoff)}${e.top ? ' 🔥' : ''}</div><div class="m">${esc(e.home)} v ${esc(e.away)}</div><div class="odds">${MK.map((m) => `<button class="odd ${slip.some((s) => s.event_id === e.id && s.market === m) ? 'on' : ''}" data-e="${e.id}" data-m="${m}"><small>${m}</small><b>${e.odds[m].toFixed(2)}</b></button>`).join('')}</div></div>`;
+  }
+  $('events').innerHTML = html;
+}
+$('events').onclick = (e) => {
+  const a = e.target.closest('button[data-all]'); if (a) { F.league = a.dataset.all; loadEvents(); return; }
+  const b = e.target.closest('button.odd'); if (!b) return;
+  const id = Number(b.dataset.e), m = b.dataset.m, ev = events.find((x) => x.id === id); if (!ev) return;
+  const i = slip.findIndex((s) => s.event_id === id);
+  if (i >= 0 && slip[i].market === m) slip.splice(i, 1);
+  else if (i >= 0) slip[i] = { ...slip[i], market: m, odds: ev.odds[m] };
+  else if (slip.length >= info.maxLegs) return toast(`You can choose up to ${info.maxLegs} matches.`);
+  else slip.push({ event_id: id, market: m, odds: ev.odds[m], home: ev.home, away: ev.away });
+  paintEvents(); paintSlipBadge();
+};
+function paintSlipBadge() { $('bd').hidden = !slip.length; $('bd').textContent = slip.length; }
+
+/* ---------------- slip ---------------- */
+function openSheet(html) {
+  $('sheetHost').innerHTML = `<div class="sheetbg" id="sbg"><div class="sheet">${html}</div></div>`;
+  $('sbg').onclick = (e) => { if (e.target.id === 'sbg' || e.target.closest('[data-x]')) $('sheetHost').innerHTML = ''; };
+  return $('sheetHost').querySelector('.sheet');
+}
+function openSlip(note) {
+  if (!slip.length) { openSheet('<h2>Bet slip <button data-x>✕</button></h2><div class="empty">Your slip is empty.<br>Tap odds to add matches.</div>'); return; }
+  if (slip.length < 2) mode = 'single';
+  const total = slip.reduce((p, s) => p * s.odds, 1);
+  const n = mode === 'multi' ? 1 : slip.length;
+  const potential = mode === 'multi' ? Math.min(stake * total, info.maxPayout) : slip.reduce((s, l) => s + Math.min(stake * l.odds, info.maxPayout), 0);
+  const sh = openSheet(`<h2>Bet slip (${slip.length}) <button data-x>✕</button></h2>
+    <div class="seg"><button data-md="single" class="${mode === 'single' ? 'on' : ''}">Single</button><button data-md="multi" class="${mode === 'multi' ? 'on' : ''}" ${slip.length < 2 ? 'disabled style="opacity:.4"' : ''}>Multi</button></div>
+    ${slip.map((s, i) => `<div class="sel"><div><div class="n">${esc(s.home)} v ${esc(s.away)}</div><div class="p">${NAME[s.market]} (${s.market})</div></div><div style="display:flex;align-items:center;gap:4px"><b>${s.odds.toFixed(2)}</b><button class="rm" data-rm="${i}">✕</button></div></div>`).join('')}
+    <label>Stake ${mode === 'single' && slip.length > 1 ? '(for each match)' : ''}</label>
+    <input class="in" id="stk" type="number" inputmode="decimal" value="${stake}">
+    <div class="chips" id="qs">${[info.min, info.min * 5, info.min * 10, info.min * 50].map((v) => `<button data-v="${v}">${v}</button>`).join('')}</div>
+    ${mode === 'multi' ? `<div class="row"><span>Total odds</span><b>${total.toFixed(2)}</b></div>` : ''}
+    <div class="row"><span>Total stake</span><b>${fmt(stake * n)}</b></div>
+    <div class="row"><span>Possible win</span><b>${fmt(potential)}</b></div>
+    <div id="sm">${note ? `<div class="msg">${esc(note)}</div>` : ''}</div>
+    <button class="go" id="place">Place bet · ${fmt(stake * n)} ETB</button>
+    <button class="go g" id="clr">Clear slip</button>`);
+  sh.onclick = (e) => {
+    const md = e.target.closest('[data-md]'); if (md && !md.disabled) { mode = md.dataset.md; openSlip(); }
+    const rm = e.target.closest('[data-rm]'); if (rm) { slip.splice(Number(rm.dataset.rm), 1); paintEvents(); paintSlipBadge(); openSlip(); }
+    const q = e.target.closest('#qs button'); if (q) { stake = Number(q.dataset.v); openSlip(); }
+  };
+  $('stk').onchange = () => { stake = Number($('stk').value) || info.min; openSlip(); };
+  $('clr').onclick = () => { slip = []; paintEvents(); paintSlipBadge(); $('sheetHost').innerHTML = ''; };
+  $('place').onclick = async () => {
+    stake = Number($('stk').value) || info.min; const b = $('place'); b.disabled = true; $('sm').innerHTML = '';
+    if (stake < info.min || stake > info.max) { $('sm').innerHTML = `<div class="msg">Stake between ${info.min} and ${info.max} ETB.</div>`; b.disabled = false; return; }
+    try {
+      const r = await api(`/api/mini/${BOT}/sports/bet`, 'POST', { kind: mode, stake, legs: slip.map((s) => ({ event_id: s.event_id, market: s.market, odds: s.odds })) });
+      info.balance = r.balance; paintBal(); slip = []; paintEvents(); paintSlipBadge();
+      $('sheetHost').innerHTML = `<div class="sheetbg"><div class="sheet"><div style="text-align:center;padding:14px"><div style="font-size:54px">✅</div><h2 style="justify-content:center;margin-top:6px">Bet placed</h2><p style="color:var(--muted)">${r.tickets} ticket${r.tickets > 1 ? 's' : ''} · ${fmt(r.total_stake)} ETB</p><button class="go" id="ok">Done</button><button class="go g" id="hh">See my bets</button></div></div></div>`;
+      $('ok').onclick = () => { $('sheetHost').innerHTML = ''; }; $('hh').onclick = () => { $('sheetHost').innerHTML = ''; show('hist'); };
+    } catch (err) {
+      const changed = /odds changed|no longer open/i.test(err.message); if (changed) await loadEvents();
+      $('sm').innerHTML = `<div class="msg">${esc(err.message)}${/wallet|deposit/i.test(err.message) ? ` <a href="games?b=${encodeURIComponent(BOT)}#wallet">Deposit</a>` : ''}</div>`; b.disabled = false;
+      if (changed) { const keep = $('sm').innerHTML; openSlip(err.message); }
+    }
+  };
+}
+
+/* ---------------- histories ---------------- */
+async function loadHist() {
+  $('hist').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const { bets } = await api(`/api/mini/${BOT}/sports/my-bets`);
+    $('hist').innerHTML = bets.length ? bets.map((b) => `<div class="bet"><div class="h"><b>${b.kind === 'multi' ? 'Multi' : 'Single'} · ${when(b.at)}</b><span class="chip ${b.status}">${b.status === 'open' ? 'Waiting' : b.status === 'won' ? 'Won' : b.status === 'lost' ? 'Lost' : 'Refunded'}</span></div>
+      ${b.legs.map((l) => `<div class="leg ${l.status}"><div><div style="text-transform:uppercase">${esc(l.home)} v ${esc(l.away)}${l.rh != null ? ` (${l.rh}-${l.ra})` : ''}</div><div class="s">${NAME[l.market]} (${l.market}) · ${when(l.kickoff)}</div></div><b>${l.odds.toFixed(2)}</b></div>`).join('')}
+      <div class="row"><span>Stake</span><b>${fmt(b.stake)}</b></div><div class="row"><span>Odds</span><b>${b.total_odds.toFixed(2)}</b></div>
+      <div class="row"><span>${b.status === 'open' ? 'Possible win' : 'Paid out'}</span><b>${fmt(b.status === 'open' ? b.potential : b.payout)}</b></div></div>`).join('') : '<div class="empty">No bets yet.</div>';
+  } catch (e) { $('hist').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ---------------- navigation ---------------- */
+function show(v) {
+  view = v;
+  ['home', 'hist', 'admin'].forEach((k) => { $('v' + k[0].toUpperCase() + k.slice(1)).hidden = k !== v; });
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.n === v || (v === 'admin' && false)));
+  if (v === 'hist') loadHist();
+  if (v === 'home') loadEvents();
+  if (v === 'admin') loadAdmin();
+}
+$('nav').onclick = (e) => {
+  const b = e.target.closest('button[data-n]'); if (!b) return; const n = b.dataset.n;
+  if (n === 'home' || n === 'hist') show(n);
+  if (n === 'games') goGames();
+  if (n === 'slip') openSlip();
+  if (n === 'invite') goGames('#wallet');
+};
+$('dep').onclick = () => goGames('#wallet');
+$('close').onclick = () => goGames();
+$('admBtn').onclick = () => show(view === 'admin' ? 'home' : 'admin');
+
+/* ================= admin ================= */
+const A = { sub: 'matches', f: 'upcoming', cfg: null };
+const adm = (path, method, body) => api(`/api/mini/${BOT}/gadmin/sports${path}`, method, body);
+const aErr = (e) => { $('aMsg').innerHTML = `<div class="msg">${esc(e.message)}</div>`; };
+const aOk = (t) => { $('aMsg').innerHTML = `<div class="msg ok">${esc(t)}</div>`; };
+function loadAdmin() {
+  $('aTabs').innerHTML = [['matches', 'Matches'], ['add', 'Add match'], ['settings', 'Settings & import']].map(([k, l]) => `<button class="tab ${A.sub === k ? 'on' : ''}" data-s="${k}">${l}</button>`).join('');
+  $('aMsg').innerHTML = ''; ({ matches: aMatches, add: aAdd, settings: aSettings })[A.sub]();
+}
+$('aTabs').onclick = (e) => { const b = e.target.closest('[data-s]'); if (b) { A.sub = b.dataset.s; loadAdmin(); } };
+const toLocalInput = (iso) => { const d = new Date(iso), p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+
+async function aMatches() {
+  $('aBody').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const { events: list } = await adm(`/events?filter=${A.f}`);
+    const row = (e) => `<div class="card" data-id="${e.id}"><div style="color:var(--muted);font-size:14px">${esc(e.country ? e.country + ' · ' : '')}${esc(e.league)} · ${when(e.kickoff)} ${e.source === 'auto' ? '· auto' : ''} ${e.status === 'suspended' ? '· ⏸ suspended' : ''} ${e.locked && e.source === 'auto' ? '· odds edited' : ''}</div>
+      <div style="font-weight:700;font-size:19px;text-transform:uppercase;margin:6px 0">${esc(e.home)} v ${esc(e.away)}${e.status === 'finished' ? ` <span style="color:var(--yellow)">${e.result_home}-${e.result_away}</span>` : e.status === 'cancelled' ? ' <span style="color:#ff8b8b">cancelled</span>' : ''}</div>
+      <div style="color:var(--yellow)">1: ${e.odds['1']} · X: ${e.odds.X} · 2: ${e.odds['2']} <span style="color:var(--muted)">| open bets: ${e.open_bets}</span></div>
+      ${A.f === 'result' ? `<div class="two" style="margin-top:10px"><input class="in" id="h${e.id}" type="number" inputmode="numeric" placeholder="Home goals"><input class="in" id="a${e.id}" type="number" inputmode="numeric" placeholder="Away goals"></div><div class="acts"><button class="sm" data-act="res" data-id="${e.id}">Settle result</button><button class="sm red" data-act="void" data-id="${e.id}">Cancel match</button></div>`
+      : A.f === 'upcoming' ? `<div class="acts"><button class="sm" data-act="edit" data-id="${e.id}">Edit</button><button class="sm y" data-act="sus" data-id="${e.id}" data-s="${e.status}">${e.status === 'open' ? 'Suspend' : 'Open'}</button><button class="sm red" data-act="void" data-id="${e.id}">Cancel match</button></div>` : ''}</div>`;
+    $('aBody').innerHTML = `<div class="chips" id="af" style="padding:0 10px">${[['upcoming', 'Upcoming'], ['result', 'Needs result'], ['finished', 'Finished']].map(([k, l]) => `<button data-f="${k}" class="${A.f === k ? 'on' : ''}">${l}</button>`).join('')}</div>${list.length ? list.map(row).join('') : '<div class="empty">Nothing here.</div>'}`;
+    $('af').onclick = (e) => { const b = e.target.closest('[data-f]'); if (b) { A.f = b.dataset.f; aMatches(); } };
+    $('aBody').onclick = async (e) => {
+      const b = e.target.closest('[data-act]'); if (!b) return; const id = b.dataset.id, act = b.dataset.act, ev = list.find((x) => String(x.id) === id);
+      try {
+        if (act === 'res') { const h = $(`h${id}`).value, a = $(`a${id}`).value; if (h === '' || a === '') return aErr(new Error('Enter both scores.')); if (!confirm(`Settle ${ev.home} ${h} - ${a} ${ev.away}? Tickets will be paid now.`)) return; const r = await adm(`/events/${id}/result`, 'POST', { home: Number(h), away: Number(a) }); aMatches(); aOk(`Settled. ${r.tickets} tickets decided.`); }
+        if (act === 'void') { if (!confirm('Cancel this match? All tickets on it get their stake back (multi bets continue without it).')) return; const r = await adm(`/events/${id}/void`, 'POST'); aMatches(); aOk(`Cancelled. ${r.tickets} tickets decided.`); }
+        if (act === 'sus') { await adm(`/events/${id}`, 'PUT', { status: b.dataset.s === 'open' ? 'suspended' : 'open' }); aMatches(); }
+        if (act === 'edit') aEdit(ev);
+      } catch (err) { aErr(err); }
+    };
+  } catch (e) { aErr(e); }
+}
+function matchForm(v, catalog) {
+  return `<label>League</label>${catalog ? `<select class="in" id="fLg">${catalog.map((l) => `<option value="${l.key}">${esc(l.country)} · ${esc(l.name)}</option>`).join('')}<option value="">Other…</option></select><input class="in" id="fLn" placeholder="League name (when Other)" style="margin-top:8px" hidden>` : `<input class="in" id="fLn" value="${esc(v.league || '')}">`}
+    <div class="two"><div><label>Home team</label><input class="in" id="fH" value="${esc(v.home || '')}"></div><div><label>Away team</label><input class="in" id="fA" value="${esc(v.away || '')}"></div></div>
+    <label>Kick-off</label><input class="in" id="fK" type="datetime-local" value="${v.kickoff ? toLocalInput(v.kickoff) : ''}">
+    <div class="three"><div><label>1 (home)</label><input class="in" id="f1" type="number" step="0.01" inputmode="decimal" value="${v.odds ? v.odds['1'] : ''}"></div><div><label>X (draw)</label><input class="in" id="fX" type="number" step="0.01" inputmode="decimal" value="${v.odds ? v.odds.X : ''}"></div><div><label>2 (away)</label><input class="in" id="f2" type="number" step="0.01" inputmode="decimal" value="${v.odds ? v.odds['2'] : ''}"></div></div>
+    <p style="color:var(--muted);font-size:13px;margin-top:6px">1X, 12 and X2 odds are worked out from these automatically.</p>
+    <div class="row"><span>🔥 Show in Hot</span><span class="tgl ${v.top ? 'on' : ''}" id="fT"></span></div>`;
+}
+function readForm(catalog) {
+  let ln = catalog ? ($('fLg').value ? '' : $('fLn').value) : $('fLn').value, key = catalog ? $('fLg').value : '';
+  if (catalog && key) { const l = catalog.find((x) => x.key === key); ln = l.name; }
+  return { league_key: key || undefined, league_name: ln, home: $('fH').value, away: $('fA').value, kickoff: $('fK').value ? new Date($('fK').value).toISOString() : '', odds_1: $('f1').value, odds_x: $('fX').value, odds_2: $('f2').value, top: $('fT').classList.contains('on') };
+}
+async function aAdd() {
+  try {
+    if (!A.cfg) A.cfg = await adm('/config');
+    $('aBody').innerHTML = `<div class="card"><h3>Add a match</h3>${matchForm({ top: false }, A.cfg.catalog)}<div id="fm"></div><button class="go" id="fSave">Add match</button></div>`;
+    $('fT').onclick = () => $('fT').classList.toggle('on');
+    $('fLg').onchange = () => { $('fLn').hidden = !!$('fLg').value; };
+    $('fSave').onclick = async () => { try { await adm('/events', 'POST', readForm(A.cfg.catalog)); A.sub = 'matches'; A.f = 'upcoming'; loadAdmin(); aOk('Match added.'); } catch (e) { $('fm').innerHTML = `<div class="msg">${esc(e.message)}</div>`; } };
+  } catch (e) { aErr(e); }
+}
+function aEdit(ev) {
+  $('aBody').innerHTML = `<div class="card"><h3>Edit match</h3>${matchForm({ league: ev.league, home: ev.home, away: ev.away, kickoff: ev.kickoff, odds: ev.odds, top: ev.top }, null)}<div id="fm"></div><button class="go" id="fSave">Save changes</button><button class="go g" id="fBack">Back</button></div>`;
+  $('fT').onclick = () => $('fT').classList.toggle('on'); $('fBack').onclick = aMatches;
+  $('fSave').onclick = async () => { try { const f = readForm(null); await adm(`/events/${ev.id}`, 'PUT', f); A.sub = 'matches'; loadAdmin(); aOk('Saved.'); } catch (e) { $('fm').innerHTML = `<div class="msg">${esc(e.message)}</div>`; } };
+}
+async function aSettings() {
+  $('aBody').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const c = A.cfg = await adm('/config'); const sel = new Set(c.sports_leagues || []);
+    $('aBody').innerHTML = `<div class="card"><h3>Betting limits</h3>
+      <div class="row"><span>Sports betting is on</span><span class="tgl ${c.sports_enabled === false ? '' : 'on'}" id="cEn"></span></div>
+      <div class="two"><div><label>Min stake (ETB)</label><input class="in" id="cMin" type="number" value="${c.sports_min_stake ?? 10}"></div><div><label>Max stake (ETB)</label><input class="in" id="cMax" type="number" value="${c.sports_max_stake ?? 5000}"></div>
+      <div><label>Max win per ticket</label><input class="in" id="cPay" type="number" value="${c.sports_max_payout ?? 50000}"></div><div><label>Margin on imported odds (%)</label><input class="in" id="cMg" type="number" step="0.5" value="${c.sports_margin_pct ?? 5}"></div></div></div>
+      <div class="card"><h3>Games from the internet</h3>
+      <p style="color:var(--muted);font-size:14px">${c.key_configured ? 'The odds service is connected.' : '⚠ Not connected yet. Add <b>ODDS_API_KEY</b> to your backend settings (key from the-odds-api.com), then come back.'}${c.credits_left != null ? ` Credits left: ${c.credits_left}.` : ''}${c.last_odds_sync ? ` Last update: ${new Date(c.last_odds_sync).toLocaleString()}.` : ''}</p>
+      <div class="row"><span>List upcoming games automatically</span><span class="tgl ${c.sports_auto_import ? 'on' : ''}" id="cAuto"></span></div>
+      <label>Leagues to list</label><div class="lgchk" id="cLg">${c.catalog.map((l) => `<button data-k="${l.key}" class="${sel.has(l.key) ? 'on' : ''}">${esc(l.country)} · ${esc(l.name)}</button>`).join('')}</div></div>
+      <div style="padding:0 10px"><div id="cm"></div><button class="go" id="cSave">Save settings</button><button class="go g" id="cImp">Import games now</button></div>`;
+    let en = c.sports_enabled !== false, auto = !!c.sports_auto_import; const chosen = new Set(sel);
+    $('cEn').onclick = () => { en = !en; $('cEn').classList.toggle('on', en); };
+    $('cAuto').onclick = () => { auto = !auto; $('cAuto').classList.toggle('on', auto); };
+    $('cLg').onclick = (e) => { const b = e.target.closest('[data-k]'); if (!b) return; chosen.has(b.dataset.k) ? chosen.delete(b.dataset.k) : chosen.add(b.dataset.k); b.classList.toggle('on'); };
+    const save = () => adm('/config', 'PUT', { sports_enabled: en, sports_auto_import: auto, sports_leagues: [...chosen], sports_min_stake: $('cMin').value, sports_max_stake: $('cMax').value, sports_max_payout: $('cPay').value, sports_margin_pct: $('cMg').value });
+    $('cSave').onclick = async () => { try { await save(); $('cm').innerHTML = '<div class="msg ok">Saved.</div>'; } catch (e) { $('cm').innerHTML = `<div class="msg">${esc(e.message)}</div>`; } };
+    $('cImp').onclick = async () => { $('cImp').disabled = true; try { await save(); const r = await adm('/import', 'POST'); $('cm').innerHTML = `<div class="msg ok">Imported: ${r.created} new, ${r.updated} updated, ${r.skipped} skipped.${r.credits_left != null ? ` Credits left: ${r.credits_left}.` : ''}</div>`; } catch (e) { $('cm').innerHTML = `<div class="msg">${esc(e.message)}</div>`; } $('cImp').disabled = false; };
+  } catch (e) { aErr(e); }
+}
+
+(async function init() {
+  if (!tg || !tg.initData || !BOT) { $('authFail').hidden = false; $('app').hidden = true; return; }
+  tg.ready(); tg.expand();
+  try { Object.assign(info, await api(`/api/mini/${BOT}/sports/info`)); $('brand').textContent = info.name || 'Sports'; paintBal(); stake = Math.max(info.min, stake); } catch (e) { toast(e.message); }
+  api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) { isAdmin = true; $('admBtn').hidden = false; } }).catch(() => {});
+  paintDates(); loadEvents();
+  if (location.hash === '#admin') setTimeout(() => { if (isAdmin) show('admin'); }, 700);
+})();
+</script>
+</body>
+</html>

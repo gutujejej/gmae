@@ -78,6 +78,15 @@ textarea{resize:none}
 .tile.bingo .balls i{position:absolute;border-radius:50%;font-style:normal;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:#fff;border:3px solid #fff;box-shadow:0 6px 10px -4px rgba(0,0,0,.5)}
 .tile .sub{font-size:12px;font-weight:700;opacity:.9;margin-top:3px;position:relative}
 .tile .live{position:absolute;right:12px;top:12px;background:var(--flood);color:var(--flood-ink);font-size:11px;font-weight:800;padding:3px 9px;border-radius:8px}
+.tile.keno{background:linear-gradient(150deg,#12241a,#0a140e)}
+.tile.keno .nm{font-family:var(--display);font-weight:900;font-style:italic;color:#fff;font-size:32px}
+.tile.keno .nm b{color:#2bd47d}
+.tile.keno i{position:absolute;border-radius:50%;font-style:normal;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:#fff;border:3px solid #fff;box-shadow:0 6px 10px -4px rgba(0,0,0,.5)}
+.tile.sports{background:linear-gradient(150deg,#1b8a3d,#0b3d1f)}
+.tile.sports .nm{font-family:var(--display);font-weight:900;color:#fff;font-size:34px}
+.tile.sports .ball{position:absolute;right:14px;top:12px;font-size:58px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))}
+.tile.sports .odds{position:absolute;left:14px;top:14px;display:flex;gap:5px}
+.tile.sports .odds i{font-style:normal;background:rgba(0,0,0,.35);color:#f1d94a;font-weight:800;font-size:12px;padding:4px 7px;border-radius:7px}
 .lobby-note{margin:16px;padding:12px 14px;border-radius:14px;background:#E1EEE7;color:#0F4B35;font-size:13.5px;font-weight:600}
 
 /* ================= wallet ================= */
@@ -176,7 +185,8 @@ textarea{resize:none}
 .hist2-in i{font-style:normal}
 .hmore{flex:none;width:48px;height:30px;border-radius:99px;background:#2a2b2f;font-weight:900;letter-spacing:1px;color:#aaa}
 .c-b{color:var(--av-blue)}.c-p{color:var(--av-purple)}.c-m{color:var(--av-pink)}
-.histpanel{margin:0 10px 8px;background:#1b1c1f;border-radius:16px;padding:12px 14px 14px}
+.histpanel{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px}
+.histpanel .hp-box{width:min(440px,100%);max-height:80vh;overflow:auto;background:#1b1c1f;border-radius:18px;padding:14px 16px 18px;border:1px solid #2a2b30}
 .histpanel .hp-h{display:flex;justify-content:space-between;align-items:center;color:#aaa;font-size:17px;margin-bottom:10px}
 .histpanel .hp-b{display:flex;flex-wrap:wrap;gap:10px 18px;font-weight:500;font-size:17px}
 .stage2{position:relative;margin:6px 10px 0;border-radius:24px;overflow:hidden;background:#000;border:1px solid #2a2b30;aspect-ratio:1/0.62}
@@ -208,34 +218,34 @@ textarea{resize:none}
 .gmsg{margin:10px 10px 0}
 .gmsg .m{padding:10px 14px;border-radius:12px;background:#3a1218;color:#ffb3bb;font-size:14px}
 .gmsg .m a{color:#fff;font-weight:700;text-decoration:underline}
-.bp2{margin:10px 10px 0;background:var(--av-card);border-radius:20px;padding:10px 10px 12px;position:relative}
-.bp2 .tabs2{display:flex;margin:0 auto 10px;width:68%;background:#141416;border-radius:99px;padding:4px}
-.bp2 .tabs2 button{flex:1;padding:9px;border-radius:99px;color:#8b8c95;font-weight:500;font-size:16px}
+.bp2{margin:6px 10px 0;background:var(--av-card);border-radius:16px;padding:6px 8px 8px;position:relative}
+.bp2 .tabs2{display:flex;margin:0 auto 6px;width:58%;background:#141416;border-radius:99px;padding:3px}
+.bp2 .tabs2 button{flex:1;padding:5px;border-radius:99px;color:#8b8c95;font-weight:500;font-size:14px}
 .bp2 .tabs2 button.on{background:#2a2b2f;color:#fff}
-.bp2 .tg{position:absolute;right:12px;top:14px;width:42px;height:42px;border-radius:50%;background:#2a2b2f;color:#aaa;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.bp2 .tg{position:absolute;right:10px;top:8px;width:32px;height:32px;border-radius:50%;background:#2a2b2f;color:#aaa;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .bp2 .grid{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:stretch}
 .step2{display:flex;align-items:center;background:#141416;border-radius:99px;padding:4px}
-.step2 button{width:38px;height:38px;border-radius:50%;background:#2a2b2f;color:#bbb;font-size:22px;line-height:1;flex:none}
-.step2 input{flex:1;min-width:0;background:none;border:0;color:#fff;text-align:center;font-weight:700;font-size:20px;padding:0;height:38px;outline:none;font-family:inherit}
-.q2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.q2 button{background:#141416;border-radius:12px;padding:9px 0;color:#a8a9b2;font-size:17px;font-weight:500}
-.big2{border:2px solid #5be03d;background:#28a909;border-radius:18px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;font-size:27px;font-weight:500;line-height:1.15;width:100%;box-shadow:inset 0 2px 0 rgba(255,255,255,.15)}
-.big2 b{font-weight:500;font-size:30px}
-.big2 b small{font-size:20px;font-weight:400}
+.step2 button{width:30px;height:30px;border-radius:50%;background:#2a2b2f;color:#bbb;font-size:19px;line-height:1;flex:none}
+.step2 input{flex:1;min-width:0;background:none;border:0;color:#fff;text-align:center;font-weight:700;font-size:17px;padding:0;height:30px;outline:none;font-family:inherit}
+.q2{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}
+.q2 button{background:#141416;border-radius:9px;padding:5px 0;color:#a8a9b2;font-size:14px;font-weight:500}
+.big2{border:2px solid #5be03d;background:#28a909;border-radius:18px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72px;font-size:21px;font-weight:500;line-height:1.15;width:100%;box-shadow:inset 0 2px 0 rgba(255,255,255,.15)}
+.big2 b{font-weight:500;font-size:23px}
+.big2 b small{font-size:15px;font-weight:400}
 .big2.cash{background:#d9710c;border-color:#ffb765;animation:pulse2 1s infinite}
 .big2.cancel{background:#c20f26;border-color:#ff6a7b}
 .big2.dis{background:#26272b;border-color:#34353a;color:#777;box-shadow:none;font-size:20px;text-align:center;padding:0 8px}
 .big2.won{background:#1f3d17;border-color:#2c6a1f;color:#8fe27a;font-size:20px}
 @keyframes pulse2{50%{box-shadow:0 0 0 7px rgba(255,183,101,.28)}}
-.autob{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:0 4px;font-size:16px;color:#c8c9d0}
+.autob{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding:0 4px;font-size:14px;color:#c8c9d0}
 .autob .ac{display:flex;align-items:center;gap:10px}
 .sw{width:48px;height:26px;border-radius:99px;background:#2a2b2f;position:relative;flex:none;transition:background .18s}
 .sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#9a9aa3;transition:left .18s,background .18s}
 .sw.on{background:#28a909}.sw.on::after{left:25px;background:#fff}
 .acin{display:flex;align-items:center;background:#141416;border-radius:99px;padding:3px 12px;gap:4px;width:120px}
-.acin input{width:100%;background:none;border:0;color:#fff;font-weight:700;font-size:17px;outline:none;text-align:right;height:34px;font-family:inherit}
+.acin input{width:100%;background:none;border:0;color:#fff;font-weight:700;font-size:15px;outline:none;text-align:right;height:28px;font-family:inherit}
 .acin.off{opacity:.45}
-.apnote{font-size:12.5px;color:#8b8c95;text-align:center;margin-top:8px}
+.apnote{font-size:12px;color:#8b8c95;text-align:center;margin-top:4px}
 .bt{margin:12px 10px 0;background:var(--av-card);border-radius:20px;padding:10px}
 .bt-tabs{display:flex;background:#141416;border-radius:99px;padding:4px}
 .bt-tabs button{flex:1;padding:9px;border-radius:99px;color:#8b8c95;font-size:16px;font-weight:500}
@@ -399,7 +409,21 @@ textarea{resize:none}
         <span class="sub">Pick a card, win the pool</span>
       </button>
     </div>
-    <div class="lobby-note">Aviator uses your <b>Aviator wallet</b>. Bingo uses your <b>Bingo wallet</b> and your registration bonus.</div>
+    <div class="tiles" style="padding-top:12px">
+      <button class="tile keno" id="tileKeno" aria-label="Play Keno">
+        <i style="left:12%;top:14%;width:46px;height:46px;background:#1a63b8;font-size:16px">7</i>
+        <i style="left:44%;top:26%;width:54px;height:54px;background:#13854a;font-size:20px">42</i>
+        <i style="left:20%;top:46%;width:40px;height:40px;background:#c4631a;font-size:14px">63</i>
+        <span class="nm">FAST <b>KENO</b></span>
+        <span class="sub">Pick up to 10 numbers</span>
+      </button>
+      <button class="tile sports" id="tileSports" aria-label="Sports betting">
+        <div class="odds"><i>1</i><i>X</i><i>2</i></div><span class="ball">⚽</span>
+        <span class="nm">Sports</span>
+        <span class="sub">Soccer odds · multi bets</span>
+      </button>
+    </div>
+    <div class="lobby-note">Aviator, Keno and Sports use your <b>Games wallet</b>. Bingo uses your <b>Bingo wallet</b> and your registration bonus.</div>
   </section>
 
   <!-- ================= WALLET ================= -->
@@ -414,7 +438,7 @@ textarea{resize:none}
     </div>
     <div class="wal2">
       <div class="wc"><small>🎯 BINGO WALLET</small><b id="wBingo">0.00</b></div>
-      <div class="wc"><small>✈ AVIATOR WALLET</small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
+      <div class="wc"><small>🎮 GAMES WALLET</small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
     </div>
     <div class="pad" id="walMsg"></div>
     <div id="bonusBanner" class="resume" style="background:#DDF1E6;color:#0F5133" hidden></div>
@@ -452,7 +476,7 @@ textarea{resize:none}
         <p class="muted" style="margin-top:4px" id="wdRule"></p>
         <label>Withdraw from</label>
         <div class="chips" id="wdWallet">
-          <button class="chipbtn" data-v="aviator" aria-pressed="true">✈ Aviator wallet</button>
+          <button class="chipbtn" data-v="aviator" aria-pressed="true">🎮 Games wallet</button>
           <button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button>
         </div>
         <label>Enter amount</label>
@@ -500,7 +524,7 @@ textarea{resize:none}
       </div>
     </div>
     <div class="hist2"><div class="hist2-in" id="histIn"></div><button class="hmore" id="histMore">•••</button></div>
-    <div class="histpanel" id="histPanel" hidden><div class="hp-h"><span>Round History</span><button class="hmore" id="histClose" style="width:42px">✕</button></div><div class="hp-b" id="histAll"></div></div>
+    <div class="histpanel" id="histPanel" hidden><div class="hp-box"><div class="hp-h"><span>Round History</span><button class="hmore" id="histClose" style="width:42px">✕</button></div><div class="hp-b" id="histAll"></div></div></div>
 
     <div class="stage2" id="stage2">
       <div class="rays"></div><div class="vig"></div>
@@ -702,6 +726,8 @@ $('musicBtn').onclick = () => {
   paintMusicBtn();
 };
 $('tileBingo').onclick = () => setTab('bingo');
+$('tileKeno').onclick = () => { location.href = `keno?b=${encodeURIComponent(BOT)}`; };
+$('tileSports').onclick = () => { location.href = `sports?b=${encodeURIComponent(BOT)}`; };
 $('tileAv').onclick = () => openGame();
 
 /* ================================================================= */
@@ -744,7 +770,7 @@ async function loadWallet() {
     $('methods').onclick = (e) => { const b = e.target.closest('button[data-m]'); if (b) startDeposit(b.dataset.m); };
     const l = await api(`/api/mini/${BOT}/deposits`);
     $('depList').innerHTML = l.deposits.length ? l.deposits.map((x) => `
-      <div class="dep"><span><b>${fmt(x.amount)}</b> ETB · ${x.wallet === 'aviator' ? 'Aviator' : 'Bingo'}<br><span class="muted">${new Date(x.at).toLocaleString()}</span></span>
+      <div class="dep"><span><b>${fmt(x.amount)}</b> ETB · ${x.wallet === 'aviator' ? 'Games' : 'Bingo'}<br><span class="muted">${new Date(x.at).toLocaleString()}</span></span>
       <span class="st ${x.status === 'rejected' ? 'bad' : x.status === 'pending' ? 'wait' : 'ok'}">${x.status === 'pending' ? 'checking' : x.status === 'rejected' ? 'rejected' : x.auto ? 'verified' : 'approved'}</span></div>`).join('')
       : '<p class="muted">No deposits yet.</p>';
     await loadAccounts();
@@ -777,7 +803,7 @@ function startDeposit(methodId) {
     <div class="hd"><div><h2>Deposit Amount</h2><div class="sub">Payment Method: ${esc(m.label)}</div></div><button class="x">✕</button></div>
     <div class="msg info" style="margin-top:12px">Minimum deposit: <b>ETB ${W.data.minDeposit}</b>${(W.data.firstBonus || {}).eligible ? ` · 🎁 First deposit bonus <b>${W.data.firstBonus.pct}%</b>` : ''}</div>
     <label>Deposit to</label>
-    <div class="chips" id="sW"><button class="chipbtn" data-v="aviator" aria-pressed="true">✈ Aviator wallet</button><button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button></div>
+    <div class="chips" id="sW"><button class="chipbtn" data-v="aviator" aria-pressed="true">🎮 Games wallet</button><button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button></div>
     <label>Amount</label>
     <div class="bigamt"><span>ETB</span><input id="sAmt" type="number" inputmode="decimal" placeholder="0.00"></div>
     <div class="chips" id="sQ">${[50, 100, 200, 500].map((q) => `<button class="chipbtn" data-q="${q}">${q}</button>`).join('')}</div>
@@ -841,7 +867,7 @@ function stepInstructions(o, resumed) {
 function stepComplete(o) {
   const sh = openSheet(`
     <div class="hd"><div><h2>Complete Order</h2></div><button class="x">✕</button></div>
-    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">${o.wallet === 'aviator' ? '✈ AVIATOR WALLET' : '🎯 BINGO WALLET'}</span></div>
+    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">${o.wallet === 'aviator' ? '🎮 GAMES WALLET' : '🎯 BINGO WALLET'}</span></div>
     <div class="msg info" style="margin-top:14px">Enter the transaction number, or paste the whole payment SMS. We check it automatically.</div>
     <label>REFERENCE NUMBER</label>
     <textarea id="ref" rows="4" placeholder="e.g. DJE9T39EU9  — or paste the SMS"></textarea>
@@ -858,7 +884,7 @@ function stepComplete(o) {
       const done = r.result === 'credited';
       openSheet(`<div style="text-align:center;padding:14px 4px"><div style="font-size:56px">${done ? '✅' : '⏳'}</div>
         <h2 style="margin-top:6px">${done ? 'Deposit successful' : 'Payment received'}</h2>
-        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your ${r.wallet === 'aviator' ? 'Aviator' : 'Bingo'} wallet.${r.bonus > 0 ? `<br>🎁 First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
+        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your ${r.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet.${r.bonus > 0 ? `<br>🎁 First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
         <button class="btn go" id="okBtn" style="margin-top:18px">Done</button></div>`).querySelector('#okBtn').onclick = () => { closeSheet(); loadWallet(); };
       if (done) Sound.claim();
       loadWallet();
@@ -965,13 +991,13 @@ $('cbFab').onclick = openCashback;
 /* ================================================================= */
 const A = { sub: 'overview', timer: null };
 const adm = (path, method, body) => api(`/api/mini/${BOT}/gadmin${path}`, method, body);
-const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['broadcast', 'Broadcast'], ['settings', 'Settings'], ['admins', 'Admins']];
+const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['settings', 'Settings'], ['admins', 'Admins']];
 const aErr = (e) => { $('aMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; };
 const aOk = (t) => { $('aMsg').innerHTML = `<div class="msg ok">${esc(t)}</div>`; };
 function renderASegs() { $('aTabs').innerHTML = aSubs.map(([k, l]) => `<button class="chipbtn" data-v="${k}" aria-pressed="${k === A.sub}">${l}</button>`).join(''); }
 $('aTabs').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; A.sub = b.dataset.v; renderASegs(); showSub(); };
 function loadAdmin() { renderASegs(); showSub(); }
-function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins })[A.sub](); }
+function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
 
 async function aOverview() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
@@ -984,7 +1010,9 @@ async function aOverview() {
         <div class="kpi"><small>DEPOSITED</small><b>${fmt(s.deposits_total)}</b><em>today ${fmt(s.deposits_today)}</em></div>
         <div class="kpi"><small>WITHDRAWN</small><b>${fmt(s.withdrawn_total)}</b><em>${s.withdraw_pending} waiting</em></div>
         <div class="kpi"><small>AVIATOR PROFIT</small><b>${fmt(s.aviator_profit)}</b><em>staked ${fmt(s.aviator_staked)}</em></div>
-        <div class="kpi"><small>IN AVIATOR WALLETS</small><b>${fmt(s.aviator_balances)}</b><em>players' money</em></div>
+        <div class="kpi"><small>KENO PROFIT</small><b>${fmt(s.keno_profit || 0)}</b><em>Games wallet</em></div>
+        <div class="kpi"><small>SPORTS PROFIT</small><b>${fmt(s.sports_profit || 0)}</b><em>${s.sports_open || 0} open tickets</em></div>
+        <div class="kpi"><small>IN GAMES WALLETS</small><b>${fmt(s.aviator_balances)}</b><em>players' money</em></div>
         <div class="kpi"><small>BONUSES GIVEN</small><b>${fmt(Number(s.promo_first) + Number(s.promo_cashback) + Number(s.promo_coupon) + Number(s.promo_referral || 0) + Number(s.promo_aviator || 0))}</b><em>first ${fmt(s.promo_first)} · bingo cashback ${fmt(s.promo_cashback)} · bingo coupons ${fmt(s.promo_coupon)} · promoters ${fmt(s.promo_referral || 0)} · aviator ${fmt(s.promo_aviator || 0)}</em></div>
         <div class="kpi"><small>PENDING REQUESTS</small><b>${s.deposits_pending + s.withdraw_pending}</b><em>${s.deposits_pending} deposits · ${s.withdraw_pending} withdrawals</em></div></div>`;
     } catch (e) { aErr(e); }
@@ -996,9 +1024,9 @@ async function aRequests() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
   try {
     const r = await adm('/requests');
-    const dep = r.deposits.map((d) => `<div class="req"><b>${fmt(d.amount)} ETB</b> · ${d.wallet === 'aviator' ? 'Aviator' : 'Bingo'} wallet<br><span class="muted">User ${d.telegram_id} · ${esc(d.note)}</span>
+    const dep = r.deposits.map((d) => `<div class="req"><b>${fmt(d.amount)} ETB</b> · ${d.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet<br><span class="muted">User ${d.telegram_id} · ${esc(d.note)}</span>
       <div class="acts"><button class="ok" data-a="dep-ok" data-id="${d.id}">Approve</button><button class="no" data-a="dep-no" data-id="${d.id}">Reject</button></div></div>`).join('');
-    const wd = r.withdrawals.map((w) => `<div class="req"><b>${fmt(w.amount)} ETB</b> · from ${w.wallet === 'aviator' ? 'Aviator' : 'Bingo'} wallet<br><span class="muted">User ${w.telegram_id} · send to <b>${esc(w.phone)}</b></span>
+    const wd = r.withdrawals.map((w) => `<div class="req"><b>${fmt(w.amount)} ETB</b> · from ${w.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet<br><span class="muted">User ${w.telegram_id} · send to <b>${esc(w.phone)}</b></span>
       <div class="acts"><button class="ok" data-a="wd-ok" data-id="${w.id}">Mark paid</button><button class="no" data-a="wd-no" data-id="${w.id}">Reject</button></div></div>`).join('');
     $('aBody').innerHTML = `<div class="panel"><h3>Pending deposits</h3>${dep || '<p class="muted" style="margin-top:8px">Nothing waiting.</p>'}</div>
       <div class="panel"><h3>Pending withdrawals</h3>${wd || '<p class="muted" style="margin-top:8px">Nothing waiting.</p>'}</div>`;
@@ -1128,12 +1156,18 @@ async function aSettings() {
         ${f('sCb', 'Bingo cashback (% of Bingo losses)', v.cashback_pct, 'e.g. 5')}
         ${f('sCbMax', 'Bingo cashback max (ETB, 0 = none)', v.cashback_max)}
       </div></div>
+      <div class="panel"><h3>Keno</h3>
+        <div class="sw2"><span>Keno is on</span><span class="tgl ${v.keno_enabled === false ? '' : 'on'}" id="sKn"></span></div>
+        <div class="field2">${f('sKmin', 'Minimum bet', v.keno_min_bet)}${f('sKmax', 'Maximum bet', v.keno_max_bet)}${f('sKpay', 'Most one ticket can win', v.keno_max_payout)}${f('sKres', 'Payout reserve (ETB)', v.keno_reserve)}</div>
+        <p class="muted" style="margin-top:8px">Keno never pays out more than the stakes in a draw + the Keno profit so far + this reserve. Sports limits are in the Sports admin page.</p></div>
       <div class="panel"><h3>Aviator</h3>
         <div class="sw2"><span>Aviator is on</span><span class="tgl ${v.aviator_enabled === false ? '' : 'on'}" id="sAv"></span></div>
         <div class="field2">${f('sBmin', 'Minimum bet', v.aviator_min_bet)}${f('sBmax', 'Maximum bet', v.aviator_max_bet)}</div>
         ${f('sRes', 'Payout reserve (ETB)', v.aviator_reserve)}
         <p class="muted" style="margin-top:8px">Aviator never pays out more than the stakes in a round + the profit it has already made + this reserve.</p></div>
       <div class="pad"><div id="sMsg"></div><button class="btn go" id="sSave" style="margin-top:6px">Save settings</button></div>`;
+    let kn = v.keno_enabled !== false;
+    $('sKn').onclick = () => { kn = !kn; $('sKn').classList.toggle('on', kn); };
     let av = v.aviator_enabled !== false;
     $('sAv').onclick = () => { av = !av; $('sAv').classList.toggle('on', av); };
     $('sSave').onclick = async () => {
@@ -1141,6 +1175,7 @@ async function aSettings() {
         await adm('/settings', 'PUT', {
           min_deposit: $('sMin').value, withdraw_min_deposit: $('sWdMin').value, deposit_phone: $('sPhone').value, deposit_cbe_account: $('sCbe').value, deposit_holder: $('sHolder').value,
           first_deposit_bonus_pct: $('sFirst').value, first_deposit_bonus_max: $('sFirstMax').value, referral_deposit_bonus_pct: $('sRef').value, cashback_pct: $('sCb').value, cashback_max: $('sCbMax').value, aviator_cashback_pct: $('sACb').value, aviator_cashback_max: $('sACbMax').value,
+          keno_enabled: kn, keno_min_bet: $('sKmin').value, keno_max_bet: $('sKmax').value, keno_max_payout: $('sKpay').value, keno_reserve: $('sKres').value,
           aviator_enabled: av, aviator_min_bet: $('sBmin').value, aviator_max_bet: $('sBmax').value, aviator_reserve: $('sRes').value,
         });
         $('sMsg').innerHTML = '<div class="msg ok">Saved.</div>';
@@ -1356,7 +1391,7 @@ $('panels').onclick = (e) => {
   const { a, t, q } = b.dataset;
   if (t) { S[s].tab = t; paintPanels(); return; }
   if (q) { S[s].amt = Number(q); setAmt(s); paintPanels(); return; }
-  if (a === 'inc' || a === 'dec') { S[s].amt = Math.min(me.max, Math.max(me.min, r2(S[s].amt + (a === 'inc' ? 1 : -1)))); setAmt(s); paintPanels(); return; }
+  if (a === 'inc' || a === 'dec') { S[s].amt = Math.min(me.max, Math.max(me.min, r2(S[s].amt + (a === 'inc' ? me.min : -me.min)))); setAmt(s); paintPanels(); return; }
   if (a === 'ac') { S[s].acOn = !S[s].acOn; paintPanels(); return; }
   if (a === 'add') { two = true; lsSet('av_two', '1'); renderPanels(); return; }
   if (a === 'rm') { two = false; lsSet('av_two', '0'); S[2].auto = false; renderPanels(); return; }
@@ -1379,7 +1414,7 @@ async function act(s) {
 async function placeBet(s) {
   const st = S[s], amount = r2(st.amt);
   if (!(amount >= me.min) || amount > me.max) { gmsg(`Bet between ${me.min} and ${me.max} ETB.`); st.auto = false; paintPanels(); return; }
-  if (amount > me.balance) { gmsg('Not enough money in your Aviator wallet.', true); st.auto = false; paintPanels(); return; }
+  if (amount > me.balance) { gmsg('Not enough money in your Games wallet.', true); st.auto = false; paintPanels(); return; }
   const ac = st.acOn ? r2(st.ac) : null;
   if (st.acOn && !(ac > 1)) { gmsg('Auto cash out must be above 1.00x.'); st.auto = false; paintPanels(); return; }
   try {
@@ -1419,6 +1454,8 @@ function renderHistory() {
 }
 $('histMore').onclick = () => { $('histPanel').hidden = !$('histPanel').hidden; };
 $('histClose').onclick = () => { $('histPanel').hidden = true; };
+$('histPanel').onclick = (e) => { if (e.target.id === 'histPanel') $('histPanel').hidden = true; };
+$('game').appendChild($('histPanel'));   // overlay sits on top of the whole game screen
 
 const rowHtml = (b) => `<div class="bt-row ${b.status === 'cashed_out' ? 'win' : ''}"><span class="pl">${avatar(b.avatar != null ? b.avatar : hashIdx(b.name))}<em>${esc(b.name)}</em></span>
   <span>${fmt(b.amount)}</span><span class="${b.mult ? mcls(b.mult) : ''}">${b.mult ? Number(b.mult).toFixed(2) + 'x' : ''}</span><span class="w">${b.payout ? fmt(b.payout) : ''}</span></div>`;
@@ -1427,14 +1464,14 @@ function renderTable() {
   let rows = [], sum = '';
   if (btTab === 'top') {
     sum = '<div class="r"><div class="cnt">Top wins <span>last 24 hours</span></div></div>';
-    rows = topRows.map((r) => ({ name: r.name, amount: r.amount, mult: r.mult, payout: r.payout, status: 'cashed_out' }));
+    rows = topRows.map((r) => ({ name: r.name, amount: r.amount, mult: r.mult, payout: r.payout, status: 'cashed_out' })).sort((x, y) => y.payout - x.payout);
   } else {
     const src = btTab === 'all' ? G.live : (G.prev || { players: 0, cashed: 0, win: 0, bets: [] });
     sum = `<div class="r"><div><div class="avs">${src.bets.slice(0, 3).map((b) => avatar(b.avatar != null ? b.avatar : hashIdx(b.name), '')).join('')}</div>
       <div class="cnt" style="margin-top:6px">${src.cashed}/${src.players} <span>Bets</span></div></div>
       <div class="tw">${fmt(src.win)}<small>Total win ETB</small></div></div>
       <div class="bar3"><i style="width:${src.players ? Math.round(src.cashed / src.players * 100) : 0}%"></i></div>`;
-    rows = src.bets;
+    rows = [...src.bets].sort((x, y) => y.amount - x.amount);   // biggest bets at the top
   }
   $('btSum').innerHTML = sum;
   $('btList').innerHTML = rows.length ? rows.map(rowHtml).join('') : '<div class="bt-empty">No bets yet.</div>';
@@ -1487,7 +1524,7 @@ $('gMenu').onclick = async (e) => {
   if (k === 'free') return modal('<h3>Free Bets <button data-x>✕</button></h3><p>You have no free bets right now.</p>');
   if (k === 'limits') return modal(`<h3>Game Limits <button data-x>✕</button></h3><div class="hrow"><span>Minimum bet</span><b>${fmt(me.min)} ETB</b></div><div class="hrow"><span>Maximum bet</span><b>${fmt(me.max)} ETB</b></div><p style="margin-top:12px">Payouts are limited to the funds available on the platform.</p>`);
   if (k === 'how') return modal('<h3>How To Play <button data-x>✕</button></h3><ul><li>Place a bet before the round starts. You can use two bets at the same time.</li><li>Watch the plane take off. The multiplier goes up while it flies.</li><li>Tap <b>Cash Out</b> before the plane flies away to win your bet × the multiplier.</li><li>If the plane flies away first, the bet is lost.</li><li>Use <b>Auto</b> to play every round automatically and to cash out at a multiplier you choose.</li></ul>');
-  if (k === 'rules') return modal('<h3>Game Rules <button data-x>✕</button></h3><ul><li>Aviator is played with your <b>Aviator wallet</b> and your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons). The registration bonus cannot be used here.</li><li>A bet uses your Aviator bonus first. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
+  if (k === 'rules') return modal('<h3>Game Rules <button data-x>✕</button></h3><ul><li>Aviator is played with your <b>Games wallet</b> and your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons). The registration bonus cannot be used here.</li><li>A bet uses your Aviator bonus first. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
   if (k === 'fair') return modal(`<h3>Provably Fair <button data-x>✕</button></h3><p>Before each round a secret seed is chosen and its hash is shown. After the round the seed is revealed so anyone can check it.</p><p style="margin-top:10px">Current round hash:<br><code>${esc(G.hash || '…')}</code></p>${G.lastRound ? `<button class="hrow" style="width:100%;color:#8fe27a;font-weight:700" onclick="verifyRound('${esc(G.lastRound)}')">Verify last round</button>` : ''}`);
   if (k === 'hist') {
     modal('<h3>My Bet History <button data-x>✕</button></h3><p>Loading…</p>');
