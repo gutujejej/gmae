@@ -83,7 +83,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
   });
 
   /* ----------------------------- settings ----------------------------- */
-  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_cashback_pct,aviator_cashback_max,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
+  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_cashback_pct,aviator_cashback_max,keno_enabled,keno_min_bet,keno_max_bet,keno_max_payout,keno_reserve,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
   adminRoute('get', '/settings', async (req, res) => {
     const { data, error } = await db.from('bots').select(SETTING_FIELDS).eq('id', req.g.botId).maybeSingle();
     if (error) throw error;
@@ -107,6 +107,11 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     num('cashback_max', { max: 1e6 });
     num('aviator_cashback_pct', { max: 100 });
     num('aviator_cashback_max', { max: 1e6 });
+    num('keno_min_bet', { min: 1, max: 1e6 });
+    num('keno_max_bet', { min: 1, max: 1e7 });
+    num('keno_max_payout', { min: 1, max: 1e9 });
+    num('keno_reserve', { max: 1e9 });
+    if ('keno_enabled' in b) patch.keno_enabled = b.keno_enabled !== false;
     num('aviator_min_bet', { min: 1, max: 1e6 });
     num('aviator_max_bet', { min: 1, max: 1e7 });
     num('aviator_reserve', { max: 1e9 });
@@ -125,6 +130,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     const cur = req.g.row;
     const lo = patch.aviator_min_bet ?? Number(cur.aviator_min_bet || 5), hi = patch.aviator_max_bet ?? Number(cur.aviator_max_bet || 5000);
     if (lo > hi) throw new HttpError(400, 'The minimum bet is above the maximum bet.');
+    if ((patch.keno_min_bet ?? Number(cur.keno_min_bet || 5)) > (patch.keno_max_bet ?? Number(cur.keno_max_bet || 1000))) throw new HttpError(400, 'The Keno minimum bet is above the maximum bet.');
     if (!Object.keys(patch).length) throw new HttpError(400, 'Nothing to change.');
     const { error } = await db.from('bots').update(patch).eq('id', req.g.botId);
     if (error) throw error;
@@ -306,7 +312,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     const { data, error } = await db.rpc('credit_deposit_wallet', { p_deposit_id: id, p_admin: `admin:${req.g.userId}` });
     if (error) throw error;
     if (!data || !data.ok) throw new HttpError(409, 'Already decided.');
-    const wl = data.wallet === 'aviator' ? 'Aviator' : 'Bingo';
+    const wl = data.wallet === 'aviator' ? 'Games' : 'Bingo';
     tell(req, data.telegram_id, `✅ Your deposit of *${Number(data.amount)} birr* has been approved.\n${wl} wallet: *${Number(data.new_balance)} birr*${data.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(data.bonus)} birr* (Bingo bonus)` : ''}`, { parse_mode: 'Markdown' });
     if (Number(data.promoter_bonus) > 0 && data.promoter_id) {
       tell(req, data.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(data.promoter_bonus)} birr* (Bingo bonus).`, { parse_mode: 'Markdown' });
@@ -351,5 +357,6 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     res.json({ ok: true });
   });
 
+  app.set('isGameAdmin', isGameAdmin);   // sports.js uses it for its admin routes
   return { isGameAdmin };
 };

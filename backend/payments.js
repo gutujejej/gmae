@@ -31,7 +31,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
 
   const err = (res, code, msg) => res.status(code).json({ error: msg });
   const receiverOf = (row, method) => (method === 'cbe' ? row.deposit_cbe_account : (row.deposit_phone || DEFAULT_PHONE));
-  const WALLET_LABEL = { bingo: 'Bingo', aviator: 'Aviator' };
+  const WALLET_LABEL = { bingo: 'Bingo', aviator: 'Games' };   // the Aviator wallet is the Games wallet (Aviator, Keno, Sports)
 
   function tell(req, botId, tg, text) {
     const reg = req.app.get('botRegistry');

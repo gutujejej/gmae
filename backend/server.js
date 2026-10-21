@@ -567,6 +567,8 @@ require('./bingo')(app, db, { requireAdmin, miniAuth, mainMenuFor: mainMenu, sen
 require('./payments')(app, db, { miniAuth });   // two wallets + auto-verified deposits
 require('./aviator')(app, db, { miniAuth, requireAdmin }); // Aviator game + admin earnings
 require('./game-admin')(app, db, { miniAuth, MINIAPP_BASE, presence }); // per-bot admins: stats, settings, coupons, broadcast
+require('./keno')(app, db, { miniAuth });      // Fast Keno
+require('./sports')(app, db, { miniAuth });    // sports betting (needs game-admin loaded first)
 const p2p = require('./p2p')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 const store = require('./store')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 channels = require('./channels')(app, db, {
