@@ -323,7 +323,11 @@ module.exports = function attachPartners(app, db, { miniAuth, leagues = [], payt
     } catch (e) {
       if (e instanceof HttpError) return res.status(e.status).json({ error: e.message });
       console.error('partners admin error:', e);
-      res.status(500).json({ error: 'Something went wrong. Please try again.' });
+      const msg = String((e && e.message) || '');
+      if ((e && (e.code === '42P01' || e.code === 'PGRST205')) || /api_partner/.test(msg) && /exist|schema cache|find the table/i.test(msg)) {
+        return res.status(500).json({ error: 'The partner tables are missing. Run migration_partners.sql in the Supabase SQL editor, then open this page again.' });
+      }
+      res.status(500).json({ error: `Could not load partners (${msg.slice(0, 140) || 'unknown error'}).` });
     }
   };
   const adminRoute = (method, path, fn) => app[method](`/api/mini/:botId/gadmin/partners${path}`, wrapAdmin(fn));
