@@ -1266,7 +1266,10 @@ async function aPartners() {
         }
       } catch (err) { aErr(err); }
     };
-  } catch (e) { aErr(e); }
+  } catch (e) {
+    $('aBody').innerHTML = '';
+    aErr(/^Something went wrong\.?$/.test(e.message) ? new Error('The server does not have the Partner API yet. Deploy the new backend (partners.js and server.js), restart it, then open this page again.') : e);
+  }
 }
 
 /* ================================================================= */
