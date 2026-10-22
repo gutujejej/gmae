@@ -367,22 +367,56 @@ textarea{resize:none}
 .cbsec h4{font-family:var(--display);font-size:20px;font-weight:800}
 .ctag{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;margin-left:6px;vertical-align:middle;background:#E1EEE7;color:#0F4B35}
 .ctag.av{background:#FFF1C2;color:#6A4F00}
+.ico{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.14em;flex:none;pointer-events:none}
+.ai svg{width:76%;height:76%;display:block}
+.avpick button svg{width:74%;height:74%;display:block}
+.tile.sports .ball{color:#fff}.tile.sports .ball .ico{width:58px;height:58px;stroke-width:1.6}
+.nowifi .ico{width:54px;height:54px}
+.sheet .x .ico,.g-x .ico{width:55%;height:55%;stroke-width:2.6}
+.ch-in .send .ico{width:26px;height:26px}
+.gm-row .ic .ico{width:24px;height:24px}
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-game" viewBox="0 0 24 24"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01M17.32 5H6.68a4 4 0 0 0-3.98 3.59C2.6 9.42 2 14.46 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.41.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.6-6.58-.68-7.26A4 4 0 0 0 17.32 5z"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 12v4h-4a2 2 0 0 1 0-4z"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></symbol>
+<symbol id="i-ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2zM12 7V2.2M16.5 10.3l4.6-1.4M14.8 15.5l2.8 3.9M9.2 15.5l-2.8 3.9M7.5 10.3 2.9 8.9"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+<symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></symbol>
+<symbol id="i-plane" viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 17V5M7 10l5-5 5 5M5 21h14"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21 7 14.2l-5-4.9 6.9-1z"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-limits" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></symbol>
+<symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/></symbol>
+<symbol id="i-checkcircle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M2 8.8a15 15 0 0 1 4.2-2.7M22 8.8a15 15 0 0 0-8-3.7M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.9-2.2M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M2 2l20 20"/></symbol>
+</svg>
+
 <header class="top" id="topShell"><div class="wrap">
   <div class="bar">
     <div class="logo">
       <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" fill="#fff"/><path d="M6 20l20-9-6 14-4-5-4 4-1-6z" fill="#0D3B2C"/></svg>
       <span id="botName">Games</span>
     </div>
-    <div style="display:flex;gap:8px;align-items:center"><button class="pill" id="musicBtn" aria-label="Music" hidden>🎵</button><button class="pill" id="balPill">–</button></div>
+    <div style="display:flex;gap:8px;align-items:center"><button class="pill" id="musicBtn" aria-label="Music" hidden><svg class="ico"><use href="#i-music"/></svg></button><button class="pill" id="balPill">–</button></div>
   </div>
   <div class="seg" id="tabs">
-    <button data-tab="lobby" aria-pressed="true">🎮 Games</button>
-    <button data-tab="bingo" aria-pressed="false">🎯 Bingo</button>
-    <button data-tab="wallet" aria-pressed="false">💰 Wallet</button>
-    <button data-tab="admin" aria-pressed="false" id="adminTab" hidden>🛠 Admin</button>
+    <button data-tab="lobby" aria-pressed="true"><svg class="ico"><use href="#i-game"/></svg> Games</button>
+    <button data-tab="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo</button>
+    <button data-tab="wallet" aria-pressed="false"><svg class="ico"><use href="#i-wallet"/></svg> Wallet</button>
+    <button data-tab="admin" aria-pressed="false" id="adminTab" hidden><svg class="ico"><use href="#i-wrench"/></svg> Admin</button>
   </div>
 </div></header>
 
@@ -418,7 +452,7 @@ textarea{resize:none}
         <span class="sub">Pick up to 10 numbers</span>
       </button>
       <button class="tile sports" id="tileSports" aria-label="Sports betting">
-        <div class="odds"><i>1</i><i>X</i><i>2</i></div><span class="ball">⚽</span>
+        <div class="odds"><i>1</i><i>X</i><i>2</i></div><span class="ball"><svg class="ico"><use href="#i-ball"/></svg></span>
         <span class="nm">Sports</span>
         <span class="sub">Soccer odds · multi bets</span>
       </button>
@@ -437,16 +471,16 @@ textarea{resize:none}
       </div>
     </div>
     <div class="wal2">
-      <div class="wc"><small>🎯 BINGO WALLET</small><b id="wBingo">0.00</b></div>
-      <div class="wc"><small>🎮 GAMES WALLET</small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
+      <div class="wc"><small><svg class="ico"><use href="#i-target"/></svg> BINGO WALLET</small><b id="wBingo">0.00</b></div>
+      <div class="wc"><small><svg class="ico"><use href="#i-game"/></svg> GAMES WALLET</small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
     </div>
     <div class="pad" id="walMsg"></div>
     <div id="bonusBanner" class="resume" style="background:#DDF1E6;color:#0F5133" hidden></div>
     <div id="resume" class="resume" hidden><span>You have an unfinished deposit.</span><button id="resumeBtn">Continue</button></div>
 
     <div class="dwseg" id="dw">
-      <button data-v="dep" aria-pressed="true">⬇ Deposit</button>
-      <button data-v="wd" aria-pressed="false">⬆ Withdraw</button>
+      <button data-v="dep" aria-pressed="true"><svg class="ico"><use href="#i-down"/></svg> Deposit</button>
+      <button data-v="wd" aria-pressed="false"><svg class="ico"><use href="#i-up"/></svg> Withdraw</button>
     </div>
 
     <div id="depView">
@@ -476,8 +510,8 @@ textarea{resize:none}
         <p class="muted" style="margin-top:4px" id="wdRule"></p>
         <label>Withdraw from</label>
         <div class="chips" id="wdWallet">
-          <button class="chipbtn" data-v="aviator" aria-pressed="true">🎮 Games wallet</button>
-          <button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button>
+          <button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-game"/></svg> Games wallet</button>
+          <button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo wallet</button>
         </div>
         <label>Enter amount</label>
         <div class="bigamt"><span>ETB</span><input type="number" id="wdAmt" inputmode="decimal" placeholder="0.00"></div>
@@ -507,13 +541,13 @@ textarea{resize:none}
     <div id="aBody"></div>
   </section>
 </main>
-<button class="cbfab" id="cbFab" hidden>🎁 Check Cashback ›</button>
+<button class="cbfab" id="cbFab" hidden><svg class="ico"><use href="#i-gift"/></svg> Check Cashback ›</button>
 
 <div id="sheetHost"></div>
 
 <!-- ================= AVIATOR GAME ================= -->
 <div class="game" id="game" hidden>
-  <div class="g-top"><span>Aviator</span><button class="g-x" id="gClose" aria-label="Close">✕</button></div>
+  <div class="g-top"><span>Aviator</span><button class="g-x" id="gClose" aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button></div>
   <div class="g-scroll" id="gScroll">
     <div class="g-head">
       <div class="g-logo">Aviator</div>
@@ -524,7 +558,7 @@ textarea{resize:none}
       </div>
     </div>
     <div class="hist2"><div class="hist2-in" id="histIn"></div><button class="hmore" id="histMore">•••</button></div>
-    <div class="histpanel" id="histPanel" hidden><div class="hp-box"><div class="hp-h"><span>Round History</span><button class="hmore" id="histClose" style="width:42px">✕</button></div><div class="hp-b" id="histAll"></div></div></div>
+    <div class="histpanel" id="histPanel" hidden><div class="hp-box"><div class="hp-h"><span>Round History</span><button class="hmore" id="histClose" style="width:42px"><svg class="ico"><use href="#i-x"/></svg></button></div><div class="hp-b" id="histAll"></div></div></div>
 
     <div class="stage2" id="stage2">
       <div class="rays"></div><div class="vig"></div>
@@ -547,24 +581,24 @@ textarea{resize:none}
 
   <div class="gmenu" id="gMenu" hidden>
     <div class="gm-user"><span class="ai" id="mAv"></span><b id="mName">Player</b><button id="mChange">Change<br>Avatar</button></div>
-    <button class="gm-row" data-sw="sound"><span class="ic">🔊</span>Sound<span class="sw" id="swSound"></span></button>
-    <button class="gm-row" data-sw="music"><span class="ic">🎵</span>Music<span class="sw" id="swMusic"></span></button>
-    <button class="gm-row" data-sw="anim"><span class="ic">✈</span>Animation<span class="sw" id="swAnim"></span></button>
+    <button class="gm-row" data-sw="sound"><span class="ic"><svg class="ico"><use href="#i-volume"/></svg></span>Sound<span class="sw" id="swSound"></span></button>
+    <button class="gm-row" data-sw="music"><span class="ic"><svg class="ico"><use href="#i-music"/></svg></span>Music<span class="sw" id="swMusic"></span></button>
+    <button class="gm-row" data-sw="anim"><span class="ic"><svg class="ico"><use href="#i-plane"/></svg></span>Animation<span class="sw" id="swAnim"></span></button>
     <div class="gm-gap"></div>
-    <button class="gm-row" data-m="free"><span class="ic">☆</span>Free Bets</button>
-    <button class="gm-row" data-m="hist"><span class="ic">↺</span>My Bet History</button>
-    <button class="gm-row" data-m="limits"><span class="ic">▭</span>Game Limits</button>
+    <button class="gm-row" data-m="free"><span class="ic"><svg class="ico"><use href="#i-star"/></svg></span>Free Bets</button>
+    <button class="gm-row" data-m="hist"><span class="ic"><svg class="ico"><use href="#i-history"/></svg></span>My Bet History</button>
+    <button class="gm-row" data-m="limits"><span class="ic"><svg class="ico"><use href="#i-limits"/></svg></span>Game Limits</button>
     <button class="gm-row" data-m="how"><span class="ic">?</span>How To Play</button>
     <button class="gm-row" data-m="rules"><span class="ic">≣</span>Game Rules</button>
-    <button class="gm-row" data-m="fair"><span class="ic">✓</span>Provably Fair Settings</button>
-    <button class="gm-row gm-home" data-m="home">⌂ Home</button>
+    <button class="gm-row" data-m="fair"><span class="ic"><svg class="ico"><use href="#i-check"/></svg></span>Provably Fair Settings</button>
+    <button class="gm-row gm-home" data-m="home"><svg class="ico"><use href="#i-home"/></svg> Home</button>
   </div>
   <div class="gmodal" id="gModal" hidden></div>
 
   <div class="chat" id="chat" hidden>
     <div class="ch-top"><button id="chBack">‹</button><div class="on">Online: <b id="chOn">0</b></div><button id="chInfo">i</button></div>
     <div class="ch-list" id="chList"></div>
-    <div class="ch-in"><input id="chText" maxlength="160" placeholder="Your message..." autocomplete="off"><div class="r"><span>AA <span id="chLeft">160</span></span><button class="send" id="chSend">➤</button></div></div>
+    <div class="ch-in"><input id="chText" maxlength="160" placeholder="Your message..." autocomplete="off"><div class="r"><span>AA <span id="chLeft">160</span></span><button class="send" id="chSend" aria-label="Send"><svg class="ico"><use href="#i-send"/></svg></button></div></div>
   </div>
 
   <div class="conn" id="conn" hidden></div>
@@ -619,7 +653,20 @@ const planeImg = new Image(); planeImg.src = PLANE_URL;
 $('tilePlane').src = PLANE_URL;
 
 /* ---------- avatars ---------- */
-const AV = ['🐶', '🦊', '🐼', '🐯', '🦁', '🐸', '🐵', '🐙', '🦄', '🐲', '🦉', '🐺'];
+const AV = [
+  '<svg viewBox="0 0 64 64"><ellipse cx="13" cy="30" rx="8" ry="15" fill="#5b3512" transform="rotate(12 13 30)"/><ellipse cx="51" cy="30" rx="8" ry="15" fill="#5b3512" transform="rotate(-12 51 30)"/><circle cx="32" cy="34" r="19" fill="#f0c48a"/><ellipse cx="32" cy="42" rx="10" ry="8" fill="#fbe3bf"/><circle cx="25" cy="31" r="2.6" fill="#1b1b1f"/><circle cx="39" cy="31" r="2.6" fill="#1b1b1f"/><ellipse cx="32" cy="38.5" rx="4" ry="3" fill="#1b1b1f"/><path d="M32 41.5v3M27 45q5 4 10 0" fill="none" stroke="#1b1b1f" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 64 64"><path d="M9 8 25 22 11 31z" fill="#ff8a2a"/><path d="M55 8 39 22 53 31z" fill="#ff8a2a"/><path d="M10 28Q32 16 54 28L47 49Q32 59 17 49Z" fill="#ff9a3d"/><path d="M17 49Q32 30 47 49Q32 59 17 49Z" fill="#fff3e6"/><circle cx="24" cy="36" r="2.4" fill="#1b1b1f"/><circle cx="40" cy="36" r="2.4" fill="#1b1b1f"/><ellipse cx="32" cy="49" rx="3.2" ry="2.6" fill="#1b1b1f"/></svg>',
+  '<svg viewBox="0 0 64 64"><circle cx="15" cy="15" r="8" fill="#1b1b1f"/><circle cx="49" cy="15" r="8" fill="#1b1b1f"/><circle cx="32" cy="34" r="21" fill="#f7f7f7"/><ellipse cx="23.5" cy="31" rx="5.5" ry="7" fill="#1b1b1f" transform="rotate(20 23.5 31)"/><ellipse cx="40.5" cy="31" rx="5.5" ry="7" fill="#1b1b1f" transform="rotate(-20 40.5 31)"/><circle cx="24" cy="31" r="1.9" fill="#fff"/><circle cx="40" cy="31" r="1.9" fill="#fff"/><ellipse cx="32" cy="41.5" rx="3.4" ry="2.4" fill="#1b1b1f"/><path d="M27 46q5 4 10 0" fill="none" stroke="#1b1b1f" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 64 64"><circle cx="15" cy="15" r="7.5" fill="#ffa21c"/><circle cx="49" cy="15" r="7.5" fill="#ffa21c"/><circle cx="32" cy="34" r="21" fill="#ffb73d"/><path d="M32 14v9M25 15l2 8M39 15l-2 8M12 30h7M13 38h6M52 30h-7M51 38h-6" stroke="#1b1b1f" stroke-width="2.6" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="44" rx="11" ry="8" fill="#fff1d6"/><circle cx="24" cy="32" r="2.4" fill="#1b1b1f"/><circle cx="40" cy="32" r="2.4" fill="#1b1b1f"/><path d="M28.5 40h7l-3.5 4z" fill="#e0556b"/><path d="M32 44v3M28 48q4 3 8 0" stroke="#1b1b1f" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>',
+  '<svg viewBox="0 0 64 64"><circle cx="32" cy="33" r="29" fill="#c9741b"/><circle cx="14" cy="14" r="6" fill="#ffd08a"/><circle cx="50" cy="14" r="6" fill="#ffd08a"/><circle cx="32" cy="35" r="19" fill="#ffd08a"/><ellipse cx="32" cy="43" rx="10" ry="7.5" fill="#fff0d2"/><circle cx="25" cy="32" r="2.4" fill="#1b1b1f"/><circle cx="39" cy="32" r="2.4" fill="#1b1b1f"/><path d="M28.5 39h7l-3.5 4z" fill="#1b1b1f"/><path d="M32 43v3M28 47q4 3 8 0" stroke="#1b1b1f" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>',
+  '<svg viewBox="0 0 64 64"><ellipse cx="32" cy="40" rx="24" ry="18" fill="#8fe388"/><circle cx="20" cy="22" r="10" fill="#8fe388"/><circle cx="44" cy="22" r="10" fill="#8fe388"/><circle cx="20" cy="22" r="6.5" fill="#fff"/><circle cx="44" cy="22" r="6.5" fill="#fff"/><circle cx="21" cy="23" r="3.2" fill="#1b1b1f"/><circle cx="43" cy="23" r="3.2" fill="#1b1b1f"/><path d="M16 44q16 14 32 0" fill="none" stroke="#1d6b2b" stroke-width="2.6" stroke-linecap="round"/><circle cx="29" cy="36" r="1.2" fill="#1d6b2b"/><circle cx="35" cy="36" r="1.2" fill="#1d6b2b"/><circle cx="14" cy="42" r="3.4" fill="#ff9db0" opacity=".8"/><circle cx="50" cy="42" r="3.4" fill="#ff9db0" opacity=".8"/></svg>',
+  '<svg viewBox="0 0 64 64"><circle cx="9" cy="34" r="8" fill="#a8773f"/><circle cx="55" cy="34" r="8" fill="#a8773f"/><circle cx="9" cy="34" r="4.5" fill="#f2c9a0"/><circle cx="55" cy="34" r="4.5" fill="#f2c9a0"/><circle cx="32" cy="31" r="21" fill="#a8773f"/><circle cx="25" cy="31" r="9" fill="#f2c9a0"/><circle cx="39" cy="31" r="9" fill="#f2c9a0"/><ellipse cx="32" cy="42" rx="13" ry="10" fill="#f2c9a0"/><circle cx="25" cy="31" r="2.3" fill="#1b1b1f"/><circle cx="39" cy="31" r="2.3" fill="#1b1b1f"/><ellipse cx="32" cy="39" rx="2.6" ry="1.8" fill="#7a4b1e"/><path d="M26 45q6 5 12 0" fill="none" stroke="#1b1b1f" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 64 64"><ellipse cx="32" cy="26" rx="21" ry="19" fill="#e07bd1"/><path d="M15 38q-5 10-1 18M25 41q-2 10 0 17M39 41q2 10 0 17M49 38q5 10 1 18" fill="none" stroke="#e07bd1" stroke-width="6" stroke-linecap="round"/><circle cx="24" cy="26" r="5" fill="#fff"/><circle cx="40" cy="26" r="5" fill="#fff"/><circle cx="25" cy="27" r="2.4" fill="#1b1b1f"/><circle cx="41" cy="27" r="2.4" fill="#1b1b1f"/><path d="M27 36q5 4 10 0" fill="none" stroke="#1b1b1f" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="32" r="2.4" fill="#ffb6ef" opacity=".7"/><circle cx="50" cy="32" r="2.4" fill="#ffb6ef" opacity=".7"/></svg>',
+  '<svg viewBox="0 0 64 64"><path d="M22 18C8 22 8 44 14 56c4-8 6-14 8-20z" fill="#ff7ac8"/><path d="M26 22 21 8l12 9z" fill="#fff"/><path d="M32 3 28 21h8z" fill="#ffd24a"/><path d="M29.5 12h5M28.7 16.5h6.6" stroke="#e0a100" stroke-width="1.4"/><ellipse cx="34" cy="38" rx="16" ry="19" fill="#fff"/><path d="M26 33q2-2 4 0M38 33q2-2 4 0" fill="none" stroke="#1b1b1f" stroke-width="2" stroke-linecap="round"/><circle cx="25" cy="42" r="3" fill="#ffb3d9" opacity=".8"/><circle cx="43" cy="42" r="3" fill="#ffb3d9" opacity=".8"/><circle cx="31" cy="48" r="1.3" fill="#c08aa8"/><circle cx="37" cy="48" r="1.3" fill="#c08aa8"/></svg>',
+  '<svg viewBox="0 0 64 64"><path d="M16 8 24 24 12 22zM48 8 40 24 52 22z" fill="#ffd24a"/><path d="M28 8l4 8 4-8z" fill="#2fb87a"/><circle cx="32" cy="35" r="20" fill="#6fe0a8"/><ellipse cx="32" cy="45" rx="12" ry="9" fill="#a8f2cb"/><ellipse cx="24" cy="30" rx="4" ry="4.6" fill="#ffe04a"/><ellipse cx="40" cy="30" rx="4" ry="4.6" fill="#ffe04a"/><ellipse cx="24" cy="30" rx="1.3" ry="3.6" fill="#1b1b1f"/><ellipse cx="40" cy="30" rx="1.3" ry="3.6" fill="#1b1b1f"/><circle cx="28" cy="44" r="1.6" fill="#1f7a6a"/><circle cx="36" cy="44" r="1.6" fill="#1f7a6a"/><path d="M27 50q5 3 10 0" fill="none" stroke="#1f7a6a" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 64 64"><path d="M11 8 25 18 12 26zM53 8 39 18 52 26z" fill="#8b6636"/><ellipse cx="32" cy="36" rx="22" ry="23" fill="#b68a54"/><circle cx="23" cy="31" r="10.5" fill="#f5e1b8"/><circle cx="41" cy="31" r="10.5" fill="#f5e1b8"/><circle cx="23" cy="31" r="5.2" fill="#fff"/><circle cx="41" cy="31" r="5.2" fill="#fff"/><circle cx="23.5" cy="31.5" r="2.8" fill="#1b1b1f"/><circle cx="40.5" cy="31.5" r="2.8" fill="#1b1b1f"/><path d="M28 37h8l-4 9z" fill="#ffb000"/><path d="M22 50q3 3 6 0M36 50q3 3 6 0" fill="none" stroke="#8b6636" stroke-width="2" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 64 64"><path d="M11 6 27 24 9 33zM53 6 37 24 55 33z" fill="#9aa6b8"/><path d="M10 30Q32 16 54 30L46 52Q32 61 18 52Z" fill="#b9c3d3"/><path d="M19 51Q32 32 45 51Q32 59 19 51Z" fill="#eef2f8"/><path d="M20 35l7 2M44 35l-7 2" stroke="#1b1b1f" stroke-width="2.6" stroke-linecap="round"/><circle cx="25" cy="38" r="2" fill="#ffd24a"/><circle cx="39" cy="38" r="2" fill="#ffd24a"/><ellipse cx="32" cy="48" rx="3.6" ry="2.8" fill="#1b1b1f"/></svg>'
+];
 const AVC = ['#7a4b1e', '#b5531f', '#3d3d45', '#b57a12', '#8a5a14', '#2f7a3a', '#6a4a2b', '#7a2d6a', '#6a3fa8', '#1f7a6a', '#5a4630', '#3c4658'];
 const myAvatar = () => Math.max(0, Math.min(11, parseInt(ls('av_avatar', '0'), 10) || 0));
 const hashIdx = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % 12; };
@@ -719,7 +766,7 @@ function setTab(t) {
 }
 $('tabs').onclick = (e) => { const b = e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); };
 $('balPill').onclick = () => setTab('wallet');
-function paintMusicBtn() { $('musicBtn').textContent = Pref.music ? '🎵' : '🔇'; }
+function paintMusicBtn() { $('musicBtn').innerHTML = Pref.music ? '<svg class="ico"><use href="#i-music"/></svg>' : '<svg class="ico"><use href="#i-mute"/></svg>'; }
 $('musicBtn').onclick = () => {
   Pref.music = !Pref.music; lsSet('av_music', Pref.music ? '1' : '0');
   if (Pref.music) Sound.startBg(); else Sound.stopBg();
@@ -758,13 +805,13 @@ async function loadWallet() {
     PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name;
     $('wTotal').textContent = fmt(d.total); $('wWd').textContent = fmt(d.withdrawable); $('wLock').textContent = fmt(d.locked);
     $('wBingo').textContent = fmt(d.bingo.playable); $('wAv').textContent = fmt(d.aviator.balance);
-    $('wAvBonus').hidden = !(d.aviator.bonus > 0); $('wAvBonus').textContent = `🎁 + ${fmt(d.aviator.bonus)} bonus (Aviator only)`; me.bonus = d.aviator.bonus;
-    $('balPill').textContent = `✈ ${fmt(d.aviator.balance)} ETB`;
+    $('wAvBonus').hidden = !(d.aviator.bonus > 0); $('wAvBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.aviator.bonus)} bonus (Aviator only)`; me.bonus = d.aviator.bonus;
+    $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(d.aviator.balance)} ETB`;
     $('wdRule').textContent = d.canWithdraw ? 'Withdraw your balance to your registered account.' : `You need to deposit at least ${d.withdrawMinDeposit} ETB in total before you can withdraw.`;
     $('mCount').textContent = `${d.methods.length} Available`;
     const fb = d.firstBonus || {};
     $('bonusBanner').hidden = !fb.eligible;
-    if (fb.eligible) $('bonusBanner').innerHTML = `<span>🎁 <b>First deposit bonus ${fb.pct}%</b>${fb.max > 0 ? ` (up to ${fb.max} ETB)` : ''} — added to your Bingo bonus.</span>`;
+    if (fb.eligible) $('bonusBanner').innerHTML = `<span><svg class="ico"><use href="#i-gift"/></svg> <b>First deposit bonus ${fb.pct}%</b>${fb.max > 0 ? ` (up to ${fb.max} ETB)` : ''} — added to your Bingo bonus.</span>`;
     $('cbFab').hidden = tab !== 'wallet' || !(d.cashbackPct > 0 || d.aviatorCashbackPct > 0);
     $('methods').innerHTML = d.methods.map((m) => `<button class="method ${m.id === 'cbe' ? 'cbe' : 'tb'}" data-m="${m.id}"><i>${m.id === 'cbe' ? 'CBE' : 't'}</i>${esc(m.label)}</button>`).join('');
     $('methods').onclick = (e) => { const b = e.target.closest('button[data-m]'); if (b) startDeposit(b.dataset.m); };
@@ -800,10 +847,10 @@ const methodOf = (id) => (W.data.methods.find((m) => m.id === id) || W.data.meth
 function startDeposit(methodId) {
   const m = methodOf(methodId);
   const sh = openSheet(`
-    <div class="hd"><div><h2>Deposit Amount</h2><div class="sub">Payment Method: ${esc(m.label)}</div></div><button class="x">✕</button></div>
-    <div class="msg info" style="margin-top:12px">Minimum deposit: <b>ETB ${W.data.minDeposit}</b>${(W.data.firstBonus || {}).eligible ? ` · 🎁 First deposit bonus <b>${W.data.firstBonus.pct}%</b>` : ''}</div>
+    <div class="hd"><div><h2>Deposit Amount</h2><div class="sub">Payment Method: ${esc(m.label)}</div></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+    <div class="msg info" style="margin-top:12px">Minimum deposit: <b>ETB ${W.data.minDeposit}</b>${(W.data.firstBonus || {}).eligible ? ` · <svg class="ico"><use href="#i-gift"/></svg> First deposit bonus <b>${W.data.firstBonus.pct}%</b>` : ''}</div>
     <label>Deposit to</label>
-    <div class="chips" id="sW"><button class="chipbtn" data-v="aviator" aria-pressed="true">🎮 Games wallet</button><button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo wallet</button></div>
+    <div class="chips" id="sW"><button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-game"/></svg> Games wallet</button><button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo wallet</button></div>
     <label>Amount</label>
     <div class="bigamt"><span>ETB</span><input id="sAmt" type="number" inputmode="decimal" placeholder="0.00"></div>
     <div class="chips" id="sQ">${[50, 100, 200, 500].map((q) => `<button class="chipbtn" data-q="${q}">${q}</button>`).join('')}</div>
@@ -822,10 +869,10 @@ function startDeposit(methodId) {
 function stepAgent(o) {
   const m = methodOf(o.method);
   const sh = openSheet(`
-    <div class="hd"><div><h2>Choose Agent</h2></div><button class="x">✕</button></div>
+    <div class="hd"><div><h2>Choose Agent</h2></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
     <div class="tags"><span class="tag">AMOUNT &nbsp;ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">METHOD &nbsp;${esc(m.label.toUpperCase())}</span></div>
     <div class="agents" id="ag"><button class="agent" data-a="${esc(m.holder)}" aria-pressed="false">${esc(m.holder)}<i></i></button></div>
-    <div class="row2"><button class="btn ghost" id="agCancel">CANCEL</button><button class="btn go" id="agOk" disabled>Confirm Deposit ✓</button></div>`);
+    <div class="row2"><button class="btn ghost" id="agCancel">CANCEL</button><button class="btn go" id="agOk" disabled>Confirm Deposit <svg class="ico"><use href="#i-check"/></svg></button></div>`);
   let agent = null;
   sh.querySelector('#ag').onclick = (e) => {
     const b = e.target.closest('button[data-a]'); if (!b) return; agent = b.dataset.a;
@@ -841,8 +888,8 @@ function stepAgent(o) {
 function stepInstructions(o, resumed) {
   const m = methodOf(o.method);
   const sh = openSheet(`
-    <div class="hd"><div><h2>Deposit Instructions</h2><div class="sub">Follow the steps below to complete your deposit.</div></div><button class="x">✕</button></div>
-    <div class="timer"><div style="font-size:30px">⏱</div><div><small>COMPLETE PAYMENT BEFORE</small><b id="tm">15m 00s</b></div></div>
+    <div class="hd"><div><h2>Deposit Instructions</h2><div class="sub">Follow the steps below to complete your deposit.</div></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+    <div class="timer"><div style="font-size:30px"><svg class="ico"><use href="#i-timer"/></svg></div><div><small>COMPLETE PAYMENT BEFORE</small><b id="tm">15m 00s</b></div></div>
     <div class="step"><i>1</i><h4>TRANSFER EXACT AMOUNT</h4></div>
     <div class="box"><div class="kv"><div><small>TOTAL AMOUNT</small><span class="big">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span></div><button data-c="${o.amount}">Copy</button></div></div>
     <div class="step"><i>2</i><h4>RECIPIENT INFORMATION</h4></div>
@@ -866,8 +913,8 @@ function stepInstructions(o, resumed) {
 
 function stepComplete(o) {
   const sh = openSheet(`
-    <div class="hd"><div><h2>Complete Order</h2></div><button class="x">✕</button></div>
-    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">${o.wallet === 'aviator' ? '🎮 GAMES WALLET' : '🎯 BINGO WALLET'}</span></div>
+    <div class="hd"><div><h2>Complete Order</h2></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">${o.wallet === 'aviator' ? '<svg class="ico"><use href="#i-game"/></svg> GAMES WALLET' : '<svg class="ico"><use href="#i-target"/></svg> BINGO WALLET'}</span></div>
     <div class="msg info" style="margin-top:14px">Enter the transaction number, or paste the whole payment SMS. We check it automatically.</div>
     <label>REFERENCE NUMBER</label>
     <textarea id="ref" rows="4" placeholder="e.g. DJE9T39EU9  — or paste the SMS"></textarea>
@@ -882,9 +929,9 @@ function stepComplete(o) {
       const r = await api(`/api/mini/${BOT}/deposit`, 'POST', { wallet: o.wallet, method: o.method, reference: ref, amount: o.amount });
       clearOrder();
       const done = r.result === 'credited';
-      openSheet(`<div style="text-align:center;padding:14px 4px"><div style="font-size:56px">${done ? '✅' : '⏳'}</div>
+      openSheet(`<div style="text-align:center;padding:14px 4px"><div style="font-size:56px">${done ? '<svg class="ico" style="color:#1faa59"><use href="#i-checkcircle"/></svg>' : '<svg class="ico" style="color:#e0a100"><use href="#i-hourglass"/></svg>'}</div>
         <h2 style="margin-top:6px">${done ? 'Deposit successful' : 'Payment received'}</h2>
-        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your ${r.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet.${r.bonus > 0 ? `<br>🎁 First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
+        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your ${r.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet.${r.bonus > 0 ? `<br><svg class="ico"><use href="#i-gift"/></svg> First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
         <button class="btn go" id="okBtn" style="margin-top:18px">Done</button></div>`).querySelector('#okBtn').onclick = () => { closeSheet(); loadWallet(); };
       if (done) Sound.claim();
       loadWallet();
@@ -943,7 +990,7 @@ async function loadReferral() {
 $('refCopy').onclick = () => copy($('refLink').value);
 $('refShare').onclick = () => {
   const link = $('refLink').value; if (!link) return;
-  const text = `Join me and play Aviator & Bingo 🎮`;
+  const text = `Join me and play Aviator & Bingo`;
   const url = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
   if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
 };
@@ -969,9 +1016,9 @@ async function openCashback() {
       <div class="kv"><div><small>Your cashback (${c.pct}%)</small><span class="big">ETB ${fmt(c.amount)}</span></div></div></div>
       <p class="muted" style="margin-top:10px">${esc(why(c, wallet))}</p><div id="${id}Msg"></div>
       <button class="btn go" id="${id}Claim" style="margin-top:10px" ${c.eligible ? '' : 'disabled'}>Claim ETB ${fmt(c.amount)}</button></div>` : '');
-    sh.innerHTML = `<div class="hd"><div><h2>Cashback</h2></div><button class="x">✕</button></div>
-      ${block('cbA', '✈ Aviator cashback', av, 'Aviator', 'Aviator bonus (play it in Aviator)')}
-      ${block('cbB', '🎯 Bingo cashback', bi, 'Bingo', 'Bingo bonus (play it in Bingo)')}
+    sh.innerHTML = `<div class="hd"><div><h2>Cashback</h2></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+      ${block('cbA', '<svg class="ico"><use href="#i-plane"/></svg> Aviator cashback', av, 'Aviator', 'Aviator bonus (play it in Aviator)')}
+      ${block('cbB', '<svg class="ico"><use href="#i-target"/></svg> Bingo cashback', bi, 'Bingo', 'Bingo bonus (play it in Bingo)')}
       ${av.pct > 0 || bi.pct > 0 ? '' : '<p class="muted" style="margin-top:12px">Cashback is not active right now.</p>'}`;
     sh.querySelector('.x').onclick = closeSheet;
     const bind = (id, path) => {
@@ -1054,10 +1101,10 @@ async function aCoupons() {
       <div><label>Min. total deposit</label><input type="number" id="cMin" inputmode="decimal" placeholder="0 = none"></div></div>
       <label>Expires on (optional)</label><input type="date" id="cExp">
       <label>The bonus can be played in</label>
-      <div class="chips" id="cWal"><button class="chipbtn" data-v="aviator" aria-pressed="true">✈ Aviator</button><button class="chipbtn" data-v="bingo" aria-pressed="false">🎯 Bingo</button></div>
+      <div class="chips" id="cWal"><button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-plane"/></svg> Aviator</button><button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo</button></div>
       <p class="muted" style="margin-top:10px">Each player can use a coupon once. The registration bonus is separate and can only be played in Bingo.</p>
       <div id="cMsg"></div><button class="btn go" id="cMake" style="margin-top:12px">Create coupon</button></div>
-      <div class="panel"><h3>Your coupons</h3>${coupons.length ? coupons.map((c) => `<div class="cp"><div><b>${esc(c.code)}</b><span class="ctag ${c.wallet === 'aviator' ? 'av' : ''}">${c.wallet === 'aviator' ? '✈ Aviator' : '🎯 Bingo'}</span><span class="muted">${fmt(c.amount)} ETB · used ${c.used_count}/${c.max_uses} · ${when(c)}${c.min_lifetime_deposit > 0 ? ` · needs ${fmt(c.min_lifetime_deposit)} deposited` : ''}</span></div>
+      <div class="panel"><h3>Your coupons</h3>${coupons.length ? coupons.map((c) => `<div class="cp"><div><b>${esc(c.code)}</b><span class="ctag ${c.wallet === 'aviator' ? 'av' : ''}">${c.wallet === 'aviator' ? '<svg class="ico"><use href="#i-plane"/></svg> Aviator' : '<svg class="ico"><use href="#i-target"/></svg> Bingo'}</span><span class="muted">${fmt(c.amount)} ETB · used ${c.used_count}/${c.max_uses} · ${when(c)}${c.min_lifetime_deposit > 0 ? ` · needs ${fmt(c.min_lifetime_deposit)} deposited` : ''}</span></div>
         <div style="display:flex;gap:6px;flex:none"><button class="smallbtn" data-t="${c.id}">${c.active ? 'Turn off' : 'Turn on'}</button><button class="smallbtn red" data-d="${c.id}">Delete</button></div></div>`).join('') : '<p class="muted" style="margin-top:8px">No coupons yet.</p>'}</div>`;
     let cWallet = 'aviator';
     $('cWal').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; cWallet = b.dataset.v; $('cWal').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); };
@@ -1222,7 +1269,7 @@ async function copyText(t) {
 }
 function showKey(name, key, base) {
   const box = 'display:block;word-break:break-all;background:#EEF4F0;padding:12px;border-radius:12px;font-size:13px;user-select:text;line-height:1.5';
-  openSheet(`<div class="hd"><h2>API key for ${esc(name)}</h2><button class="x" aria-label="Close">✕</button></div>
+  openSheet(`<div class="hd"><h2>API key for ${esc(name)}</h2><button class="x" aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button></div>
     <div class="msg info">Copy the key now. For safety it is shown only once. If it gets lost, make a new key.</div>
     <label>API key</label><code style="${box}">${esc(key)}</code>
     <button class="btn" id="kCopy" style="margin-top:10px">Copy key</button>
@@ -1260,7 +1307,7 @@ async function aPartners() {
         if (b.dataset.pa === 'del') { if (!confirm(`Delete ${p.name}? Their key stops working right away.`)) return; await adm(`/partners/${p.id}`, 'DELETE'); aPartners(); }
         if (b.dataset.pa === 'key') { if (!confirm(`Make a new key for ${p.name}? The old key stops working right away.`)) return; const r = await adm(`/partners/${p.id}/rotate`, 'POST'); showKey(p.name, r.api_key, d.base_url); }
         if (b.dataset.pa === 'edit') {
-          openSheet(`<div class="hd"><h2>Edit ${esc(p.name)}</h2><button class="x" aria-label="Close">✕</button></div>${pForm('e', p, d.catalog)}<div id="eMsg"></div><button class="btn go" id="eSave" style="margin-top:12px">Save</button>`);
+          openSheet(`<div class="hd"><h2>Edit ${esc(p.name)}</h2><button class="x" aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button></div>${pForm('e', p, d.catalog)}<div id="eMsg"></div><button class="btn go" id="eSave" style="margin-top:12px">Save</button>`);
           $('eG').onclick = pgToggle; $('eL').onclick = pgToggle;
           $('eSave').onclick = async () => { try { await adm(`/partners/${p.id}`, 'PUT', pRead('e')); closeSheet(); aPartners(); } catch (err) { $('eMsg').innerHTML = `<div class="msg err">${esc(err.message)}</div>`; } };
         }
@@ -1325,7 +1372,7 @@ function closeGame() {
   if (es) { es.close(); es = null; }
   cancelAnimationFrame(rafId); clearInterval(pollId);
   $('gMenu').hidden = true; $('chat').hidden = true; $('gModal').hidden = true;
-  $('balPill').textContent = `✈ ${fmt(me.balance)} ETB`;
+  $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(me.balance)} ETB`;
 }
 $('gClose').onclick = closeGame;
 
@@ -1336,7 +1383,7 @@ function updateConn() {
   c.hidden = false;
   c.innerHTML = navigator.onLine
     ? `<div class="sp"></div><p>Connecting to live game...</p><small>${esc(PLATFORM.name)}</small>`
-    : '<div class="nowifi">📡</div><p>No internet connection</p><small>Check your connection and try again.</small><button id="retry">Retry</button>';
+    : '<div class="nowifi"><svg class="ico"><use href="#i-wifioff"/></svg></div><p>No internet connection</p><small>Check your connection and try again.</small><button id="retry">Retry</button>';
   const r = $('retry'); if (r) r.onclick = () => { connectStream(); updateConn(); };
 }
 addEventListener('online', () => { if (G.open) { connectStream(); updateConn(); } });
@@ -1392,7 +1439,7 @@ async function loadMe() {
     paintBal(); paintPanels();
   } catch (e) { gmsg(e.message); }
 }
-function paintBal() { $('gBal').textContent = fmt(me.balance); $('gBonus').hidden = !(me.bonus > 0); $('gBonus').textContent = `🎁 ${fmt(me.bonus)}`; }
+function paintBal() { $('gBal').textContent = fmt(me.balance); $('gBonus').hidden = !(me.bonus > 0); $('gBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> ${fmt(me.bonus)}`; }
 function showCbub(m, p) {
   const b = $('cbub'); b.hidden = false;
   b.innerHTML = `<div><small>You have cashed out!</small>${Number(m).toFixed(2)}x</div><div><small>Win ETB</small>${fmt(p)}</div>`;
@@ -1564,7 +1611,7 @@ function renderFoot() {
 async function verifyRound(id) {
   try {
     const r = await fetch(`${API_URL}/api/aviator/verify/${encodeURIComponent(id)}`).then((x) => x.json());
-    modal(`<h3>Provably Fair <button data-x>✕</button></h3>${r.error ? `<p>${esc(r.error)}</p>` : `<p>Hash matches seed: <b>${r.hash_matches ? 'YES' : 'NO'}</b><br>Seed crash point: <b>${r.seed_crash_point}x</b><br>Played crash point: <b>${r.crash_point}x</b>${r.limited ? ' (limited to the funds available)' : ''}</p>`}`);
+    modal(`<h3>Provably Fair <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3>${r.error ? `<p>${esc(r.error)}</p>` : `<p>Hash matches seed: <b>${r.hash_matches ? 'YES' : 'NO'}</b><br>Seed crash point: <b>${r.seed_crash_point}x</b><br>Played crash point: <b>${r.crash_point}x</b>${r.limited ? ' (limited to the funds available)' : ''}</p>`}`);
   } catch (e) { gmsg('Could not verify right now.'); }
 }
 
@@ -1581,7 +1628,7 @@ function paintMenu() {
 $('gMenuBtn').onclick = (e) => { e.stopPropagation(); $('gMenu').hidden = !$('gMenu').hidden; paintMenu(); };
 document.addEventListener('click', (e) => { if (!$('gMenu').hidden && !e.target.closest('#gMenu') && !e.target.closest('#gMenuBtn')) $('gMenu').hidden = true; });
 $('mChange').onclick = () => {
-  modal(`<h3>Choose avatar <button data-x>✕</button></h3><div class="avpick">${AV.map((a, i) => `<button data-i="${i}" class="${i === myAvatar() ? 'on' : ''}" style="background:${AVC[i]}">${a}</button>`).join('')}</div>`);
+  modal(`<h3>Choose avatar <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><div class="avpick">${AV.map((a, i) => `<button data-i="${i}" class="${i === myAvatar() ? 'on' : ''}" style="background:${AVC[i]}">${a}</button>`).join('')}</div>`);
   $('gModal').querySelector('.avpick').onclick = (e) => { const b = e.target.closest('button[data-i]'); if (!b) return; lsSet('av_avatar', b.dataset.i); $('gModal').hidden = true; paintMenu(); renderPlayers(); };
 };
 $('gMenu').onclick = async (e) => {
@@ -1595,17 +1642,17 @@ $('gMenu').onclick = async (e) => {
   if (!mm) return; $('gMenu').hidden = true;
   const k = mm.dataset.m;
   if (k === 'home') return closeGame();
-  if (k === 'free') return modal('<h3>Free Bets <button data-x>✕</button></h3><p>You have no free bets right now.</p>');
-  if (k === 'limits') return modal(`<h3>Game Limits <button data-x>✕</button></h3><div class="hrow"><span>Minimum bet</span><b>${fmt(me.min)} ETB</b></div><div class="hrow"><span>Maximum bet</span><b>${fmt(me.max)} ETB</b></div><p style="margin-top:12px">Payouts are limited to the funds available on the platform.</p>`);
-  if (k === 'how') return modal('<h3>How To Play <button data-x>✕</button></h3><ul><li>Place a bet before the round starts. You can use two bets at the same time.</li><li>Watch the plane take off. The multiplier goes up while it flies.</li><li>Tap <b>Cash Out</b> before the plane flies away to win your bet × the multiplier.</li><li>If the plane flies away first, the bet is lost.</li><li>Use <b>Auto</b> to play every round automatically and to cash out at a multiplier you choose.</li></ul>');
-  if (k === 'rules') return modal('<h3>Game Rules <button data-x>✕</button></h3><ul><li>Aviator is played with your <b>Games wallet</b> and your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons). The registration bonus cannot be used here.</li><li>A bet uses your Aviator bonus first. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
-  if (k === 'fair') return modal(`<h3>Provably Fair <button data-x>✕</button></h3><p>Before each round a secret seed is chosen and its hash is shown. After the round the seed is revealed so anyone can check it.</p><p style="margin-top:10px">Current round hash:<br><code>${esc(G.hash || '…')}</code></p>${G.lastRound ? `<button class="hrow" style="width:100%;color:#8fe27a;font-weight:700" onclick="verifyRound('${esc(G.lastRound)}')">Verify last round</button>` : ''}`);
+  if (k === 'free') return modal('<h3>Free Bets <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>You have no free bets right now.</p>');
+  if (k === 'limits') return modal(`<h3>Game Limits <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><div class="hrow"><span>Minimum bet</span><b>${fmt(me.min)} ETB</b></div><div class="hrow"><span>Maximum bet</span><b>${fmt(me.max)} ETB</b></div><p style="margin-top:12px">Payouts are limited to the funds available on the platform.</p>`);
+  if (k === 'how') return modal('<h3>How To Play <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Place a bet before the round starts. You can use two bets at the same time.</li><li>Watch the plane take off. The multiplier goes up while it flies.</li><li>Tap <b>Cash Out</b> before the plane flies away to win your bet × the multiplier.</li><li>If the plane flies away first, the bet is lost.</li><li>Use <b>Auto</b> to play every round automatically and to cash out at a multiplier you choose.</li></ul>');
+  if (k === 'rules') return modal('<h3>Game Rules <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Aviator is played with your <b>Games wallet</b> and your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons). The registration bonus cannot be used here.</li><li>A bet uses your Aviator bonus first. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
+  if (k === 'fair') return modal(`<h3>Provably Fair <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>Before each round a secret seed is chosen and its hash is shown. After the round the seed is revealed so anyone can check it.</p><p style="margin-top:10px">Current round hash:<br><code>${esc(G.hash || '…')}</code></p>${G.lastRound ? `<button class="hrow" style="width:100%;color:#8fe27a;font-weight:700" onclick="verifyRound('${esc(G.lastRound)}')">Verify last round</button>` : ''}`);
   if (k === 'hist') {
-    modal('<h3>My Bet History <button data-x>✕</button></h3><p>Loading…</p>');
+    modal('<h3>My Bet History <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>Loading…</p>');
     try {
       const r = await api(`/api/mini/${BOT}/aviator/my-bets`);
-      $('gModal').querySelector('.gm-card').innerHTML = '<h3>My Bet History <button data-x>✕</button></h3>' + (r.bets.length ? r.bets.map((b) => `<div class="hrow ${b.status === 'cashed_out' ? 'win' : ''}"><span>${fmt(b.amount)} ETB${b.mult ? ` · <span class="${mcls(b.mult)}">${b.mult.toFixed(2)}x</span>` : ''}</span><b>${b.status === 'cashed_out' ? '+' + fmt(b.payout) : b.status === 'refunded' ? 'refunded' : 'lost'}</b></div>`).join('') : '<p>No bets yet.</p>');
-    } catch (e) { $('gModal').querySelector('.gm-card').innerHTML = `<h3>My Bet History <button data-x>✕</button></h3><p>${esc(e.message)}</p>`; }
+      $('gModal').querySelector('.gm-card').innerHTML = '<h3>My Bet History <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3>' + (r.bets.length ? r.bets.map((b) => `<div class="hrow ${b.status === 'cashed_out' ? 'win' : ''}"><span>${fmt(b.amount)} ETB${b.mult ? ` · <span class="${mcls(b.mult)}">${b.mult.toFixed(2)}x</span>` : ''}</span><b>${b.status === 'cashed_out' ? '+' + fmt(b.payout) : b.status === 'refunded' ? 'refunded' : 'lost'}</b></div>`).join('') : '<p>No bets yet.</p>');
+    } catch (e) { $('gModal').querySelector('.gm-card').innerHTML = `<h3>My Bet History <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>${esc(e.message)}</p>`; }
   }
 };
 
@@ -1617,7 +1664,7 @@ function renderChat(scroll) {
 }
 $('gChatBtn').onclick = () => { $('chat').hidden = false; renderChat(true); };
 $('chBack').onclick = () => { $('chat').hidden = true; };
-$('chInfo').onclick = () => modal('<h3>Chat rules <button data-x>✕</button></h3><ul><li>Be respectful to other players.</li><li>No links, ads or begging for money.</li><li>Messages are limited to 160 characters.</li></ul>');
+$('chInfo').onclick = () => modal('<h3>Chat rules <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Be respectful to other players.</li><li>No links, ads or begging for money.</li><li>Messages are limited to 160 characters.</li></ul>');
 $('chText').oninput = () => { $('chLeft').textContent = 160 - $('chText').value.length; };
 async function sendChat() {
   const t = $('chText').value.trim(); if (!t) return;
@@ -1685,7 +1732,7 @@ function frame() {
 (function init() {
   if (!tg || !tg.initData || !BOT) { $('authFail').hidden = false; $('viewLobby').hidden = true; return; }
   tg.ready(); tg.expand();
-  api(`/api/mini/${BOT}/wallets`).then((d) => { PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name; $('balPill').textContent = `✈ ${fmt(d.aviator.balance)} ETB`; me.balance = d.aviator.balance; }).catch(() => {});
+  api(`/api/mini/${BOT}/wallets`).then((d) => { PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name; $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(d.aviator.balance)} ETB`; me.balance = d.aviator.balance; }).catch(() => {});
   fetch(`${API_URL}/api/aviator/state`).then((r) => r.json()).then((d) => { if (d.online) $('tileLive').textContent = `LIVE · ${d.online}`; }).catch(() => {});
   api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) { $('adminTab').hidden = false; if (location.hash === '#admin') setTab('admin'); } }).catch(() => {});
   if (location.hash === '#wallet') setTab('wallet');
