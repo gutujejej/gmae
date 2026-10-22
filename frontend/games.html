@@ -991,13 +991,13 @@ $('cbFab').onclick = openCashback;
 /* ================================================================= */
 const A = { sub: 'overview', timer: null };
 const adm = (path, method, body) => api(`/api/mini/${BOT}/gadmin${path}`, method, body);
-const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['settings', 'Settings'], ['admins', 'Admins']];
+const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['partners', 'Partners'], ['settings', 'Settings'], ['admins', 'Admins']];
 const aErr = (e) => { $('aMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; };
 const aOk = (t) => { $('aMsg').innerHTML = `<div class="msg ok">${esc(t)}</div>`; };
 function renderASegs() { $('aTabs').innerHTML = aSubs.map(([k, l]) => `<button class="chipbtn" data-v="${k}" aria-pressed="${k === A.sub}">${l}</button>`).join(''); }
 $('aTabs').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; A.sub = b.dataset.v; renderASegs(); showSub(); };
 function loadAdmin() { renderASegs(); showSub(); }
-function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
+function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, partners: aPartners, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
 
 async function aOverview() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
@@ -1195,6 +1195,77 @@ async function aAdmins() {
       <div id="adMsg"></div><button class="btn go" id="adAdd" style="margin-top:12px">Add admin</button></div>`;
     $('adAdd').onclick = async () => { try { await adm('/admins', 'POST', { telegram_id: $('adId').value }); aAdmins(); } catch (e) { $('adMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; } };
     $('adList').onclick = async (e) => { const b = e.target.closest('[data-rm]'); if (!b || !confirm('Remove this admin?')) return; try { await adm(`/admins/${b.dataset.rm}`, 'DELETE'); aAdmins(); } catch (err) { aErr(err); } };
+  } catch (e) { aErr(e); }
+}
+
+/* ================================================================= */
+/* Partners: API keys for other platforms (sports, Keno, Aviator)      */
+/* ================================================================= */
+const PG = [['sports', 'Sports'], ['keno', 'Keno'], ['aviator', 'Aviator']];
+const pgName = (g) => (PG.find((x) => x[0] === g) || [0, g])[1];
+const pgSel = (id) => [...$(id).querySelectorAll('button[aria-pressed="true"]')].map((b) => b.dataset.v);
+const pgToggle = (e) => { const b = e.target.closest('button[data-v]'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); };
+function pForm(px, v, catalog) {
+  v = v || { name: '', games: ['sports'], margin_pct: 0, rate_limit_per_min: 60, leagues: null };
+  const gs = new Set(v.games), ls = new Set(v.leagues || []);
+  return `<label>Partner name</label><input type="text" id="${px}N" maxlength="60" placeholder="e.g. Habesha Bet" value="${esc(v.name)}">
+    <label>Games this key can use</label><div class="chips" id="${px}G">${PG.map(([k, l]) => `<button class="chipbtn" data-v="${k}" aria-pressed="${gs.has(k)}">${l}</button>`).join('')}</div>
+    <div class="field2"><div><label>Requests per minute</label><input type="number" id="${px}R" inputmode="numeric" value="${v.rate_limit_per_min}"></div>
+    <div><label>Lower sports odds by (%)</label><input type="number" id="${px}M" inputmode="decimal" step="0.5" value="${v.margin_pct}"></div></div>
+    <label>Sports leagues (none picked = all)</label><div class="chips" id="${px}L">${catalog.map((l) => `<button class="chipbtn" data-v="${esc(l.key)}" aria-pressed="${ls.has(l.key)}">${esc(l.name)}</button>`).join('')}</div>`;
+}
+const pRead = (px) => ({ name: $(`${px}N`).value, games: pgSel(`${px}G`), rate_limit_per_min: $(`${px}R`).value, margin_pct: $(`${px}M`).value || 0, leagues: pgSel(`${px}L`) });
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); toast('Copied'); return; } catch (_) { /* fall through */ }
+  const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('Copied'); } catch (_) { toast('Press and hold the text to copy it.'); } ta.remove();
+}
+function showKey(name, key, base) {
+  const box = 'display:block;word-break:break-all;background:#EEF4F0;padding:12px;border-radius:12px;font-size:13px;user-select:text;line-height:1.5';
+  openSheet(`<div class="hd"><h2>API key for ${esc(name)}</h2><button class="x" aria-label="Close">✕</button></div>
+    <div class="msg info">Copy the key now. For safety it is shown only once. If it gets lost, make a new key.</div>
+    <label>API key</label><code style="${box}">${esc(key)}</code>
+    <button class="btn" id="kCopy" style="margin-top:10px">Copy key</button>
+    <label>Address</label><code style="${box}">${esc(base)}</code>
+    <button class="btn ghost" id="kCopyU" style="margin-top:10px">Copy address</button>
+    <label>Quick test</label><code style="${box}">curl -H "X-API-Key: ${esc(key)}" ${esc(base)}</code>`);
+  $('kCopy').onclick = () => copyText(key); $('kCopyU').onclick = () => copyText(base);
+}
+async function aPartners() {
+  $('aBody').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const d = await adm('/partners');
+    const row = (p) => `<div class="cp" style="align-items:flex-start;flex-wrap:wrap"><span style="flex:1;min-width:190px"><b style="font-size:20px">${esc(p.name)}</b> <span class="muted" style="display:inline">${p.active ? '· active' : '· paused'}</span>
+      <span class="muted">${p.games.map(pgName).join(', ')} · key ${esc(p.key_hint)} · ${p.rate_limit_per_min}/min${p.margin_pct ? ` · odds −${p.margin_pct}%` : ''}</span>
+      <span class="muted">Today ${p.today} · 7 days ${p.week} · ${p.last_used_at ? `last used ${new Date(p.last_used_at).toLocaleString()}` : 'never used'}</span></span>
+      <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="smallbtn" data-pa="edit" data-id="${p.id}">Edit</button><button class="smallbtn" data-pa="tog" data-id="${p.id}">${p.active ? 'Pause' : 'Resume'}</button><button class="smallbtn" data-pa="key" data-id="${p.id}">New key</button><button class="smallbtn red" data-pa="del" data-id="${p.id}">Delete</button></span></div>`;
+    $('aBody').innerHTML = `<div class="panel"><h3>Partner API</h3>
+      <p class="muted" style="margin-top:4px">Let other platforms use your Sports, Keno and Aviator. Make a key for each partner, send them the key, this address and the file <b>PARTNER_API.md</b>. Partners can only read games; they never see your players.</p>
+      <label>Address</label><code id="pBase" style="display:block;word-break:break-all;background:#EEF4F0;padding:12px;border-radius:12px;font-size:13px;user-select:text">${esc(d.base_url)}</code>
+      <button class="btn ghost" id="pCopy" style="margin-top:10px">Copy address</button></div>
+      <div class="panel"><h3>Your partners</h3>${d.partners.length ? d.partners.map(row).join('') : '<p class="muted" style="margin-top:8px">No partners yet. Add the first one below.</p>'}</div>
+      <div class="panel"><h3>New partner</h3>${pForm('n', null, d.catalog)}<div id="pMsg"></div><button class="btn go" id="pAdd" style="margin-top:12px">Create key</button></div>`;
+    $('pCopy').onclick = () => copyText(d.base_url);
+    $('nG').onclick = pgToggle; $('nL').onclick = pgToggle;
+    $('pAdd').onclick = async () => {
+      $('pAdd').disabled = true;
+      try { const r = await adm('/partners', 'POST', pRead('n')); await aPartners(); showKey(r.partner.name, r.api_key, d.base_url); }
+      catch (e) { $('pMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; $('pAdd').disabled = false; }
+    };
+    const find = (id) => d.partners.find((p) => String(p.id) === String(id));
+    $('aBody').onclick = async (e) => {
+      const b = e.target.closest('[data-pa]'); if (!b) return; const p = find(b.dataset.id); if (!p) return;
+      try {
+        if (b.dataset.pa === 'tog') { await adm(`/partners/${p.id}`, 'PUT', { active: !p.active }); aPartners(); }
+        if (b.dataset.pa === 'del') { if (!confirm(`Delete ${p.name}? Their key stops working right away.`)) return; await adm(`/partners/${p.id}`, 'DELETE'); aPartners(); }
+        if (b.dataset.pa === 'key') { if (!confirm(`Make a new key for ${p.name}? The old key stops working right away.`)) return; const r = await adm(`/partners/${p.id}/rotate`, 'POST'); showKey(p.name, r.api_key, d.base_url); }
+        if (b.dataset.pa === 'edit') {
+          openSheet(`<div class="hd"><h2>Edit ${esc(p.name)}</h2><button class="x" aria-label="Close">✕</button></div>${pForm('e', p, d.catalog)}<div id="eMsg"></div><button class="btn go" id="eSave" style="margin-top:12px">Save</button>`);
+          $('eG').onclick = pgToggle; $('eL').onclick = pgToggle;
+          $('eSave').onclick = async () => { try { await adm(`/partners/${p.id}`, 'PUT', pRead('e')); closeSheet(); aPartners(); } catch (err) { $('eMsg').innerHTML = `<div class="msg err">${esc(err.message)}</div>`; } };
+        }
+      } catch (err) { aErr(err); }
+    };
   } catch (e) { aErr(e); }
 }
 
