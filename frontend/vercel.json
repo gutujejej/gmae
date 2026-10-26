@@ -3,6 +3,6 @@
   "rewrites": [
     { "source": "/join", "destination": "/join.html" },
     { "source": "/join/:id", "destination": "/join.html" },
-    { "source": "/jb/:path*", "destination": "https://gmae-production-aa21.up.railway.app/jb/:path*" }
+    { "source": "/jb/:path*", "destination": "https://gmae-production-a450.up.railway.app*" }
   ]
 }
