@@ -570,6 +570,7 @@ require('./game-admin')(app, db, { miniAuth, MINIAPP_BASE, presence }); // per-b
 const kenoApi = require('./keno')(app, db, { miniAuth });      // Fast Keno
 const sportsApi = require('./sports')(app, db, { miniAuth });    // sports betting (needs game-admin loaded first)
 require('./partners')(app, db, { miniAuth, leagues: sportsApi.LEAGUES, paytable: kenoApi.PAYTABLE, port: PORT }); // partner API (sports, Aviator, Keno)
+require('./jb-index')(app, db, { publicUrl: PUBLIC_URL, frontendUrl: FRONTEND_URL }); // Join & Earn platform (own tables jb_*, own admins, routes /jb/*)
 const p2p = require('./p2p')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 const store = require('./store')(app, db, { requireAdmin, miniAuth, MINIAPP_BASE });
 channels = require('./channels')(app, db, {
