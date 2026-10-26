@@ -818,6 +818,46 @@ app.patch('/api/admin/bots/:id', requireAdmin, async (req, res) => {
   res.json(publicBot(data));
 });
 
+// Change the Telegram token of an existing bot (e.g. after revoking it in BotFather).
+// Users, balances, games and settings stay attached to the bot row; only the token + webhook change.
+app.post('/api/admin/bots/:id/token', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const newToken = String(req.body.token || '').trim();
+  if (!/^\d{5,}:[A-Za-z0-9_-]{30,}$/.test(newToken)) {
+    return res.status(400).json({ error: 'That does not look like a BotFather token' });
+  }
+  const { data: row } = await db.from('bots').select('*').eq('id', id).maybeSingle();
+  if (!row) return res.status(404).json({ error: 'Bot not found' });
+  if (newToken === row.token) return res.status(400).json({ error: 'This is already the current token' });
+
+  let me;
+  try { me = await new TelegramBot(newToken).getMe(); }
+  catch { return res.status(400).json({ error: 'Telegram rejected this token. Check it and try again.' }); }
+
+  // A token from a different bot changes the bot users talk to, so make the admin confirm it.
+  const sameBot = !row.bot_username || String(me.username).toLowerCase() === String(row.bot_username).toLowerCase();
+  if (!sameBot && req.body.confirm !== true) {
+    return res.status(409).json({ error: `DIFFERENT_BOT:@${me.username}:@${row.bot_username}` });
+  }
+  const { data: dup } = await db.from('bots').select('id,name').eq('token', newToken).neq('id', id).maybeSingle();
+  if (dup) return res.status(409).json({ error: `That token is already used by "${dup.name}"` });
+
+  const { data, error } = await db.from('bots')
+    .update({ token: newToken, bot_username: me.username }).eq('id', id).select().single();
+  if (error) return res.status(500).json({ error: error.message });
+
+  if (data.active) {
+    await stopBot(id);                                   // drop the old webhook / old connection
+    try { await startBot(data); }                        // connect with the new token
+    catch (err) {                                        // roll back so the bot never ends up dead
+      await db.from('bots').update({ token: row.token, bot_username: row.bot_username }).eq('id', id);
+      await startBot(row).catch(console.error);
+      return res.status(500).json({ error: 'Webhook setup failed, old token restored: ' + err.message });
+    }
+  }
+  res.json(publicBot(data));
+});
+
 app.delete('/api/admin/bots/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await stopBot(id);
