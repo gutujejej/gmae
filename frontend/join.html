@@ -102,7 +102,7 @@ nav .wrap{display:grid;grid-template-columns:repeat(5,1fr)}nav button{position:r
 const tg = window.Telegram && Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 document.documentElement.dataset.theme = tg && tg.colorScheme === 'dark' ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches && !tg ? 'dark' : 'light');
-const BOT = (location.pathname.split('/').filter(Boolean).pop() || 'join').replace(/^join$/, 'controller'); const CTL = BOT === 'controller';
+const BOT = (new URLSearchParams(location.search).get('b') || 'controller').replace(/[^\w-]/g, ''); const CTL = BOT === 'controller';
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const f2 = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
