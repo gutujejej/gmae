@@ -1,3 +1,8 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/join", "destination": "/join.html" },
+    { "source": "/join/:id", "destination": "/join.html" },
+    { "source": "/jb/:path*", "destination": "https://gmae-production-aa21.up.railway.app/jb/:path*" }
+  ]
 }
