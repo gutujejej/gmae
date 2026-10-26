@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Rewards</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#f1f6f3;--card:#fff;--card2:#e9f1ec;--ink:#10231a;--mut:#5d7468;--line:rgba(16,35,26,.1);--g:#17a35e;--g2:#0f7a45;--gold:#f2a900;--red:#d93c3c;--blue:#2f7bf0;--sh:0 6px 24px rgba(16,60,35,.08);--hero:linear-gradient(150deg,#0f7a45,#17a35e 60%,#43c985)}
+[data-theme=dark]{--bg:#07110d;--card:#101e17;--card2:#16281f;--ink:#ecf7f0;--mut:#86a093;--line:rgba(255,255,255,.08);--g:#2bd47d;--g2:#17a35e;--gold:#ffd24a;--red:#ff6b6b;--blue:#5aa2ff;--sh:0 6px 24px rgba(0,0,0,.35);--hero:linear-gradient(150deg,#0d3b27,#13744a 65%,#1f9a62)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:92px}
+button,input,select,textarea{font:inherit;color:inherit}button{border:0;background:none;cursor:pointer}
+.i{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex:none}
+.wrap{width:min(680px,100%);margin:0 auto;padding:0 14px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:10px;padding-top:10px;padding-bottom:10px}
+.av{width:40px;height:40px;border-radius:50%;background:var(--hero);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex:none}
+.hd{flex:1;min-width:0}.hd b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hd small{color:var(--mut);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:13px}
+.pill.tap{cursor:pointer}.pill.tap:active{transform:scale(.96)}
+main{padding-top:14px;animation:fade .25s ease-out}@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+.card h3{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hero{background:var(--hero);color:#fff;border-radius:22px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.hero::after{content:"";position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.1)}
+.hero small{opacity:.85;font-size:13px}.hero .big{font-size:38px;font-weight:800;letter-spacing:-.5px;margin:2px 0 12px}.hero .big span{font-size:16px;font-weight:600;opacity:.85}
+.hero .row{display:flex;gap:10px;position:relative;z-index:1}.hero .row>div{flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:9px 11px;font-size:12px}.hero .row b{display:block;font-size:16px}
+.acts{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 16px;border-radius:14px;background:var(--g);color:#fff;font-weight:700;font-size:15px;width:100%;box-shadow:0 4px 0 var(--g2)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--g2)}.btn:disabled{opacity:.5}
+.btn.ghost{background:var(--card2);color:var(--ink);box-shadow:none}.btn.white{background:#fff;color:#0f7a45;box-shadow:none}.btn.red{background:var(--red);box-shadow:0 4px 0 #9b2323}.btn.sm{padding:8px 12px;font-size:13px;width:auto;border-radius:11px;box-shadow:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}.stat small{color:var(--mut);font-size:12px;display:flex;gap:6px;align-items:center}.stat b{display:block;font-size:20px;margin-top:4px}
+.mut{color:var(--mut)}.ok{color:var(--g)}.bad{color:var(--red)}.gold{color:var(--gold)}
+.row2{display:flex;align-items:center;gap:10px}.row2>.grow{flex:1;min-width:0}
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0;padding-bottom:0}.item:first-child{padding-top:0}
+.ic{width:42px;height:42px;border-radius:13px;background:var(--card2);color:var(--g);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.item b{display:block;font-size:15px}.item small{color:var(--mut);font-size:12.5px;display:block;margin-top:2px}
+.rw{font-weight:800;color:var(--g);white-space:nowrap}.rw.neg{color:var(--red)}
+.chip{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:var(--card2);color:var(--mut)}
+.chip.g{background:color-mix(in srgb,var(--g) 16%,transparent);color:var(--g)}.chip.y{background:color-mix(in srgb,var(--gold) 20%,transparent);color:var(--gold)}.chip.r{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}.chip.b{background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)}
+.seg{display:flex;gap:4px;padding:4px;background:var(--card2);border-radius:14px;margin-bottom:12px;overflow-x:auto}.seg button{flex:1;white-space:nowrap;padding:9px 12px;border-radius:11px;font-weight:600;font-size:13.5px;color:var(--mut)}.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--sh)}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;margin-bottom:12px;font-size:14px;background:color-mix(in srgb,var(--gold) 16%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 35%,transparent)}
+.banner.g{background:color-mix(in srgb,var(--g) 12%,var(--card));border-color:color-mix(in srgb,var(--g) 30%,transparent)}.banner.r{background:color-mix(in srgb,var(--red) 12%,var(--card));border-color:color-mix(in srgb,var(--red) 30%,transparent)}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 5px}label:first-child{margin-top:0}
+input,select,textarea{width:100%;padding:12px 13px;border-radius:13px;border:1px solid var(--line);background:var(--card2);outline:none;font-size:15px}input:focus,select:focus,textarea:focus{border-color:var(--g)}textarea{min-height:84px;resize:vertical}
+.hint{font-size:12px;color:var(--mut);margin-top:4px}
+.tg{display:flex;justify-content:space-between;align-items:center;padding:8px 0}.sw{width:48px;height:28px;border-radius:99px;background:var(--card2);border:1px solid var(--line);position:relative;flex:none}.sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--mut);transition:.18s}.sw[aria-pressed=true]{background:var(--g)}.sw[aria-pressed=true]::after{left:23px;background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{padding:8px 13px;border-radius:99px;background:var(--card2);font-weight:600;font-size:13.5px;border:1px solid var(--line)}.chips button[aria-pressed=true]{background:var(--g);color:#fff;border-color:transparent}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g2),var(--g));border-radius:99px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .wrap{display:grid;grid-template-columns:repeat(5,1fr)}nav button{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 10px;color:var(--mut);font-size:11px;font-weight:600}nav button .i{width:22px;height:22px}nav button.on{color:var(--g)}nav button.on::before{content:"";position:absolute;top:0;width:34px;height:3px;border-radius:0 0 4px 4px;background:var(--g)}
+.ov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.sh{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--bg);border-radius:24px 24px 0 0;padding:16px 16px calc(22px + env(safe-area-inset-bottom));animation:up .22s ease-out}@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sh h2{font-size:19px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}.sh h2 button{width:34px;height:34px;border-radius:50%;background:var(--card2)}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:600;z-index:90;max-width:90%;text-align:center;box-shadow:var(--sh);animation:fade .2s}.toast.bad{background:var(--red);color:#fff}
+.sk{height:84px;border-radius:18px;background:linear-gradient(90deg,var(--card2),var(--card),var(--card2));background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}@keyframes sk{to{background-position:-200% 0}}
+.empty{text-align:center;color:var(--mut);padding:30px 14px}.empty .i{width:44px;height:44px;opacity:.5;margin-bottom:8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px}.cal b{color:var(--mut);font-weight:600;padding:4px 0}.cal button{aspect-ratio:1;border-radius:10px;background:var(--card2);font-weight:600;position:relative}.cal button.has{background:color-mix(in srgb,var(--g) 22%,transparent);color:var(--g)}.cal button.sel{outline:2px solid var(--g)}.cal button.dim{opacity:.3}
+.chart{display:flex;align-items:flex-end;gap:4px;height:110px}.chart div{flex:1;display:flex;align-items:flex-end;gap:2px;height:100%}.chart i{display:block;flex:1;border-radius:4px 4px 0 0;min-height:2px}
+.code{background:var(--card2);padding:11px 12px;border-radius:12px;word-break:break-all;font-size:13px;user-select:text}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 12v4h-4a2 2 0 0 1 0-4z"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.2 9.2A6 6 0 1 1 9.2 15.2M7 8h4M9 6v6"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+<symbol id="i-mega" viewBox="0 0 24 24"><path d="m3 11 18-6v14L3 13zM11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h13l-2 4 2 4H4"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 14h.01M15 14h.01"/></symbol>
+</svg>
+<header><div class="wrap" id="hdr"></div></header>
+<div class="wrap"><main id="main"><div class="sk"></div><div class="sk"></div><div class="sk"></div></main></div>
+<nav><div class="wrap" id="nav"></div></nav>
+<div id="host"></div>
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+document.documentElement.dataset.theme = tg && tg.colorScheme === 'dark' ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches && !tg ? 'dark' : 'light');
+const BOT = (location.pathname.split('/').filter(Boolean).pop() || 'join').replace(/^join$/, 'controller'); const CTL = BOT === 'controller';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const f2 = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const ico = (n, c = '') => `<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
+const ago = (t) => { const s = (Date.now() - new Date(t).getTime()) / 1000; if (s < 60) return 'now'; if (s < 3600) return `${Math.floor(s / 60)}m`; if (s < 86400) return `${Math.floor(s / 3600)}h`; return `${Math.floor(s / 86400)}d`; };
+const S = { mode: 'user', tab: 'home', sub: null, seg: {}, home: null, tz: 3, cfg: null, calDay: null };
+const haptic = (k) => { try { tg.HapticFeedback.notificationOccurred(k); } catch (_) {} };
+
+async function api(path, method = 'GET', body, raw) {
+  const base = CTL ? '/jb/ctl' : `/jb/api/${BOT}`;
+  const r = await fetch(base + path, { method, headers: { 'Content-Type': 'application/json', 'X-Init-Data': (tg && tg.initData) || '' }, body: body ? JSON.stringify(body) : undefined });
+  if (raw && r.ok) return r.text();
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+  return j;
+}
+function toast(m, bad) { const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = m; document.body.appendChild(t); haptic(bad ? 'error' : 'success'); setTimeout(() => t.remove(), 2800); }
+const guard = (fn) => async (...a) => { try { return await fn(...a); } catch (e) { toast(e.message, true); } };
+function sheet(title, html) { closeSheet(); const o = document.createElement('div'); o.className = 'ov'; o.id = 'sheet'; o.innerHTML = `<div class="sh"><h2><span>${title}</span><button data-a="close" aria-label="Close">${ico('x')}</button></h2>${html}</div>`; o.addEventListener('click', (e) => { if (e.target === o) closeSheet(); }); $('#host').appendChild(o); return o; }
+const closeSheet = () => { const s = $('#sheet'); if (s) s.remove(); };
+function ask(title, text, ok = 'Confirm', red) { return new Promise((res) => { const o = sheet(title, `<p class="mut" style="margin-bottom:14px">${text}</p><div class="grid2"><button class="btn ghost" id="n">Cancel</button><button class="btn ${red ? 'red' : ''}" id="y">${ok}</button></div>`); $('#n', o).onclick = () => { closeSheet(); res(false); }; $('#y', o).onclick = () => { closeSheet(); res(true); }; }); }
+const openLink = (u) => { if (!u) return; try { if (/^https:\/\/t\.me\//.test(u)) tg.openTelegramLink(u); else tg.openLink(u); } catch (_) { window.open(u, '_blank'); } };
+const copy = async (t) => { try { await navigator.clipboard.writeText(t); toast('Copied'); } catch (_) { toast('Press and hold to copy', true); } };
+const empty = (ic, t) => `<div class="empty">${ico(ic)}<div>${t}</div></div>`;
+const seg = (key, items) => `<div class="seg">${items.map(([k, l]) => `<button data-a="seg" data-k="${key}" data-v="${k}" class="${(S.seg[key] || items[0][0]) === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const segv = (key, first) => S.seg[key] || first;
+
+/* ---------------- generic form ---------------- */
+function formHtml(fields, v = {}) {
+  return fields.map((f) => {
+    const val = v[f.k] != null ? v[f.k] : (f.d != null ? f.d : '');
+    const id = `f_${f.k}`; const hint = f.h ? `<div class="hint">${f.h}</div>` : '';
+    if (f.t === 'toggle') return `<div class="tg"><div><b style="font-size:15px">${f.l}</b>${hint}</div><button class="sw" id="${id}" data-a="tog" aria-pressed="${!!val}"></button></div>`;
+    if (f.t === 'select') return `<label>${f.l}</label><select id="${id}">${f.o.map(([k, l]) => `<option value="${esc(k)}" ${String(val) === String(k) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${hint}`;
+    if (f.t === 'area') return `<label>${f.l}</label><textarea id="${id}" placeholder="${esc(f.p || '')}">${esc(val)}</textarea>${hint}`;
+    if (f.t === 'chips') { const sel = new Set((val || []).map(String)); return `<label>${f.l}</label><div class="chips" id="${id}">${f.o.map(([k, l]) => `<button data-a="chip" data-v="${k}" aria-pressed="${sel.has(String(k))}">${esc(l)}</button>`).join('') || '<span class="mut">Nothing to choose yet.</span>'}</div>${hint}`; }
+    const type = f.t === 'dt' ? 'datetime-local' : f.t === 'number' ? 'number' : 'text';
+    return `<label>${f.l}</label><input id="${id}" type="${type}" ${f.t === 'number' ? 'inputmode="decimal" step="any"' : ''} value="${esc(val)}" placeholder="${esc(f.p || '')}">${hint}`;
+  }).join('');
+}
+function formRead(fields) {
+  const o = {};
+  for (const f of fields) {
+    const el = $(`#f_${f.k}`); if (!el) continue;
+    if (f.t === 'toggle') o[f.k] = el.getAttribute('aria-pressed') === 'true';
+    else if (f.t === 'chips') o[f.k] = [...el.querySelectorAll('[aria-pressed=true]')].map((b) => b.dataset.v);
+    else if (f.t === 'dt') o[f.k] = el.value ? new Date(Date.parse(el.value + ':00Z') - S.tz * 3600000).toISOString() : '';
+    else o[f.k] = el.value;
+  }
+  return o;
+}
+const toLocalInput = (iso) => iso ? new Date(Date.parse(iso) + S.tz * 3600000).toISOString().slice(0, 16) : '';
+const fmtLocal = (iso) => iso ? new Date(Date.parse(iso) + S.tz * 3600000).toISOString().slice(0, 16).replace('T', ' ') : '-';
+
+/* ---------------- shell ---------------- */
+const USER_NAV = [['home', 'Home', 'home'], ['earn', 'Earn', 'target'], ['invite', 'Invite', 'users'], ['wallet', 'Wallet', 'wallet'], ['me', 'Profile', 'user']];
+const ADMIN_NAV = [['ov', 'Overview', 'chart'], ['money', 'Money', 'coins'], ['tasks', 'Tasks', 'list'], ['content', 'Content', 'mega'], ['more', 'More', 'menu']];
+function shell() {
+  const h = S.home; const u = h && h.user;
+  const title = CTL ? 'Controller' : S.mode === 'admin' ? `Admin · ${esc(h.bot.name || '')}` : esc((u && u.name) || 'Welcome');
+  $('#hdr').innerHTML = `<div class="av">${CTL ? ico('shield') : esc(((u && u.name) || 'R')[0].toUpperCase())}</div><div class="hd"><b>${title}</b><small>${CTL ? 'Platform owner' : S.mode === 'admin' ? esc(h.role) : '@' + esc((u && u.username) || '')}</small></div>` +
+    (!CTL && h && h.role ? `<button class="pill tap" data-a="mode">${ico(S.mode === 'admin' ? 'user' : 'cog')} ${S.mode === 'admin' ? 'User' : 'Admin'}</button>` : (u ? `<span class="pill">${ico('wallet')} ${f2(u.balance)}</span>` : ''));
+  const nav = S.mode === 'admin' ? ADMIN_NAV : USER_NAV;
+  $('nav').style.display = CTL ? 'none' : '';
+  $('#nav').innerHTML = nav.map(([k, l, i]) => `<button data-a="tab" data-v="${k}" class="${S.tab === k ? 'on' : ''}">${ico(i)}${l}</button>`).join('');
+}
+async function render() {
+  shell(); const m = $('#main'); m.innerHTML = '<div class="sk"></div><div class="sk"></div>';
+  try { const v = CTL ? ctlView : (S.mode === 'admin' ? AV : UV)[S.tab]; m.innerHTML = await v(); m.style.animation = 'none'; void m.offsetWidth; m.style.animation = ''; }
+  catch (e) { m.innerHTML = `<div class="banner r">${ico('lock')}<div>${esc(e.message)}</div></div>`; }
+}
+async function refresh() { S.home = await api('/home'); await render(); }
+
+/* ---------------- user views ---------------- */
+const taskIcon = { join: 'send', daily: 'gift', visit: 'ext', custom: 'check' };
+const stChip = (s) => ({ done: '<span class="chip g">Done</span>', pending: '<span class="chip y">In review</span>', full: '<span class="chip">Full</span>', expired: '<span class="chip">Ended</span>', rejected: '<span class="chip r">Rejected</span>' }[s] || '');
+const ledName = { task: 'Task reward', daily: 'Daily reward', referral: 'Referral reward', adjust: 'Adjustment', withdraw: 'Withdrawal', refund: 'Withdrawal refund', reversal: 'Reward reversed' };
+const ledRow = (r) => `<div class="item"><div class="ic">${ico(r.kind === 'referral' ? 'users' : r.kind === 'withdraw' ? 'down' : r.kind === 'daily' ? 'gift' : 'coins')}</div><div class="grow" style="flex:1"><b>${ledName[r.kind] || r.kind}</b><small>${esc(r.note || '')} · ${ago(r.created_at)}</small></div><div class="rw ${Number(r.amount) < 0 ? 'neg' : ''}">${Number(r.amount) > 0 ? '+' : ''}${f2(r.amount)}</div></div>`;
+function taskCard(t, s) {
+  const left = t.max_participants ? `${t.participants_count}/${t.max_participants} joined` : '';
+  let act = '';
+  if (t.status === 'available') {
+    if (t.type === 'join') act = `<div class="grid2" style="margin-top:10px"><button class="btn ghost sm" data-a="open" data-url="${esc(t.url || '')}">${ico('ext')} Open</button><button class="btn sm" data-a="claim" data-id="${t.id}">${ico('check')} Verify</button></div>`;
+    else if (t.type === 'daily') act = `<button class="btn sm" style="margin-top:10px;width:100%" data-a="claim" data-id="${t.id}">${ico('gift')} Claim reward</button>`;
+    else if (t.type === 'visit') act = `<div class="grid2" style="margin-top:10px"><button class="btn ghost sm" data-a="visit" data-id="${t.id}" data-url="${esc(t.url || '')}">${ico('ext')} Open page</button><button class="btn sm" data-a="claim" data-id="${t.id}">${ico('check')} Verify</button></div>`;
+    else act = `<button class="btn sm" style="margin-top:10px;width:100%" data-a="proof" data-id="${t.id}">${ico('check')} Submit proof</button>`;
+  }
+  return `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico(taskIcon[t.type])}</div><div style="flex:1;min-width:0"><b>${esc(t.title)}</b><small>${esc(t.description || '')}</small>${left ? `<small>${left}</small>` : ''}</div><div style="text-align:right"><div class="rw">+${f2(t.reward)}</div><small class="mut">ETB</small><div>${stChip(t.status)}</div></div></div>${t.max_participants ? `<div class="bar"><i style="width:${Math.min(100, t.participants_count / t.max_participants * 100)}%"></i></div>` : ''}${act}</div>`;
+}
+const UV = {
+  async home() {
+    const h = S.home, u = h.user, s = h.settings;
+    const av = h.tasks.filter((t) => t.status === 'available'); const done = h.tasks.filter((t) => t.status === 'done').length;
+    let html = `<div class="hero"><small>Available balance</small><div class="big">${f2(u.balance)} <span>ETB</span></div><div class="row"><div>Pending<b>${f2(u.pending)}</b></div><div>Lifetime<b>${f2(u.total_earned)}</b></div><div>Withdrawn<b>${f2(u.withdrawn_total)}</b></div></div><div class="acts"><button class="btn white" data-a="tab" data-v="earn">${ico('target')} Earn</button><button class="btn white" data-a="tab" data-v="wallet">${ico('down')} Withdraw</button></div></div>`;
+    if (!u.captcha_ok && s.captcha !== 'off') html += `<div class="banner">${ico('shield')}<div><b>Verify you are human</b><br>Open the bot and send /start to finish the quick check. Rewards unlock after it.</div></div>`;
+    if (u.review) html += `<div class="banner r">${ico('lock')}<div>Your account is under review. Support will contact you.</div></div>`;
+    if (s.maintenance_tasks || s.maintenance_withdraw) html += `<div class="banner">${ico('clock')}<div>Some features are paused for maintenance.</div></div>`;
+    if (h.campaign) html += `<div class="banner g">${ico('gift')}<div><b>${esc(h.campaign.name)}</b><br>${h.campaign.task_bonus_pct ? `+${h.campaign.task_bonus_pct}% on every task. ` : ''}${h.campaign.referral_bonus ? `+${f2(h.campaign.referral_bonus)} ETB per friend. ` : ''}Ends ${new Date(h.campaign.ends_at).toLocaleDateString()}.</div></div>`;
+    for (const a of h.announcements) html += `<div class="banner ${a.pinned ? 'g' : ''}">${ico('mega')}<div><b>${esc(a.title)}</b><br>${esc(a.body || '')}</div></div>`;
+    html += `<div class="grid2" style="margin-bottom:12px"><div class="stat"><small>${ico('users')} Friends</small><b>${h.referrals.qualified}</b></div><div class="stat"><small>${ico('check')} Tasks done</small><b>${done}</b></div><div class="stat"><small>${ico('coins')} From tasks</small><b>${f2(u.earned_task)}</b></div><div class="stat"><small>${ico('gift')} From referrals</small><b>${f2(u.earned_ref)}</b></div></div>`;
+    html += `<div class="card"><h3>${ico('target')} Available tasks</h3>${av.length ? av.slice(0, 3).map((t) => `<div class="item"><div class="ic">${ico(taskIcon[t.type])}</div><div style="flex:1"><b>${esc(t.title)}</b><small>${esc(t.description || '')}</small></div><div class="rw">+${f2(t.reward)}</div></div>`).join('') + `<button class="btn ghost sm" style="margin-top:12px;width:100%" data-a="tab" data-v="earn">See all tasks</button>` : empty('check', 'No new tasks right now. Check again soon.')}</div>`;
+    html += `<div class="card"><h3>${ico('clock')} Recent activity</h3>${h.recent.length ? h.recent.map(ledRow).join('') : empty('coins', 'Your rewards will appear here.')}</div>`;
+    return html;
+  },
+  async earn() {
+    const h = S.home; const t = h.tasks; const f = segv('earn', 'all');
+    const list = t.filter((x) => f === 'all' || (f === 'join' && x.type === 'join') || (f === 'daily' && x.type === 'daily') || (f === 'other' && ['visit', 'custom'].includes(x.type)));
+    const joinOpen = t.some((x) => x.type === 'join' && x.status === 'available');
+    return `${seg('earn', [['all', 'All'], ['join', 'Channels'], ['daily', 'Daily'], ['other', 'More']])}` +
+      (joinOpen ? `<button class="btn" style="margin-bottom:12px" data-a="verifyall">${ico('check')} Verify all channels</button>` : '') +
+      (h.settings.recheck_days > 0 && h.settings.rules_text ? `<div class="banner">${ico('shield')}<div>${esc(h.settings.rules_text)}<br><small class="mut">We re-check channel membership for ${h.settings.recheck_days} days${h.settings.reverse_on_leave ? '. If you leave, the reward is reversed and you are notified.' : '.'}</small></div></div>` : '') +
+      (list.length ? list.map(taskCard).join('') : empty('target', 'No tasks in this list.'));
+  },
+  async invite() {
+    const h = S.home; const r = h.referrals; const s = h.settings; const by = segv('lb', 'earn');
+    const lb = s.leaderboard ? await api(`/leaderboard?by=${by}`) : { rows: [] };
+    const cond = [s.captcha !== 'off' ? 'passes the quick check' : null, s.referral_min_tasks > 0 ? `completes ${s.referral_min_tasks} task(s)` : null].filter(Boolean).join(' and ') || 'joins';
+    return (s.referral_enabled ? `<div class="hero"><small>Invite friends and earn</small><div class="big">${f2(s.referral_reward)} <span>ETB per friend</span></div><div class="row"><div>Qualified<b>${r.qualified}</b></div><div>Waiting<b>${r.pending}</b></div><div>Earned<b>${f2(r.earned)}</b></div></div></div>
+      <div class="card"><h3>${ico('send')} Your link</h3><div class="code">${esc(r.link)}</div><div class="grid2" style="margin-top:10px"><button class="btn ghost sm" data-a="copy" data-t="${esc(r.link)}">${ico('copy')} Copy</button><button class="btn sm" data-a="share" data-t="${esc(r.link)}">${ico('send')} Share</button></div><div class="hint" style="margin-top:10px">You get paid when a friend ${cond}. Self-referrals and fake accounts are not rewarded.</div></div>` : `<div class="banner">${ico('lock')}<div>Referrals are switched off.</div></div>`) +
+      (s.leaderboard ? `<div class="card"><h3>${ico('trophy')} Leaderboard</h3>${seg('lb', [['earn', 'Earnings'], ['tasks', 'Tasks'], ['referrals', 'Friends']])}${lb.rows.length ? lb.rows.map((x, i) => `<div class="item"><div class="ic" style="font-weight:800">${i + 1}</div><div style="flex:1"><b>${esc(x.label)}</b></div><div class="rw">${by === 'earn' ? f2(x.score) : Number(x.score)}</div></div>`).join('') : empty('trophy', 'No data yet.')}</div>` : '');
+  },
+  async wallet() {
+    const w = await api('/wallet'); const u = w.user; const s = S.home.settings;
+    const methods = s.methods || [];
+    const open = w.withdrawals.some((x) => ['pending', 'approved', 'processing'].includes(x.status));
+    const wst = { pending: ['y', 'Pending'], approved: ['b', 'Approved'], processing: ['b', 'Processing'], paid: ['g', 'Paid'], rejected: ['r', 'Rejected'] };
+    return `<div class="hero"><small>Available</small><div class="big">${f2(u.balance)} <span>ETB</span></div><div class="row"><div>Pending withdrawal<b>${f2(u.pending)}</b></div><div>Referrals<b>${f2(u.earned_ref)}</b></div><div>Tasks<b>${f2(u.earned_task)}</b></div></div></div>
+    <div class="banner">${ico('shield')}<div>Rewards are promotional credits. A withdrawal is paid only after the admin confirms it. Minimum: <b>${f2(s.min_withdraw)} ETB</b>${s.fee_pct || s.fee_flat ? `, fee ${s.fee_pct ? s.fee_pct + '%' : ''}${s.fee_pct && s.fee_flat ? ' + ' : ''}${s.fee_flat ? f2(s.fee_flat) + ' ETB' : ''}` : ''}.</div></div>
+    <div class="card"><h3>${ico('down')} Withdraw</h3>${s.maintenance_withdraw ? `<div class="empty">Withdrawals are paused for maintenance.</div>` : open ? `<div class="empty">You already have a request in progress.</div>` : `<label>Method</label><div class="chips" id="wm">${methods.map((m, i) => `<button data-a="chip1" data-v="${esc(m)}" aria-pressed="${i === 0}">${esc(m)}</button>`).join('')}</div><label>Account or phone number</label><input id="wacc" placeholder="Where should we send it?"><label>Amount (ETB)</label><div class="row2"><input id="wamt" type="number" inputmode="decimal" placeholder="${f2(s.min_withdraw)}"><button class="btn ghost sm" data-a="max">Max</button></div><div class="hint" id="wfee"></div><button class="btn" style="margin-top:14px" data-a="withdraw">${ico('send')} Request withdrawal</button>`}</div>
+    <div class="card"><h3>${ico('clock')} Withdrawals</h3>${w.withdrawals.length ? w.withdrawals.map((x) => `<div class="item"><div class="ic">${ico('down')}</div><div style="flex:1"><b>${f2(x.amount)} ETB · ${esc(x.method)}</b><small>Fee ${f2(x.fee)} · You get ${f2(x.net)} · ${ago(x.created_at)}${x.pay_ref ? ` · Ref ${esc(x.pay_ref)}` : ''}${x.status === 'rejected' && x.note ? ` · ${esc(x.note)}` : ''}</small></div><span class="chip ${wst[x.status][0]}">${wst[x.status][1]}</span></div>`).join('') : empty('down', 'No withdrawals yet.')}</div>
+    <div class="card"><h3>${ico('list')} History</h3>${w.ledger.length ? w.ledger.map(ledRow).join('') : empty('coins', 'No transactions yet.')}</div>`;
+  },
+  async me() {
+    const h = S.home; const u = h.user; const s = h.settings; const t = await api('/tickets');
+    return `<div class="card"><div class="row2"><div class="av" style="width:56px;height:56px;font-size:24px">${esc((u.name || 'R')[0].toUpperCase())}</div><div><b style="font-size:18px">${esc(u.name || '')}</b><div class="mut">@${esc(u.username || '-')} · ID ${u.id}</div><div>${u.captcha_ok ? '<span class="chip g">Verified</span>' : '<span class="chip y">Not verified</span>'}</div></div></div></div>
+    <div class="card"><h3>${ico('cog')} Settings</h3><label>Language</label><select id="plang" data-a="lang"><option value="en" ${u.lang === 'en' ? 'selected' : ''}>English</option><option value="am" ${u.lang === 'am' ? 'selected' : ''}>አማርኛ</option></select><div class="tg"><b style="font-size:15px">Notifications</b><button class="sw" data-a="notify" aria-pressed="${u.notify !== false}"></button></div></div>
+    <div class="card"><h3>${ico('chat')} Help and support</h3><p class="mut" style="margin-bottom:10px">${esc(s.help_text || 'Do tasks in Earn, invite friends, and withdraw when you reach the minimum.')}</p>${s.support_username ? `<button class="btn ghost sm" style="margin-bottom:10px" data-a="open" data-url="https://t.me/${esc(s.support_username)}">${ico('send')} @${esc(s.support_username)}</button>` : ''}<textarea id="tkt" placeholder="Write your question for support"></textarea><button class="btn" style="margin-top:10px" data-a="ticket">${ico('send')} Send to support</button>${t.tickets.map((k) => `<div class="item"><div class="ic">${ico('chat')}</div><div style="flex:1"><b>${esc(k.subject)}</b>${k.messages.map((m) => `<small style="${m.from_admin ? 'color:var(--g)' : ''}">${m.from_admin ? 'Support: ' : 'You: '}${esc(m.body)}</small>`).join('')}</div><span class="chip ${k.status === 'open' ? 'y' : 'g'}">${k.status}</span></div>`).join('')}</div>`;
+  },
+};
+
+/* ---------------- admin ---------------- */
+const CAN = { owner: ['*'], controller: ['*'], admin: ['dashboard', 'users', 'tasks', 'posts', 'broadcast', 'settings', 'finance', 'support', 'review', 'audit', 'campaigns'], finance: ['dashboard', 'finance', 'audit'], moderator: ['dashboard', 'users', 'tasks', 'review', 'flags'], support: ['dashboard', 'support', 'users'] };
+const can = (p) => { const l = CAN[S.home.role] || []; return l.includes('*') || l.includes(p); };
+async function cfg() { if (!S.cfg) { S.cfg = await api('/a/settings'); S.tz = Number(S.cfg.settings.tz_offset); } return S.cfg; }
+const wdChip = { pending: ['y', 'Pending'], approved: ['b', 'Approved'], processing: ['b', 'Processing'], paid: ['g', 'Paid'], rejected: ['r', 'Rejected'] };
+const who = (u, id) => esc((u && (u.first_name || u.username)) || id);
+
+const AV = {
+  async ov() {
+    const { stats: s } = await api('/a/stats'); const max = Math.max(1, ...s.daily.map((d) => Math.max(d.users, d.claims)));
+    const card = (ic, l, v, sub) => `<div class="stat"><small>${ico(ic)} ${l}</small><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+    let alerts = '';
+    if (s.pending_count) alerts += `<div class="banner" data-a="tab" data-v="money">${ico('coins')}<div><b>${s.pending_count} withdrawal(s) waiting</b><br>${f2(s.pending_sum)} ETB. Tap to review.</div></div>`;
+    if (s.review_claims) alerts += `<div class="banner" data-a="tab" data-v="money">${ico('check')}<div><b>${s.review_claims} task proof(s) to review</b></div></div>`;
+    if (s.open_flags) alerts += `<div class="banner r" data-a="sub" data-v="flags">${ico('flag')}<div><b>${s.open_flags} suspicious activity alert(s)</b></div></div>`;
+    return alerts + `<div class="grid2" style="margin-bottom:12px">${card('users', 'Users', s.total_users, `${s.new_today} new today`)}${card('shield', 'Verified', s.verified_users, `${s.blocked} blocked the bot`)}${card('clock', 'Active (7d)', s.active_users)}${card('check', 'Task completions', s.completions)}${card('gift', 'Rewards credited', f2(s.rewards_total))}${card('users', 'Referral earnings', f2(s.ref_earnings))}${card('wallet', 'Owed to users', f2(s.liabilities), 'balances + pending')}${card('down', 'Paid out', f2(s.paid_total))}</div>
+    <div class="card"><h3>${ico('chart')} Last 14 days</h3><div class="chart">${s.daily.map((d) => `<div title="${d.day}"><i style="height:${d.claims / max * 100}%;background:var(--gold)"></i><i style="height:${d.users / max * 100}%;background:var(--g)"></i></div>`).join('')}</div><div class="hint"><span class="ok">■</span> new users &nbsp; <span class="gold">■</span> task completions</div></div>`;
+  },
+  async money() {
+    const k = segv('money', can('finance') ? 'wd' : 'review'); let body = '';
+    if (k === 'wd') {
+      const f = segv('wdf', 'open'); const d = await api(`/a/withdrawals?status=${f === 'all' ? '' : f}`);
+      body = seg('wdf', [['open', 'Open'], ['paid', 'Paid'], ['rejected', 'Rejected'], ['all', 'All']]) + (d.withdrawals.length ? d.withdrawals.map((w) => {
+        const b = [];
+        if (w.status === 'pending') b.push(['approved', 'Approve', ''], ['rejected', 'Reject', 'red']);
+        if (w.status === 'approved') b.push(['processing', 'Processing', 'ghost'], ['paid', 'Mark paid', ''], ['rejected', 'Reject', 'red']);
+        if (w.status === 'processing') b.push(['paid', 'Mark paid', ''], ['rejected', 'Reject', 'red']);
+        return `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('down')}</div><div style="flex:1"><b>${f2(w.amount)} ETB <small style="display:inline">(net ${f2(w.net)})</small></b><small>${who(w.user, w.user_id)} · ${esc(w.method)}: <span style="color:var(--ink);font-weight:700">${esc(w.account)}</span></small><small>${ago(w.created_at)}${w.pay_ref ? ` · Ref ${esc(w.pay_ref)}` : ''}${w.note ? ` · ${esc(w.note)}` : ''}</small></div><span class="chip ${wdChip[w.status][0]}">${wdChip[w.status][1]}</span></div>${b.length ? `<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">${b.map(([s, l, c]) => `<button class="btn sm ${c}" data-a="wdset" data-id="${w.id}" data-s="${s}">${l}</button>`).join('')}</div>` : ''}</div>`;
+      }).join('') : empty('coins', 'Nothing here.'));
+    } else {
+      const d = await api('/a/claims');
+      body = d.claims.length ? d.claims.map((c) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('check')}</div><div style="flex:1"><b>${esc(c.task || 'Task')} · +${f2(c.reward)}</b><small>User ${c.user_id} · ${ago(c.created_at)}</small><small style="color:var(--ink)">${esc(c.proof || '')}</small></div></div><div class="grid2" style="margin-top:10px"><button class="btn sm red" data-a="claimrev" data-id="${c.id}" data-v="reject">Reject</button><button class="btn sm" data-a="claimrev" data-id="${c.id}" data-v="approve">Approve</button></div></div>`).join('') : empty('check', 'No proofs waiting.');
+    }
+    return seg('money', [...(can('finance') ? [['wd', 'Withdrawals']] : []), ...(can('review') ? [['review', 'Task proofs']] : [])]) + body;
+  },
+  async tasks() {
+    const k = segv('tasks', 'tasks'); let body = '';
+    if (k === 'tasks') {
+      const d = await api('/a/tasks');
+      body = `<button class="btn" style="margin-bottom:12px" data-a="tasknew">${ico('plus')} New task</button>` + (d.tasks.length ? d.tasks.map((t) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico(taskIcon[t.type])}</div><div style="flex:1;min-width:0"><b>${esc(t.title)}</b><small>${t.type} · ${t.participants_count}${t.max_participants ? '/' + t.max_participants : ''} joined${t.expires_at ? ' · ends ' + fmtLocal(t.expires_at) : ''}</small></div><div style="text-align:right"><div class="rw">+${f2(t.reward)}</div><span class="chip ${t.status === 'active' ? 'g' : 'y'}">${t.status}</span></div></div><div style="display:flex;gap:6px;margin-top:10px"><button class="btn sm ghost" data-a="taskedit" data-id="${t.id}">Edit</button><button class="btn sm ghost" data-a="tasktog" data-id="${t.id}" data-s="${t.status === 'active' ? 'paused' : 'active'}">${t.status === 'active' ? 'Pause' : 'Resume'}</button><button class="btn sm red" data-a="taskdel" data-id="${t.id}">Archive</button></div></div>`).join('') : empty('list', 'No tasks yet. Create your first one.'));
+    } else if (k === 'channels') {
+      const d = await api('/a/channels');
+      body = `<div class="card"><h3>${ico('plus')} Connect a channel or group</h3><p class="hint" style="margin:0 0 8px">Add the bot as an admin first. Then enter the @username (or a numeric id for private chats).</p><input id="chref" placeholder="@mychannel"><button class="btn" style="margin-top:10px" data-a="chadd">Connect</button></div>` + (d.channels.length ? d.channels.map((c) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('send')}</div><div style="flex:1"><b>${esc(c.title)}</b><small>${c.kind}${c.username ? ' · @' + esc(c.username) : ''}</small>${c.last_error ? `<small class="bad">Last error: ${esc(c.last_error)}</small>` : ''}</div><button class="btn sm red" data-a="chdel" data-id="${c.id}">Remove</button></div></div>`).join('') : empty('send', 'No channels connected.'));
+    } else {
+      const d = await api('/a/campaigns');
+      body = `<button class="btn" style="margin-bottom:12px" data-a="campnew">${ico('plus')} New campaign</button>` + (d.campaigns.filter((c) => c.active).length ? d.campaigns.filter((c) => c.active).map((c) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('gift')}</div><div style="flex:1"><b>${esc(c.name)}</b><small>${fmtLocal(c.starts_at)} to ${fmtLocal(c.ends_at)}</small><small>${Number(c.task_bonus_pct) ? '+' + c.task_bonus_pct + '% tasks ' : ''}${Number(c.referral_bonus) ? '+' + f2(c.referral_bonus) + ' ETB per referral' : ''}</small></div><button class="btn sm red" data-a="campdel" data-id="${c.id}">End</button></div></div>`).join('') : empty('gift', 'No active campaigns.'));
+    }
+    return seg('tasks', [['tasks', 'Tasks'], ['channels', 'Channels'], ['camps', 'Campaigns']]) + body;
+  },
+  async content() {
+    const k = segv('content', 'posts'); let body = '';
+    if (k === 'posts') {
+      const d = await api('/a/posts'); const now = new Date(Date.now() + S.tz * 3600000);
+      const y = now.getUTCFullYear() + (S.calOff ? Math.floor((now.getUTCMonth() + S.calOff) / 12) : 0); const mo = ((now.getUTCMonth() + (S.calOff || 0)) % 12 + 12) % 12;
+      const first = new Date(Date.UTC(y, mo, 1)).getUTCDay(); const days = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate();
+      const byDay = {}; d.posts.filter((p) => p.status !== 'cancelled').forEach((p) => { const l = fmtLocal(p.run_at).slice(0, 10); byDay[l] = (byDay[l] || 0) + 1; });
+      const cells = []; for (let i = 0; i < first; i++) cells.push('<button class="dim" disabled></button>');
+      for (let dd = 1; dd <= days; dd++) { const key = `${y}-${String(mo + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`; cells.push(`<button class="${byDay[key] ? 'has' : ''} ${S.calDay === key ? 'sel' : ''}" data-a="calday" data-v="${key}">${dd}</button>`); }
+      const list = d.posts.filter((p) => !S.calDay || fmtLocal(p.run_at).slice(0, 10) === S.calDay);
+      const stc = { scheduled: 'b', done: 'g', error: 'r', cancelled: '' };
+      body = `<button class="btn" style="margin-bottom:12px" data-a="postnew">${ico('plus')} Schedule a post</button><div class="card"><div class="row2" style="margin-bottom:8px"><button class="btn ghost sm" data-a="calnav" data-v="-1">${ico('back')}</button><b style="flex:1;text-align:center">${new Date(Date.UTC(y, mo, 1)).toLocaleString('en', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</b><button class="btn ghost sm" data-a="calnav" data-v="1" style="transform:scaleX(-1)">${ico('back')}</button></div><div class="cal">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((x) => `<b>${x}</b>`).join('')}${cells.join('')}</div>${S.calDay ? `<button class="btn ghost sm" style="margin-top:8px" data-a="calday" data-v="">Show all</button>` : ''}</div>` +
+        (list.length ? list.map((p) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('cal')}</div><div style="flex:1;min-width:0"><b>${esc((p.text || '(media only)').slice(0, 60))}</b><small>${fmtLocal(p.run_at)} · ${p.repeat} · ${p.targets.length} chat(s)</small></div><span class="chip ${stc[p.status]}">${p.status}</span></div><div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn sm ghost" data-a="postnow" data-id="${p.id}">Send now</button><button class="btn sm ghost" data-a="posthist" data-id="${p.id}">History</button>${p.status === 'error' ? `<button class="btn sm" data-a="postretry" data-id="${p.id}">Retry</button>` : ''}${p.status === 'scheduled' ? `<button class="btn sm ghost" data-a="postedit" data-id="${p.id}">Edit</button>` : ''}${p.status === 'scheduled' ? `<button class="btn sm red" data-a="postdel" data-id="${p.id}">Cancel</button>` : ''}</div></div>`).join('') : empty('cal', 'No posts.'));
+    } else if (k === 'bc') {
+      const d = await api('/a/broadcasts');
+      body = `<button class="btn" style="margin-bottom:12px" data-a="bcnew">${ico('plus')} New broadcast</button>` + (d.broadcasts.length ? d.broadcasts.map((b) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('mega')}</div><div style="flex:1;min-width:0"><b>${esc((b.text || '(media)').slice(0, 60))}</b><small>${b.audience} · ${ago(b.created_at)}</small></div><span class="chip ${b.status === 'done' ? 'g' : b.status === 'cancelled' ? 'r' : 'b'}">${b.status}</span></div><div class="bar"><i style="width:${b.total ? Math.min(100, (b.sent + b.failed) / b.total * 100) : 0}%"></i></div><small class="mut">${b.sent} sent · ${b.failed} failed · ${b.total} total</small>${['queued', 'running'].includes(b.status) ? `<button class="btn sm red" style="margin-top:8px" data-a="bccancel" data-id="${b.id}">Cancel</button>` : ''}</div>`).join('') : empty('mega', 'No broadcasts yet.'));
+    } else {
+      const d = await api('/a/announcements');
+      body = `<button class="btn" style="margin-bottom:12px" data-a="annnew">${ico('plus')} New announcement</button>` + (d.announcements.filter((a) => a.active).length ? d.announcements.filter((a) => a.active).map((a) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('mega')}</div><div style="flex:1"><b>${esc(a.title)} ${a.pinned ? '<span class="chip g">Pinned</span>' : ''}</b><small>${esc(a.body || '')}</small></div><button class="btn sm red" data-a="anndel" data-id="${a.id}">Remove</button></div></div>`).join('') : empty('mega', 'No announcements.'));
+    }
+    return seg('content', [...(can('posts') ? [['posts', 'Posts']] : []), ...(can('broadcast') ? [['bc', 'Broadcast']] : []), ['ann', 'Banners']]) + body;
+  },
+  async more() {
+    const sub = S.sub;
+    if (sub) return `<button class="pill tap" style="margin-bottom:12px" data-a="sub" data-v="">${ico('back')} Back</button>` + await SUB[sub]();
+    const items = [['users', 'users', 'Users', 'Search, suspend, adjust, review', 'users'], ['support', 'chat', 'Support', 'Tickets from users', 'support'], ['flags', 'flag', 'Alerts', 'Suspicious activity', 'flags'], ['audit', 'list', 'Audit log', 'Every admin action', 'audit'], ['export', 'down', 'Reports', 'Download CSV files', 'finance'], ['settings', 'cog', 'Settings', 'Rewards, withdrawals, captcha, messages', 'settings'], ['admins', 'shield', 'Admins', 'Roles and permissions', 'admins']];
+    return `<div class="card">${items.filter((i) => can(i[4])).map((i) => `<div class="item" data-a="sub" data-v="${i[0]}" style="cursor:pointer"><div class="ic">${ico(i[1])}</div><div style="flex:1"><b>${i[2]}</b><small>${i[3]}</small></div>${ico('back', 'mut').replace('class="i mut"', 'class="i mut" style="transform:scaleX(-1)"')}</div>`).join('')}</div>`;
+  },
+};
+const SET = [
+  ['Verification', [{ k: 'captcha', l: 'Captcha', t: 'select', o: [['emoji', 'Pick the animal'], ['math', 'Simple math'], ['off', 'Off']] }, { k: 'captcha_level', l: 'Difficulty', t: 'select', o: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']] }, { k: 'captcha_ttl', l: 'Seconds to answer', t: 'number' }, { k: 'captcha_tries', l: 'Tries before cooldown', t: 'number' }, { k: 'captcha_cooldown_min', l: 'Cooldown (minutes)', t: 'number' }, { k: 'require_phone', l: 'Require phone number', t: 'toggle', h: 'Strongest check against fake accounts.' }, { k: 'phone_prefix', l: 'Allowed phone prefix', t: 'text', h: 'Example +251. Empty = any country.' }]],
+  ['Referrals', [{ k: 'referral_enabled', l: 'Referral rewards', t: 'toggle' }, { k: 'referral_reward', l: 'Reward per friend (ETB)', t: 'number' }, { k: 'referral_require_captcha', l: 'Friend must pass the check', t: 'toggle' }, { k: 'referral_min_tasks', l: 'Friend must finish N tasks', t: 'number' }, { k: 'referral_cap', l: 'Max rewarded friends per user (0 = no limit)', t: 'number' }]],
+  ['Withdrawals', [{ k: 'min_withdraw', l: 'Minimum (ETB)', t: 'number' }, { k: 'max_withdraw', l: 'Maximum per request (0 = no limit)', t: 'number' }, { k: 'fee_pct', l: 'Fee (%)', t: 'number' }, { k: 'fee_flat', l: 'Flat fee (ETB)', t: 'number' }, { k: 'methods', l: 'Methods (comma separated)', t: 'text' }, { k: 'auto_approve', l: 'Skip the Pending step (still paid manually)', t: 'toggle' }]],
+  ['Membership rules', [{ k: 'recheck_days', l: 'Re-check channel membership for N days (0 = off)', t: 'number' }, { k: 'reverse_on_leave', l: 'Reverse the reward if the user leaves', t: 'toggle', h: 'The user is told and a reversal entry is added. Nothing is edited silently.' }, { k: 'rules_text', l: 'Rules shown to users', t: 'area' }]],
+  ['Messages', [{ k: 'welcome_text', l: 'Welcome message', t: 'area' }, { k: 'welcome_photo', l: 'Welcome image link (https)', t: 'text' }, { k: 'help_text', l: 'Help text', t: 'area' }, { k: 'support_username', l: 'Support username', t: 'text' }, { k: 'lang', l: 'Default language', t: 'select', o: [['en', 'English'], ['am', 'አማርኛ']] }, { k: 'tz_offset', l: 'Your time zone (hours from UTC)', t: 'number', h: 'Ethiopia is 3.' }]],
+  ['Switches', [{ k: 'maintenance_tasks', l: 'Pause tasks', t: 'toggle' }, { k: 'maintenance_withdraw', l: 'Pause withdrawals', t: 'toggle' }, { k: 'leaderboard', l: 'Show leaderboard', t: 'toggle' }, { k: 'flag_claims_per_hour', l: 'Alert when a user claims more than N per hour', t: 'number' }]],
+];
+const ROLES = [['owner', 'Owner (everything)'], ['admin', 'Administrator'], ['finance', 'Finance manager'], ['moderator', 'Moderator'], ['support', 'Support agent']];
+const SUB = {
+  async users() {
+    const f = segv('uf', 'all'); const q = S.uq || ''; const d = await api(`/a/users?q=${encodeURIComponent(q)}&filter=${f}`);
+    return `<div class="row2" style="margin-bottom:10px"><input id="uq" placeholder="Search id or name" value="${esc(q)}"><button class="btn sm" data-a="usearch">${ico('chart')} Go</button></div>${seg('uf', [['all', 'All'], ['verified', 'Verified'], ['unverified', 'Not verified'], ['review', 'Review'], ['banned', 'Suspended']])}<div class="card">${d.users.length ? d.users.map((u) => `<div class="item" data-a="user" data-id="${u.tg_id}" style="cursor:pointer"><div class="ic">${esc((u.first_name || '?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><b>${esc(u.first_name || u.tg_id)} ${u.captcha_ok ? '' : '<span class="chip y">no check</span>'}${u.banned ? ' <span class="chip r">suspended</span>' : ''}${u.review ? ' <span class="chip y">review</span>' : ''}</b><small>${u.username ? '@' + esc(u.username) + ' · ' : ''}${u.tg_id} · joined ${ago(u.joined_at)}</small></div><div class="rw">${f2(u.balance)}</div></div>`).join('') : empty('users', 'No users found.')}</div>${!q && d.users.length === d.per ? `<div class="grid2"><button class="btn ghost sm" data-a="upage" data-v="-1">Previous</button><button class="btn ghost sm" data-a="upage" data-v="1">Next</button></div>` : ''}`;
+  },
+  async settings() {
+    const c = await cfg(); const s = c.settings;
+    return `<div class="card"><h3>${ico('bot')} Bot</h3>${formHtml([{ k: 'name', l: 'Bot name', t: 'text' }, { k: 'description', l: 'Description', t: 'area' }, { k: 'status', l: 'Status', t: 'select', o: [['active', 'Active'], ['paused', 'Paused (users see a maintenance message)']] }], { name: c.bot.name, description: c.bot.description, status: c.bot.status })}<div class="hint">Profile picture: set it in BotFather (Telegram does not allow changing it from here). Token ends in ${esc(c.bot.token_last4)}.</div></div>` +
+      SET.map(([t, f]) => `<div class="card"><h3>${t}</h3>${formHtml(f, { ...s, methods: (s.methods || []).join(', ') })}</div>`).join('') + `<button class="btn" data-a="savecfg">Save settings</button>`;
+  },
+  async admins() {
+    const d = await api('/a/admins');
+    return `<div class="card"><h3>${ico('shield')} Admins</h3>${d.admins.map((a) => `<div class="item"><div class="ic">${ico('user')}</div><div style="flex:1"><b>${a.tg_id}</b><small>${a.role}</small></div><button class="btn sm red" data-a="admdel" data-id="${a.tg_id}">Remove</button></div>`).join('') || empty('user', 'No admins.')}</div><div class="card"><h3>${ico('plus')} Add or change an admin</h3>${formHtml([{ k: 'tg_id', l: 'Telegram id (numbers)', t: 'text' }, { k: 'role', l: 'Role', t: 'select', o: ROLES }])}<button class="btn" style="margin-top:12px" data-a="admadd">Save</button></div>`;
+  },
+  async audit() { const d = await api('/a/audit'); return `<div class="card">${d.audit.length ? d.audit.map((a) => `<div class="item"><div class="ic">${ico('list')}</div><div style="flex:1"><b>${esc(a.action)}</b><small>${esc(a.actor)}${a.role && a.role !== 'platform' ? ' (' + esc(a.role) + ')' : ''} · ${a.target ? esc(a.target) + ' · ' : ''}${ago(a.created_at)}</small></div></div>`).join('') : empty('list', 'Nothing logged yet.')}</div>`; },
+  async flags() { const d = await api('/a/flags'); return d.flags.length ? d.flags.map((f) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('flag')}</div><div style="flex:1"><b>${esc(f.kind.replace(/_/g, ' '))}</b><small>User ${f.user_id} · ${esc(f.detail || '')} · ${ago(f.created_at)}</small></div></div><div class="grid3" style="margin-top:10px"><button class="btn sm ghost" data-a="user" data-id="${f.user_id}">Open</button><button class="btn sm ghost" data-a="flagset" data-id="${f.id}" data-v="dismissed">Dismiss</button><button class="btn sm" data-a="flagset" data-id="${f.id}" data-v="actioned">Handled</button></div></div>`).join('') : empty('flag', 'No open alerts.'); },
+  async support() { const d = await api('/a/tickets'); return d.tickets.length ? d.tickets.map((k) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('chat')}</div><div style="flex:1"><b>User ${k.user_id}</b>${k.messages.map((m) => `<small style="${m.from_admin ? 'color:var(--g)' : 'color:var(--ink)'}">${m.from_admin ? 'You: ' : ''}${esc(m.body)}</small>`).join('')}</div><span class="chip ${k.status === 'open' ? 'y' : 'g'}">${k.status}</span></div>${k.status === 'open' ? `<div class="grid2" style="margin-top:10px"><button class="btn sm" data-a="tkreply" data-id="${k.id}">Reply</button><button class="btn sm ghost" data-a="tkclose" data-id="${k.id}">Close</button></div>` : ''}</div>`).join('') : empty('chat', 'No tickets.'); },
+  async export() { return `<div class="card"><h3>${ico('down')} Download reports (CSV)</h3><div class="grid3">${['users', 'ledger', 'withdrawals'].map((k) => `<button class="btn ghost sm" data-a="export" data-v="${k}">${k}</button>`).join('')}</div><div class="hint" style="margin-top:10px">Exports are recorded in the audit log.</div></div>`; },
+};
+
+/* ---------------- controller ---------------- */
+async function ctlView() {
+  const d = await api('/bots');
+  return `<div class="card"><h3>${ico('plus')} Create a system</h3><p class="hint" style="margin:0 0 8px">Paste the token from BotFather. It is encrypted on the server and never shown again.</p><input id="ctok" placeholder="123456:ABC..."><button class="btn" style="margin-top:10px" data-a="ctladd">Connect bot</button></div>` + (d.bots.length ? d.bots.map((b) => `<div class="card"><div class="item" style="border:0;padding:0"><div class="ic">${ico('bot')}</div><div style="flex:1"><b>@${esc(b.username)}</b><small>#${b.id} · ${b.users} users · token …${esc(b.token_last4)}</small><small>Admins: ${b.admins.map((a) => a.tg_id + ' (' + a.role + ')').join(', ') || 'none yet'}</small></div><span class="chip ${b.status === 'active' ? 'g' : 'y'}">${b.status}</span></div><div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn sm" data-a="ctladmin" data-id="${b.id}">Set admin</button><button class="btn sm ghost" data-a="ctlstatus" data-id="${b.id}" data-v="${b.status === 'active' ? 'paused' : 'active'}">${b.status === 'active' ? 'Pause' : 'Activate'}</button><button class="btn sm ghost" data-a="ctltoken" data-id="${b.id}">New token</button></div></div>`).join('') : empty('bot', 'No systems yet.'));
+}
+
+/* ---------------- actions ---------------- */
+async function taskSheet(t) {
+  const ch = await api('/a/channels'); const type0 = t ? t.type : (S.nt || 'join');
+  const draw = (type, vals) => {
+    const f = [{ k: 'title', l: 'Title', t: 'text' }, { k: 'description', l: 'Description', t: 'area' }, { k: 'reward', l: 'Reward (ETB)', t: 'number' }];
+    if (type === 'join') f.push({ k: 'channel_id', l: 'Channel or group', t: 'select', o: ch.channels.map((c) => [c.id, c.title]) });
+    if (type === 'visit') f.push({ k: 'url', l: 'Page link (https)', t: 'text' }, { k: 'min_seconds', l: 'Seconds the user must wait', t: 'number', d: 10 });
+    if (type === 'custom') f.push({ k: 'url', l: 'Instructions link (optional)', t: 'text' });
+    if (type !== 'daily') f.push({ k: 'max_participants', l: 'Max participants', t: 'number', h: 'Empty = unlimited' });
+    f.push({ k: 'daily_limit', l: 'Max completions per day (all users)', t: 'number', h: 'Empty = unlimited' }, { k: 'starts_at', l: 'Starts', t: 'dt' }, { k: 'expires_at', l: 'Expires', t: 'dt' }, { k: 'sort', l: 'Order (small first)', t: 'number', d: 0 });
+    return f;
+  };
+  const vals = t ? { ...t, starts_at: toLocalInput(t.starts_at), expires_at: toLocalInput(t.expires_at) } : {};
+  const o = sheet(t ? 'Edit task' : 'New task', `${t ? '' : `<label>Type</label><select id="ttype"><option value="join">Join a channel or group</option><option value="daily">Daily check-in</option><option value="visit">Visit a page</option><option value="custom">Custom (admin approves proof)</option></select>`}<div id="tform"></div><div id="terr"></div><button class="btn" style="margin-top:14px" id="tsave">Save</button>`);
+  let cur = type0; const fill = (v) => { $('#tform', o).innerHTML = formHtml(draw(cur, v), v); }; fill(vals);
+  if (!t) { $('#ttype', o).value = cur; $('#ttype', o).onchange = (e) => { const keep = formRead(draw(cur, {})); cur = e.target.value; S.nt = cur; fill({ title: keep.title, description: keep.description, reward: keep.reward }); }; }
+  $('#tsave', o).onclick = guard(async () => {
+    const body = formRead(draw(cur, {})); if (!t) body.type = cur;
+    for (const k of ['max_participants', 'daily_limit', 'starts_at', 'expires_at']) if (body[k] === '') body[k] = null;
+    if (t) await api(`/a/tasks/${t.id}`, 'PUT', body); else await api('/a/tasks', 'POST', body);
+    closeSheet(); toast('Saved'); render();
+  });
+}
+async function postSheet(p) {
+  const ch = await api('/a/channels'); const c = await cfg(); void c;
+  const f = [{ k: 'text', l: 'Text (HTML allowed: <b> <i> <a>)', t: 'area' }, { k: 'media_type', l: 'Media', t: 'select', o: [['none', 'No media'], ['photo', 'Photo'], ['video', 'Video']] }, { k: 'media_url', l: 'Media link (https)', t: 'text' }, { k: 'button_text', l: 'Button text (optional)', t: 'text' }, { k: 'button_url', l: 'Button link', t: 'text' }, { k: 'targets', l: 'Post to', t: 'chips', o: ch.channels.map((x) => [x.id, x.title]) }, { k: 'run_at', l: `When (your time, UTC${S.tz >= 0 ? '+' : ''}${S.tz})`, t: 'dt' }, { k: 'repeat', l: 'Repeat', t: 'select', o: [['none', 'Once'], ['daily', 'Every day'], ['weekly', 'Every week']] }];
+  const o = sheet(p ? 'Edit post' : 'Schedule a post', `${formHtml(f, p ? { ...p, run_at: toLocalInput(p.run_at) } : { run_at: toLocalInput(new Date(Date.now() + 3600000).toISOString()) })}<div id="perr"></div><div class="grid2" style="margin-top:14px"><button class="btn ghost" id="ppre">Preview to me</button><button class="btn" id="psave">${p ? 'Save' : 'Schedule'}</button></div>`);
+  $('#ppre', o).onclick = guard(async () => { const b = formRead(f); await api('/a/broadcasts/preview', 'POST', { text: b.text, media_type: b.media_type, media_url: b.media_url, button_text: b.button_text, button_url: b.button_url }); toast('Preview sent to you'); });
+  $('#psave', o).onclick = guard(async () => { const b = formRead(f); if (p) { b.reschedule = true; await api(`/a/posts/${p.id}`, 'PUT', b); } else await api('/a/posts', 'POST', b); closeSheet(); toast('Scheduled'); render(); });
+}
+async function bcSheet() {
+  const f = [{ k: 'text', l: 'Message (HTML allowed)', t: 'area' }, { k: 'media_type', l: 'Media', t: 'select', o: [['none', 'No media'], ['photo', 'Photo'], ['video', 'Video']] }, { k: 'media_url', l: 'Media link (https)', t: 'text' }, { k: 'button_text', l: 'Button text (optional)', t: 'text' }, { k: 'button_url', l: 'Button link', t: 'text' }, { k: 'audience', l: 'Send to', t: 'select', o: [['all', 'Everyone who can be reached'], ['verified', 'Verified users'], ['active', 'Active in the last 7 days'], ['task_doers', 'Users who completed a task']] }, { k: 'run_at', l: `Send at (empty = now)`, t: 'dt' }];
+  const o = sheet('New broadcast', `${formHtml(f)}<div class="grid2" style="margin-top:14px"><button class="btn ghost" id="bpre">Preview to me</button><button class="btn" id="bsend">Send</button></div>`);
+  const body = () => { const b = formRead(f); if (!b.run_at) delete b.run_at; return b; };
+  $('#bpre', o).onclick = guard(async () => { const b = body(); await api('/a/broadcasts/preview', 'POST', b); toast('Preview sent to you'); });
+  $('#bsend', o).onclick = guard(async () => {
+    let r = await api('/a/broadcasts', 'POST', body());
+    if (r.needs_confirm) { const ok = await ask('Send to ' + r.total + ' users?', 'This reaches many people and cannot be undone once started. You can cancel while it runs.', 'Send now'); if (!ok) return; r = await api('/a/broadcasts', 'POST', { ...body(), confirm: true }); }
+    closeSheet(); toast('Broadcast queued'); render();
+  });
+}
+async function userSheet(id) {
+  const d = await api(`/a/users/${id}`); const u = d.user;
+  const o = sheet(esc(u.first_name || u.tg_id), `<div class="grid2" style="margin-bottom:10px"><div class="stat"><small>Available</small><b>${f2(u.balance)}</b></div><div class="stat"><small>Pending</small><b>${f2(u.pending)}</b></div><div class="stat"><small>Lifetime</small><b>${f2(u.total_earned)}</b></div><div class="stat"><small>Withdrawn</small><b>${f2(u.withdrawn_total)}</b></div></div><div class="mut" style="margin-bottom:10px">ID ${u.tg_id}${u.username ? ' · @' + esc(u.username) : ''}${u.phone ? ' · ' + esc(u.phone) : ''} · ${u.captcha_ok ? 'verified' : 'not verified'}</div>
+  <div class="grid2">${can('users') ? `<button class="btn sm ${u.banned ? '' : 'red'}" data-a="uban" data-id="${id}" data-v="${!u.banned}">${u.banned ? 'Reactivate' : 'Suspend'}</button><button class="btn sm ghost" data-a="ureview" data-id="${id}" data-v="${!u.review}">${u.review ? 'Release hold' : 'Hold for review'}</button><button class="btn sm ghost" data-a="ureset" data-id="${id}">Reset verification</button>` : ''}${can('finance') ? `<button class="btn sm ghost" data-a="uadj" data-id="${id}">Adjust balance</button>` : ''}</div>
+  <div class="card" style="margin-top:12px"><h3>Referrals (${d.referrals.length})</h3>${d.referrals.slice(0, 5).map((r) => `<div class="item"><div style="flex:1"><b>${r.referred_id}</b></div><span class="chip ${r.status === 'qualified' ? 'g' : 'y'}">${r.status}</span></div>`).join('') || '<div class="mut">None</div>'}</div>
+  <div class="card"><h3>Wallet history</h3>${d.ledger.slice(0, 8).map(ledRow).join('') || '<div class="mut">None</div>'}</div>${d.flags.length ? `<div class="card"><h3>Alerts</h3>${d.flags.map((f) => `<div class="item"><div style="flex:1"><b>${esc(f.kind.replace(/_/g, ' '))}</b><small>${esc(f.detail || '')}</small></div></div>`).join('')}</div>` : ''}`);
+  void o;
+}
+
+document.addEventListener('click', guard(async (e) => {
+  const el = e.target.closest('[data-a]'); if (!el) return; const a = el.dataset.a; const id = el.dataset.id; const v = el.dataset.v;
+  const after = async (msg) => { if (msg) toast(msg); closeSheet(); S.cfg = null; await render(); };
+  switch (a) {
+    case 'close': return closeSheet();
+    case 'tab': S.tab = v; S.sub = null; return render();
+    case 'mode': S.mode = S.mode === 'admin' ? 'user' : 'admin'; S.tab = S.mode === 'admin' ? 'ov' : 'home'; S.sub = null; if (S.mode === 'admin') await cfg(); return render();
+    case 'seg': S.seg[el.dataset.k] = v; return render();
+    case 'sub': S.sub = v || null; return render();
+    case 'tog': return el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true');
+    case 'chip': return el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true');
+    case 'chip1': el.parentElement.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', 'false')); return el.setAttribute('aria-pressed', 'true');
+    case 'copy': return copy(el.dataset.t);
+    case 'share': return openLink(`https://t.me/share/url?url=${encodeURIComponent(el.dataset.t)}&text=${encodeURIComponent('Earn ETB rewards with me!')}`);
+    case 'open': return openLink(el.dataset.url);
+    /* user */
+    case 'visit': { await api(`/tasks/${id}/visit`, 'POST'); openLink(el.dataset.url); return toast('Stay on the page a few seconds, then press Verify.'); }
+    case 'claim': { const r = await api(`/tasks/${id}/claim`, 'POST'); toast(r.message, !r.ok); await refresh(); return; }
+    case 'proof': { const o = sheet('Submit proof', `<textarea id="pf" placeholder="Paste your proof or a link"></textarea><button class="btn" style="margin-top:12px" id="ps">Send for review</button>`); $('#ps', o).onclick = guard(async () => { const r = await api(`/tasks/${id}/claim`, 'POST', { proof: $('#pf').value }); toast(r.message, !r.ok); if (r.ok) { closeSheet(); await refresh(); } }); return; }
+    case 'verifyall': { const r = await api('/verify', 'POST'); if (r.earned > 0) toast(`+${f2(r.earned)} ETB`); if (r.problems.length) sheet('Not finished yet', r.problems.map((p) => `<div class="item"><div class="ic">${ico('x')}</div><div><b>${esc(p.task)}</b><small>${esc(p.reason)}</small></div></div>`).join('')); else if (!r.earned) toast('Nothing new to verify.'); await refresh(); return; }
+    case 'max': { const u = S.home.user; const s = S.home.settings; let m = Number(u.balance); if (s.max_withdraw > 0) m = Math.min(m, s.max_withdraw); $('#wamt').value = Math.floor(m * 100) / 100; return; }
+    case 'withdraw': { const m = $('#wm [aria-pressed=true]'); await api('/withdraw', 'POST', { method: m && m.dataset.v, account: $('#wacc').value, amount: Number($('#wamt').value) }); toast('Request sent'); await refresh(); return; }
+    case 'notify': { const on = el.getAttribute('aria-pressed') !== 'true'; el.setAttribute('aria-pressed', on); await api('/me', 'POST', { notify: on }); return; }
+    case 'ticket': { await api('/tickets', 'POST', { text: $('#tkt').value }); toast('Sent to support'); return render(); }
+    /* admin: money */
+    case 'wdset': {
+      const s = el.dataset.s;
+      if (s === 'paid') { const o = sheet('Mark as paid', `<p class="mut" style="margin-bottom:10px">Only mark paid after the money was really sent.</p><label>Payment reference</label><input id="pr" placeholder="Transaction id"><button class="btn" style="margin-top:12px" id="pg">Mark paid</button>`); $('#pg', o).onclick = guard(async () => { await api(`/a/withdrawals/${id}/status`, 'POST', { status: 'paid', pay_ref: $('#pr').value }); await after('Marked paid'); }); return; }
+      if (s === 'rejected') { const o = sheet('Reject withdrawal', `<label>Reason (the user sees it)</label><input id="rn" placeholder="Why?"><button class="btn red" style="margin-top:12px" id="rg">Reject and refund</button>`); $('#rg', o).onclick = guard(async () => { await api(`/a/withdrawals/${id}/status`, 'POST', { status: 'rejected', note: $('#rn').value }); await after('Rejected and refunded'); }); return; }
+      await api(`/a/withdrawals/${id}/status`, 'POST', { status: s }); return after('Updated');
+    }
+    case 'claimrev': await api(`/a/claims/${id}/${v}`, 'POST'); return after(v === 'approve' ? 'Approved' : 'Rejected');
+    /* admin: tasks */
+    case 'tasknew': return taskSheet(null);
+    case 'taskedit': { const d = await api('/a/tasks'); return taskSheet(d.tasks.find((t) => String(t.id) === id)); }
+    case 'tasktog': await api(`/a/tasks/${id}`, 'PUT', { status: el.dataset.s }); return after('Updated');
+    case 'taskdel': if (await ask('Archive this task?', 'Users will no longer see it. Past rewards stay.', 'Archive', true)) { await api(`/a/tasks/${id}`, 'DELETE'); await after('Archived'); } return;
+    case 'chadd': await api('/a/channels', 'POST', { ref: $('#chref').value }); return after('Connected');
+    case 'chdel': if (await ask('Remove this channel?', 'Tasks that use it keep working until you archive them.', 'Remove', true)) { await api(`/a/channels/${id}`, 'DELETE'); await after('Removed'); } return;
+    case 'campnew': { const f = [{ k: 'name', l: 'Name', t: 'text' }, { k: 'starts_at', l: 'Starts', t: 'dt' }, { k: 'ends_at', l: 'Ends', t: 'dt' }, { k: 'task_bonus_pct', l: 'Task bonus (%)', t: 'number', d: 0 }, { k: 'referral_bonus', l: 'Extra ETB per referral', t: 'number', d: 0 }]; const o = sheet('New campaign', `${formHtml(f)}<button class="btn" style="margin-top:12px" id="cs">Create</button>`); $('#cs', o).onclick = guard(async () => { await api('/a/campaigns', 'POST', formRead(f)); await after('Campaign created'); }); return; }
+    case 'campdel': await api(`/a/campaigns/${id}`, 'DELETE'); return after('Ended');
+    /* admin: content */
+    case 'postnew': return postSheet(null);
+    case 'postedit': { const d = await api('/a/posts'); return postSheet(d.posts.find((p) => String(p.id) === id)); }
+    case 'postdel': if (await ask('Cancel this post?', 'It will not be published.', 'Cancel post', true)) { await api(`/a/posts/${id}`, 'DELETE'); await after('Cancelled'); } return;
+    case 'postnow': if (await ask('Publish now?', 'The post goes to all chosen chats immediately.', 'Publish')) { const r = await api(`/a/posts/${id}/send-now`, 'POST'); await after(`${r.results.filter((x) => x.ok).length}/${r.results.length} sent`); } return;
+    case 'postretry': { const r = await api(`/a/posts/${id}/retry`, 'POST'); return after(`${r.results.filter((x) => x.ok).length}/${r.results.length} ok`); }
+    case 'posthist': { const d = await api(`/a/posts/${id}/history`); return void sheet('Posting history', d.history.length ? d.history.map((h) => `<div class="item"><div class="ic">${ico(h.status === 'ok' ? 'check' : 'x')}</div><div><b>Chat #${h.channel_id}</b><small>${h.status === 'ok' ? 'Published' : esc(h.error || 'Failed')} · ${ago(h.created_at)}</small></div></div>`).join('') : empty('cal', 'Not published yet.')); }
+    case 'calday': S.calDay = v || null; return render();
+    case 'calnav': S.calOff = (S.calOff || 0) + Number(v); return render();
+    case 'bcnew': return bcSheet();
+    case 'bccancel': if (await ask('Cancel this broadcast?', 'Messages already sent stay sent.', 'Cancel it', true)) { await api(`/a/broadcasts/${id}/cancel`, 'POST'); await after('Cancelled'); } return;
+    case 'annnew': { const f = [{ k: 'title', l: 'Title', t: 'text' }, { k: 'body', l: 'Text', t: 'area' }, { k: 'pinned', l: 'Pin to the top', t: 'toggle' }]; const o = sheet('New announcement', `${formHtml(f)}<button class="btn" style="margin-top:12px" id="as">Publish</button>`); $('#as', o).onclick = guard(async () => { await api('/a/announcements', 'POST', formRead(f)); await after('Published'); }); return; }
+    case 'anndel': await api(`/a/announcements/${id}`, 'DELETE'); return after('Removed');
+    /* admin: more */
+    case 'usearch': S.uq = $('#uq').value; return render();
+    case 'upage': return toast('Use search to find a specific user.');
+    case 'user': return userSheet(id);
+    case 'uban': await api(`/a/users/${id}/ban`, 'POST', { banned: v === 'true' }); return after('Done');
+    case 'ureview': await api(`/a/users/${id}/review`, 'POST', { review: v === 'true' }); return after('Done');
+    case 'ureset': await api(`/a/users/${id}/reset-captcha`, 'POST'); return after('Verification reset');
+    case 'uadj': { const f = [{ k: 'amount', l: 'Amount (negative to remove)', t: 'number' }, { k: 'reason', l: 'Reason (required, saved in the audit log)', t: 'text' }]; const o = sheet('Adjust balance', `${formHtml(f)}<button class="btn" style="margin-top:12px" id="ad">Apply</button>`); $('#ad', o).onclick = guard(async () => { await api(`/a/users/${id}/adjust`, 'POST', formRead(f)); await after('Balance adjusted'); }); return; }
+    case 'savecfg': { const b = { settings: {} }; for (const [, fl] of SET) Object.assign(b.settings, formRead(fl)); Object.assign(b, formRead([{ k: 'name', t: 'text' }, { k: 'description', t: 'area' }, { k: 'status', t: 'select' }])); await api('/a/settings', 'PUT', b); S.cfg = null; await cfg(); return toast('Settings saved'); }
+    case 'admadd': await api('/a/admins', 'POST', formRead([{ k: 'tg_id', t: 'text' }, { k: 'role', t: 'select' }])); return after('Saved');
+    case 'admdel': if (await ask('Remove this admin?', 'They lose access right away.', 'Remove', true)) { await api(`/a/admins/${id}`, 'DELETE'); await after('Removed'); } return;
+    case 'flagset': await api(`/a/flags/${id}`, 'POST', { status: v }); return after('Updated');
+    case 'tkreply': { const o = sheet('Reply', `<textarea id="tr" placeholder="Your reply goes to the user in the bot"></textarea><button class="btn" style="margin-top:12px" id="tg2">Send</button>`); $('#tg2', o).onclick = guard(async () => { await api(`/a/tickets/${id}/reply`, 'POST', { text: $('#tr').value }); await after('Sent'); }); return; }
+    case 'tkclose': await api(`/a/tickets/${id}/close`, 'POST'); return after('Closed');
+    case 'export': { const t = await api(`/a/export/${v}`, 'GET', null, true); const u = URL.createObjectURL(new Blob([t], { type: 'text/csv' })); const l = document.createElement('a'); l.href = u; l.download = `${v}.csv`; l.click(); return toast('Downloaded'); }
+    /* controller */
+    case 'ctladd': { const r = await api('/bots', 'POST', { token: $('#ctok').value }); toast(`Connected @${r.bot.username}`); return render(); }
+    case 'ctladmin': { const f = [{ k: 'tg_id', l: 'Admin Telegram id', t: 'text' }, { k: 'role', l: 'Role', t: 'select', o: ROLES }]; const o = sheet('Set the bot admin', `<p class="hint" style="margin:0 0 8px">The admin will not see you or know who set them up.</p>${formHtml(f)}<button class="btn" style="margin-top:12px" id="cg">Save</button>`); $('#cg', o).onclick = guard(async () => { await api(`/bots/${id}/admins`, 'POST', formRead(f)); await after('Saved'); }); return; }
+    case 'ctlstatus': await api(`/bots/${id}/status`, 'POST', { status: v }); return after('Updated');
+    case 'ctltoken': { const o = sheet('Replace the token', `<p class="hint" style="margin:0 0 8px">Paste the new token for the same bot.</p><input id="nt" placeholder="123456:ABC..."><button class="btn" style="margin-top:12px" id="nk">Save</button>`); $('#nk', o).onclick = guard(async () => { await api(`/bots/${id}/token`, 'POST', { token: $('#nt').value }); await after('Token replaced'); }); return; }
+  }
+}));
+document.addEventListener('change', guard(async (e) => { if (e.target.id === 'plang') { await api('/me', 'POST', { lang: e.target.value }); toast('Saved'); } }));
+document.addEventListener('input', (e) => { if (e.target.id === 'wamt') { const s = S.home.settings; const a = Number(e.target.value || 0); const fee = a * s.fee_pct / 100 + (a > 0 ? s.fee_flat : 0); const el = $('#wfee'); if (el) el.textContent = a > 0 ? `Fee ${f2(fee)} ETB · you receive ${f2(Math.max(0, a - fee))} ETB` : ''; } });
+
+(async function init() {
+  if (CTL) { S.mode = 'ctl'; S.tab = 'ctl'; return render(); }
+  try { S.home = await api('/home'); } catch (e) { $('#hdr').innerHTML = ''; $('#nav').innerHTML = ''; $('#main').innerHTML = `<div class="banner r">${ico('lock')}<div>${esc(e.message)}</div></div>`; return; }
+  if (S.home.role) { S.mode = 'admin'; S.tab = 'ov'; try { await cfg(); } catch (_) {} }
+  render();
+})();
+</script>
+</body>
+</html>
