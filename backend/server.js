@@ -37,7 +37,8 @@ app.use('/api/store', express.json({ limit: '2mb' }));
 app.use('/api/admin/store', express.json({ limit: '12mb' }));
 app.use(/^\/api\/mini\/\d+\/gadmin\/broadcast/, express.json({ limit: '4mb' })); // broadcast photo
 app.use(express.json());
-app.use(cors({ origin: FRONTEND_URL || '*' }));
+// Browsers send the site address without a trailing slash, so ignore one in FRONTEND_URL.
+app.use(cors({ origin: FRONTEND_URL ? FRONTEND_URL.trim().replace(/\/+$/, '') : '*' }));
 
 /* ------------------------------------------------------------------ */
 /* Bot registry: botId -> { row, bot }                                 */
