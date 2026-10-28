@@ -143,7 +143,7 @@
 
     /* ---------- admin: users ---------- */
     "Use search to find a specific user.": "የተወሰነ ተጠቃሚ ለማግኘት ፍለጋን ይጠቀሙ።", "No users found.": "ምንም ተጠቃሚ አልተገኘም።",
-    "Reset verification": "ማረጋገጫን ዳግም አስጀምር", "Verification reset": "ማረጋገጫ ዳግም ተጀምሯል", "Edit balance": "ቀሪ ሂሳብ አስተካክል", "What do you want to do?": "ምን ማድረግ ይፈልጋሉ?", "Add money": "ገንዘብ ጨምር", "Remove money": "ገንዘብ ቀንስ", "Set the balance to": "ቀሪ ሂሳቡን ወደዚህ አድርግ",
+    "Reset verification": "ማረጋገጫን ዳግም አስጀምር", "Verification reset": "ማረጋገጫ ዳግም ተጀምሯል", "Copy all": "ሁሉንም ቅዳ", "Copy proof": "ማረጋገጫውን ቅዳ", "Send {n} ETB": "ይላኩ {n} ብር", "ID {n}": "መታወቂያ {n}", "Edit balance": "ቀሪ ሂሳብ አስተካክል", "What do you want to do?": "ምን ማድረግ ይፈልጋሉ?", "Add money": "ገንዘብ ጨምር", "Remove money": "ገንዘብ ቀንስ", "Set the balance to": "ቀሪ ሂሳቡን ወደዚህ አድርግ",
     "Current available balance: {n} ETB": "አሁን ያለ ሊወጣ የሚችል ቀሪ ሂሳብ፦ {n} ብር", "Amount (ETB)": "መጠን (ብር)", "Reason (at least 5 letters, saved in the audit log)": "ምክንያት (ቢያንስ 5 ፊደላት፣ በመዝገብ ይቀመጣል)",
     "Nothing to change": "የሚቀየር ነገር የለም", "Change this balance?": "ይህ ቀሪ ሂሳብ ይቀየር?", "Balance changed by {} ETB": "ቀሪ ሂሳብ በ{} ብር ተቀይሯል", "Enter an amount.": "መጠን ያስገቡ።",
     "Adjust balance": "ቀሪ ሂሳብ አስተካክል",
