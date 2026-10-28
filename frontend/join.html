@@ -405,7 +405,7 @@ async function bcSheet() {
 async function userSheet(id) {
   const d = await api(`/a/users/${id}`); const u = d.user;
   const o = sheet(esc(u.first_name || u.tg_id), `<div class="grid2" style="margin-bottom:10px"><div class="stat"><small>Available</small><b>${f2(u.balance)}</b></div><div class="stat"><small>Pending</small><b>${f2(u.pending)}</b></div><div class="stat"><small>Lifetime</small><b>${f2(u.total_earned)}</b></div><div class="stat"><small>Withdrawn</small><b>${f2(u.withdrawn_total)}</b></div></div><div class="mut" style="margin-bottom:10px">ID ${u.tg_id}${u.username ? ' · @' + esc(u.username) : ''}${u.phone ? ' · ' + esc(u.phone) : ''} · ${u.captcha_ok ? 'verified' : 'not verified'}</div>
-  <div class="grid2">${can('users') ? `<button class="btn sm ${u.banned ? '' : 'red'}" data-a="uban" data-id="${id}" data-v="${!u.banned}">${u.banned ? 'Reactivate' : 'Suspend'}</button><button class="btn sm ghost" data-a="ureview" data-id="${id}" data-v="${!u.review}">${u.review ? 'Release hold' : 'Hold for review'}</button><button class="btn sm ghost" data-a="ureset" data-id="${id}">Reset verification</button>` : ''}${can('finance') ? `<button class="btn sm ghost" data-a="uadj" data-id="${id}">Adjust balance</button>` : ''}</div>
+  <div class="grid2">${can('users') ? `<button class="btn sm ${u.banned ? '' : 'red'}" data-a="uban" data-id="${id}" data-v="${!u.banned}">${u.banned ? 'Reactivate' : 'Suspend'}</button><button class="btn sm ghost" data-a="ureview" data-id="${id}" data-v="${!u.review}">${u.review ? 'Release hold' : 'Hold for review'}</button><button class="btn sm ghost" data-a="ureset" data-id="${id}">Reset verification</button>` : ''}${can('finance') ? `<button class="btn sm ghost" data-a="uadj" data-id="${id}" data-bal="${u.balance}">Edit balance</button>` : ''}</div>
   <div class="card" style="margin-top:12px"><h3>Referrals (${d.referrals.length})</h3>${d.referrals.slice(0, 5).map((r) => `<div class="item"><div style="flex:1"><b>${r.referred_id}</b></div><span class="chip ${r.status === 'qualified' ? 'g' : 'y'}">${r.status}</span></div>`).join('') || '<div class="mut">None</div>'}</div>
   <div class="card"><h3>Wallet history</h3>${d.ledger.slice(0, 8).map(ledRow).join('') || '<div class="mut">None</div>'}</div>${d.flags.length ? `<div class="card"><h3>Alerts</h3>${d.flags.map((f) => `<div class="item"><div style="flex:1"><b>${esc(f.kind.replace(/_/g, ' '))}</b><small>${esc(f.detail || '')}</small></div></div>`).join('')}</div>` : ''}`);
   void o;
@@ -472,7 +472,26 @@ document.addEventListener('click', guard(async (e) => {
     case 'uban': await api(`/a/users/${id}/ban`, 'POST', { banned: v === 'true' }); return after('Done');
     case 'ureview': await api(`/a/users/${id}/review`, 'POST', { review: v === 'true' }); return after('Done');
     case 'ureset': await api(`/a/users/${id}/reset-captcha`, 'POST'); return after('Verification reset');
-    case 'uadj': { const f = [{ k: 'amount', l: 'Amount (negative to remove)', t: 'number' }, { k: 'reason', l: 'Reason (required, saved in the audit log)', t: 'text' }]; const o = sheet('Adjust balance', `${formHtml(f)}<button class="btn" style="margin-top:12px" id="ad">Apply</button>`); $('#ad', o).onclick = guard(async () => { await api(`/a/users/${id}/adjust`, 'POST', formRead(f)); await after('Balance adjusted'); }); return; }
+    case 'uadj': {
+      const cur = Number(el.dataset.bal || 0);
+      const f = [
+        { k: 'mode', l: 'What do you want to do?', t: 'select', o: [['add', 'Add money'], ['remove', 'Remove money'], ['set', 'Set the balance to']], h: `Current available balance: ${f2(cur)} ETB` },
+        { k: 'amount', l: 'Amount (ETB)', t: 'number' },
+        { k: 'reason', l: 'Reason (at least 5 letters, saved in the audit log)', t: 'text' }];
+      const o = sheet('Edit balance', `${formHtml(f)}<button class="btn" style="margin-top:12px" id="ad">Apply</button>`);
+      $('#ad', o).onclick = guard(async () => {
+        const b = formRead(f); const n = Math.abs(Number(b.amount));
+        if (b.amount === '' || !Number.isFinite(n)) throw new Error('Enter an amount.');
+        const now = Number((await api(`/a/users/${id}`)).user.balance);          // latest balance, then work out the change
+        const r2 = (x) => Math.round(x * 100) / 100;
+        const delta = r2(b.mode === 'add' ? n : b.mode === 'remove' ? -n : n - now);
+        if (delta === 0) { toast('Nothing to change'); return; }
+        const target = Math.max(0, r2(now + delta));
+        if (!(await ask('Change this balance?', `${f2(now)} → ${f2(target)} ETB`, 'Apply'))) return;
+        const r = await api(`/a/users/${id}/adjust`, 'POST', { amount: delta, reason: b.reason });
+        await after(`Balance changed by ${r.applied > 0 ? '+' : ''}${f2(r.applied)} ETB`);
+      });
+      return; }
     case 'savecfg': { const b = { settings: {} }; for (const [, fl] of SET) Object.assign(b.settings, formRead(fl)); Object.assign(b, formRead([{ k: 'name', t: 'text' }, { k: 'description', t: 'area' }, { k: 'status', t: 'select' }])); await api('/a/settings', 'PUT', b); S.cfg = null; await cfg(); return toast('Settings saved'); }
     case 'admadd': await api('/a/admins', 'POST', formRead([{ k: 'tg_id', t: 'text' }, { k: 'role', t: 'select' }])); return after('Saved');
     case 'admdel': if (await ask('Remove this admin?', 'They lose access right away.', 'Remove', true)) { await api(`/a/admins/${id}`, 'DELETE'); await after('Removed'); } return;

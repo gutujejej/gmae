@@ -143,7 +143,10 @@
 
     /* ---------- admin: users ---------- */
     "Use search to find a specific user.": "የተወሰነ ተጠቃሚ ለማግኘት ፍለጋን ይጠቀሙ።", "No users found.": "ምንም ተጠቃሚ አልተገኘም።",
-    "Reset verification": "ማረጋገጫን ዳግም አስጀምር", "Verification reset": "ማረጋገጫ ዳግም ተጀምሯል", "Adjust balance": "ቀሪ ሂሳብ አስተካክል",
+    "Reset verification": "ማረጋገጫን ዳግም አስጀምር", "Verification reset": "ማረጋገጫ ዳግም ተጀምሯል", "Edit balance": "ቀሪ ሂሳብ አስተካክል", "What do you want to do?": "ምን ማድረግ ይፈልጋሉ?", "Add money": "ገንዘብ ጨምር", "Remove money": "ገንዘብ ቀንስ", "Set the balance to": "ቀሪ ሂሳቡን ወደዚህ አድርግ",
+    "Current available balance: {n} ETB": "አሁን ያለ ሊወጣ የሚችል ቀሪ ሂሳብ፦ {n} ብር", "Amount (ETB)": "መጠን (ብር)", "Reason (at least 5 letters, saved in the audit log)": "ምክንያት (ቢያንስ 5 ፊደላት፣ በመዝገብ ይቀመጣል)",
+    "Nothing to change": "የሚቀየር ነገር የለም", "Change this balance?": "ይህ ቀሪ ሂሳብ ይቀየር?", "Balance changed by {} ETB": "ቀሪ ሂሳብ በ{} ብር ተቀይሯል", "Enter an amount.": "መጠን ያስገቡ።",
+    "Adjust balance": "ቀሪ ሂሳብ አስተካክል",
     "Amount (negative to remove)": "መጠን (ለመቀነስ አሉታዊ)", "Reason (required, saved in the audit log)": "ምክንያት (ግዴታ፣ በመዝገብ ይቀመጣል)",
     "Balance adjusted": "ቀሪ ሂሳብ ተስተካክሏል", "Wallet history": "የቦርሳ ታሪክ", "Send for review": "ለግምገማ ላክ", "Hold for review": "ለግምገማ አቆይ",
     "Release hold": "ማቆየቱን አንሳ", "{n} users": "{n} ተጠቃሚዎች", "token …{}": "ቶከን …{}",
