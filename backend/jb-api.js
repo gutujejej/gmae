@@ -7,6 +7,7 @@ const E = require('./jb-engine');
 const Jobs = require('./jb-jobs');
 const Ctl = require('./jb-controller');
 const { refCode } = require('./jb-bot');
+const Guard = require('./jb-guard');
 
 const must = E.must;
 const csvCell = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -118,6 +119,13 @@ function mount(app, { db, registry, publicUrl, factoryToken }) {
     const id = await E.requestWithdraw(req.ctx, req.user, { amount: Number(b.amount), method: String(b.method || ''), account: b.account });
     return { ok: true, id };
   });
+  // The mini app reports which phone it runs on. Several accounts on one phone are handled by jb-guard.
+  route('post', '/device', 'user', async (req) => {
+    const b = req.body || {};
+    const ip = String(req.get('x-forwarded-for') || req.ip || '').split(',')[0].trim();
+    await Guard.record(req.ctx, req.user, { did: b.did, fp: b.fp, ip });
+    return { ok: true };
+  });
   route('post', '/me', 'user', async (req) => {
     const b = req.body || {}; const patch = {};
     if (b.lang === 'am' || b.lang === 'en') patch.lang = b.lang;
@@ -181,8 +189,8 @@ function mount(app, { db, registry, publicUrl, factoryToken }) {
     const id = Number(req.params.id); const u = await E.loadUser(req.ctx, id); if (!u) throw new HttpError(404, 'User not found.');
     const out = await fn(req, id, u); return out || { ok: true };
   });
-  userAction('ban', 'users', async (req, id) => { const banned = !!(req.body || {}).banned; await E.patchUser(req.ctx, id, { banned }); await E.audit(req.ctx, req.actor, banned ? 'user.suspend' : 'user.reactivate', id); });
-  userAction('review', 'users', async (req, id) => { const review = !!(req.body || {}).review; await E.patchUser(req.ctx, id, { review }); await E.audit(req.ctx, req.actor, review ? 'user.hold' : 'user.release', id); });
+  userAction('ban', 'users', async (req, id) => { const banned = !!(req.body || {}).banned; await E.patchUser(req.ctx, id, { banned }); if (!banned) await Guard.trust(req.ctx, id); await E.audit(req.ctx, req.actor, banned ? 'user.suspend' : 'user.reactivate', id); });
+  userAction('review', 'users', async (req, id) => { const review = !!(req.body || {}).review; await E.patchUser(req.ctx, id, { review }); if (!review) await Guard.trust(req.ctx, id); await E.audit(req.ctx, req.actor, review ? 'user.hold' : 'user.release', id); });
   userAction('reset-captcha', 'users', async (req, id) => { await E.patchUser(req.ctx, id, { captcha_ok: false, captcha: null, captcha_fails: 0, cooldown_until: null }); await E.audit(req.ctx, req.actor, 'user.reset_verification', id); });
   userAction('adjust', 'finance', async (req, id) => { const b = req.body || {}; const applied = await E.adjustBalance(req.ctx, req.actor, id, Number(b.amount), b.reason); return { ok: true, applied }; });
 

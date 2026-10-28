@@ -14,6 +14,7 @@ const DEFAULTS = {
   recheck_days: 0, reverse_on_leave: false, rules_text: '',
   // fraud
   flag_claims_per_hour: 30,
+  multi_account: 'ban',   // several accounts on one phone: ban (suspend newer) | hold (review) | flag (alert only) | off
   // text
   lang: 'en', tz_offset: 3, welcome_text: '', welcome_photo: '', help_text: '', support_username: '',
 };
@@ -54,6 +55,7 @@ function clean(p) {
   if ('recheck_days' in p) o.recheck_days = int(p.recheck_days, 0, 365, 'Recheck days');
   if ('reverse_on_leave' in p) o.reverse_on_leave = !!p.reverse_on_leave;
   if ('rules_text' in p) o.rules_text = str(p.rules_text, 900);
+  if ('multi_account' in p) o.multi_account = oneOf(p.multi_account, ['ban', 'hold', 'flag', 'off'], 'Multiple accounts');
   if ('flag_claims_per_hour' in p) o.flag_claims_per_hour = int(p.flag_claims_per_hour, 5, 1000, 'Claims per hour');
   if ('lang' in p) o.lang = oneOf(p.lang, ['en', 'am'], 'Language');
   if ('tz_offset' in p) o.tz_offset = int(p.tz_offset, -12, 14, 'Time zone');

@@ -170,7 +170,7 @@ async function qualifyReferral(ctx, referredId) {
   if (!ref || ref.status !== 'pending') return null;
   const referred = await loadUser(ctx, referredId);
   const referrer = await loadUser(ctx, ref.referrer_id);
-  if (!referred || !referrer || referrer.banned || referred.banned) return null;
+  if (!referred || !referrer || referrer.banned || referred.banned || referred.review) return null;
   if (S.referral_require_captcha && S.captcha !== 'off' && !referred.captcha_ok) return null;
   if (Number(S.referral_min_tasks) > 0) {
     const done = must(await ctx.db.from('jb_task_claims').select('id,task_id').eq('bot_id', ctx.bot.id).eq('user_id', referredId).eq('status', 'approved'));
