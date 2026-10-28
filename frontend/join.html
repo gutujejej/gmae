@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -62,6 +62,9 @@ nav .wrap{display:grid;grid-template-columns:repeat(5,1fr)}nav button{position:r
 .chart{display:flex;align-items:flex-end;gap:4px;height:110px}.chart div{flex:1;display:flex;align-items:flex-end;gap:2px;height:100%}.chart i{display:block;flex:1;border-radius:4px 4px 0 0;min-height:2px}
 .code{background:var(--card2);padding:11px 12px;border-radius:12px;word-break:break-all;font-size:13px;user-select:text}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -98,6 +101,7 @@ nav .wrap{display:grid;grid-template-columns:repeat(5,1fr)}nav button{position:r
 <div class="wrap"><main id="main"><div class="sk"></div><div class="sk"></div><div class="sk"></div></main></div>
 <nav><div class="wrap" id="nav"></div></nav>
 <div id="host"></div>
+<script src="join-am.js"></script>
 <script>
 const tg = window.Telegram && Telegram.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -327,6 +331,7 @@ const SET = [
   ['Withdrawals', [{ k: 'min_withdraw', l: 'Minimum (ETB)', t: 'number' }, { k: 'max_withdraw', l: 'Maximum per request (0 = no limit)', t: 'number' }, { k: 'fee_pct', l: 'Fee (%)', t: 'number' }, { k: 'fee_flat', l: 'Flat fee (ETB)', t: 'number' }, { k: 'methods', l: 'Methods (comma separated)', t: 'text' }, { k: 'auto_approve', l: 'Skip the Pending step (still paid manually)', t: 'toggle' }]],
   ['Membership rules', [{ k: 'recheck_days', l: 'Re-check channel membership for N days (0 = off)', t: 'number' }, { k: 'reverse_on_leave', l: 'Reverse the reward if the user leaves', t: 'toggle', h: 'The user is told and a reversal entry is added. Nothing is edited silently.' }, { k: 'rules_text', l: 'Rules shown to users', t: 'area' }]],
   ['Messages', [{ k: 'welcome_text', l: 'Welcome message', t: 'area' }, { k: 'welcome_photo', l: 'Welcome image link (https)', t: 'text' }, { k: 'help_text', l: 'Help text', t: 'area' }, { k: 'support_username', l: 'Support username', t: 'text' }, { k: 'lang', l: 'Default language', t: 'select', o: [['en', 'English'], ['am', 'አማርኛ']] }, { k: 'tz_offset', l: 'Your time zone (hours from UTC)', t: 'number', h: 'Ethiopia is 3.' }]],
+  ['Fake accounts', [{ k: 'multi_account', l: 'Several accounts on one phone', t: 'select', o: [['ban', 'Suspend the newer accounts'], ['hold', 'Hold newer accounts for review'], ['flag', 'Only alert me'], ['off', 'Off']], h: 'The oldest account keeps working. A newer account on the same phone gets no referral reward. You can reactivate a family member from Users.' }]],
   ['Switches', [{ k: 'maintenance_tasks', l: 'Pause tasks', t: 'toggle' }, { k: 'maintenance_withdraw', l: 'Pause withdrawals', t: 'toggle' }, { k: 'leaderboard', l: 'Show leaderboard', t: 'toggle' }, { k: 'flag_claims_per_hour', l: 'Alert when a user claims more than N per hour', t: 'number' }]],
 ];
 const ROLES = [['owner', 'Owner (everything)'], ['admin', 'Administrator'], ['finance', 'Finance manager'], ['moderator', 'Moderator'], ['support', 'Support agent']];
@@ -485,8 +490,30 @@ document.addEventListener('click', guard(async (e) => {
 document.addEventListener('change', guard(async (e) => { if (e.target.id === 'plang') { await api('/me', 'POST', { lang: e.target.value }); toast('Saved'); } }));
 document.addEventListener('input', (e) => { if (e.target.id === 'wamt') { const s = S.home.settings; const a = Number(e.target.value || 0); const fee = a * s.fee_pct / 100 + (a > 0 ? s.fee_flat : 0); const el = $('#wfee'); if (el) el.textContent = a > 0 ? `Fee ${f2(fee)} ETB · you receive ${f2(Math.max(0, a - fee))} ETB` : ''; } });
 
+// Tells the server which phone this is, so several accounts on one phone can be caught.
+async function deviceReport() {
+  try {
+    const rd = () => { try { return localStorage.getItem('jb_did') || ''; } catch (_) { return ''; } };
+    const rc = () => (document.cookie.match(/(?:^|; )jb_did=([\w-]{16,64})/) || [])[1] || '';
+    let did = rd() || rc();
+    if (!/^[\w-]{16,64}$/.test(did)) {
+      const a = new Uint8Array(16); crypto.getRandomValues(a);
+      did = Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    try { localStorage.setItem('jb_did', did); } catch (_) {}
+    try { document.cookie = `jb_did=${did}; max-age=63072000; path=/; SameSite=None; Secure`; } catch (_) {}
+    let gpu = '';
+    try { const g = document.createElement('canvas').getContext('webgl'); const x = g && g.getExtension('WEBGL_debug_renderer_info'); gpu = x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : ''; } catch (_) {}
+    const raw = [navigator.userAgent, navigator.platform, screen.width + 'x' + screen.height, screen.colorDepth, window.devicePixelRatio, navigator.hardwareConcurrency || '', navigator.deviceMemory || '', Intl.DateTimeFormat().resolvedOptions().timeZone, (navigator.languages || [navigator.language]).join(','), gpu].join('|');
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    const fp = Array.from(new Uint8Array(h), (b) => b.toString(16).padStart(2, '0')).join('');
+    await api('/device', 'POST', { did, fp });
+  } catch (_) { /* never block the app because of this */ }
+}
+
 (async function init() {
   if (CTL) { S.mode = 'ctl'; S.tab = 'ctl'; return render(); }
+  await deviceReport();
   try { S.home = await api('/home'); } catch (e) { $('#hdr').innerHTML = ''; $('#nav').innerHTML = ''; $('#main').innerHTML = `<div class="banner r">${ico('lock')}<div>${esc(e.message)}</div></div>`; return; }
   if (S.home.role) { S.mode = 'admin'; S.tab = 'ov'; try { await cfg(); } catch (_) {} }
   render();
