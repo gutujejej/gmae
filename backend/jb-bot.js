@@ -315,7 +315,7 @@ async function onMessage(ctx, msg) {
     await setState(ctx, user, null);
     const tk = await ctx.db.from('jb_tickets').insert({ bot_id: ctx.bot.id, user_id: user.tg_id, subject: text.slice(0, 80) }).select().single();
     if (!tk.error) await ctx.db.from('jb_ticket_msgs').insert({ ticket_id: tk.data.id, from_admin: false, body: text.slice(0, 1000) });
-    for (const a of await E.adminIds(ctx, 'support')) { try { await send(ctx, a, `<b>Support ticket</b> from ${esc(user.first_name || '')} (${user.tg_id})\n${esc(text.slice(0, 300))}`); } catch (_) { /* ignore */ } }
+    for (const a of await E.adminIds(ctx, 'support')) { try { await send(ctx, a, E.tOf(ctx, null)('adm_ticket', { user: `${esc(user.first_name || '')} (${user.tg_id})`, text: esc(text.slice(0, 300)) })); } catch (_) { /* ignore */ } }
     return send(ctx, msg.chat.id, t('support_sent'));
   }
   return sendMenu(ctx, user, msg.chat.id);

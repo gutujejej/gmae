@@ -16,7 +16,7 @@ const DEFAULTS = {
   flag_claims_per_hour: 30,
   multi_account: 'ban',   // several accounts on one phone: ban (suspend newer) | hold (review) | flag (alert only) | off
   // text
-  lang: 'en', tz_offset: 3, welcome_text: '', welcome_photo: '', help_text: '', support_username: '',
+  lang: 'am', tz_offset: 3, welcome_text: '', welcome_photo: '', help_text: '', support_username: '',
 };
 const merge = (raw) => ({ ...DEFAULTS, ...(raw || {}) });
 

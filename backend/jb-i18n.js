@@ -22,6 +22,7 @@ const en = {
   wd_s_approved: 'Withdrawal #{id} was approved and is waiting for payment.', wd_s_processing: 'Withdrawal #{id} is being processed.', wd_s_paid: 'Withdrawal #{id} was paid: {net} ETB. Reference: {ref}', wd_s_rejected: 'Withdrawal #{id} was rejected. {amount} ETB is back in your balance. {note}',
   help: '<b>Help</b>\n\n1. Do tasks in <b>Earn</b>.\n2. Invite friends.\n3. Withdraw when you reach the minimum.', b_support: 'Contact support', support_ask: 'Write your message for support in one message.', support_sent: 'Message sent. We will reply here.', support_reply: 'Support reply:\n{text}',
   lang_pick: 'Choose your language:', cancelled: 'Cancelled.', ref_ok_note: 'Your friend {name} qualified. You earned <b>{amount} ETB</b>.', reversed: 'Reward of {amount} ETB for <b>{title}</b> was reversed because you left the channel. Rule: {rules}',
+  adm_wd: '<b>New withdrawal #{id}</b>\nUser: {user}\nAmount: {amount} ETB (net {net})\n{method}: {account}', adm_ticket: '<b>Support ticket</b> from {user}\n{text}', b_approve: 'Approve', b_reject: 'Reject',
 };
 const am = {
   welcome: 'እንኳን ደህና መጡ, <b>{name}</b>!\nተግባራትን ያጠናቅቁ፣ ጓደኞችን ይጋብዙ እና <b>ብር</b> ያግኙ።',
@@ -30,6 +31,32 @@ const am = {
   earn_title: '<b>ሥራዎች</b>\nቻናሎችን ይቀላቀሉ፣ ከዚያ <b>አረጋግጥ</b> ይጫኑ።', earn_none: 'አሁን ምንም ሥራ የለም።',
   v_ok: 'ተረጋግጧል! <b>{amount} ብር</b> አግኝተዋል።', claim_ok: '<b>{amount} ብር</b> አግኝተዋል።', claim_dup: 'ይህን ሥራ አስቀድመው ጨርሰዋል።',
   menu: '<b>{name}</b>\n\nቀሪ ሂሳብ: <b>{balance} ብር</b>\nጠቅላላ ገቢ: <b>{earned} ብር</b>\nየተጋበዙ ጓደኞች: <b>{refs}</b>', help: '<b>እገዛ</b>\n\n1. በ <b>ሥራዎች</b> ውስጥ ተግባራትን ይሥሩ።\n2. ጓደኞችን ይጋብዙ።\n3. ዝቅተኛው መጠን ሲደርስ ገንዘብ ያውጡ።', cancelled: 'ተሰርዟል።',
+  captcha_new: 'አዲስ ፍተሻ ይኸውና።', captcha_fast: 'በጣም ፈጣን ነው። መጀመሪያ ጥያቄውን ያንብቡ።', captcha_locked: 'ብዙ የተሳሳቱ መልሶች። ከ{min} ደቂቃ በኋላ እንደገና ይሞክሩ።',
+  phone_ask: 'አንድ ተጨማሪ ደረጃ፦ ከታች ባለው አዝራር የስልክ ቁጥርዎን ያጋሩ።', phone_btn: 'ቁጥሬን አጋራ', phone_prefix: 'በ{prefix} የሚጀምሩ ቁጥሮች ብቻ ተቀባይነት አላቸው።',
+  phone_used: 'ይህ የስልክ ቁጥር አስቀድሞ ተመዝግቧል።', phone_own: 'እባክዎ የራስዎን ቁጥር በአዝራሩ ያጋሩ።',
+  b_admin: 'የአስተዳዳሪ ፓነል', b_all: 'ሁሉም', t_done: 'ተጠናቋል', t_pending: 'በግምገማ ላይ', t_full: 'ሞልቷል', t_expired: 'አብቅቷል', t_rejected: 'ውድቅ ተደርጓል',
+  v_none: 'አሁን የሚረጋገጥ ነገር የለም።', v_partial: 'አንዳንድ ተግባራት ገና አልተጠናቀቁም፦\n{list}', v_cannot: '<b>{title}</b> ን አሁን ማረጋገጥ አልቻልኩም። እባክዎ በቅርቡ እንደገና ይሞክሩ።', v_not: '<b>{title}</b> ን እስካሁን አልተቀላቀሉም።',
+  claim_review: 'ለግምገማ ተልኳል። ውጤቱ ይነገርዎታል።', claim_full: 'ይህ ተግባር ሞልቷል።', claim_expired: 'ይህ ተግባር አብቅቷል።', claim_unavail: 'ይህ ተግባር አይገኝም።', claim_daily_full: 'የዛሬው ገደብ ደርሷል። ነገ ይሞክሩ።',
+  maint: 'ይህ ክፍል ለጥገና ቆሟል። እባክዎ በኋላ ይሞክሩ።', review_hold: 'አካውንትዎ በግምገማ ላይ ነው። ድጋፍ ሰጪዎች ያነጋግርዎታል።', banned: 'አካውንትዎ ታግዷል።',
+  wait_visit: 'እባክዎ በገጹ ላይ ትንሽ ተጨማሪ ይቆዩ፣ ከዚያ «አረጋግጥ» ን እንደገና ይጫኑ።', proof_ask: 'ማረጋገጫዎን (ጽሑፍ ወይም አገናኝ) በአንድ መልዕክት ይላኩ።', proof_short: 'እባክዎ ይበልጥ ግልጽ ማረጋገጫ ይላኩ።',
+  visit_open: 'ገጹን ይክፈቱ፣ {sec} ሰከንድ ይጠብቁ፣ ከዚያ ተመልሰው «አረጋግጥ» ን ይጫኑ።',
+  wallet: '<b>ቦርሳ</b>\n\nሊወጣ የሚችል፦ <b>{balance} ብር</b>\nበመጠባበቅ ላይ ያለ ገንዘብ ማውጣት፦ <b>{pending} ብር</b>\nጠቅላላ ገቢ፦ <b>{earned} ብር</b>\nከተግባራት፦ {task} ብር\nከግብዣዎች፦ {ref} ብር\nየወጣ፦ {withdrawn} ብር\n\n<i>ሽልማቶች የማስተዋወቂያ ክሬዲቶች ናቸው። ገንዘብ ማውጣት የሚከፈለው አስተዳዳሪው ካረጋገጠ በኋላ ብቻ ነው።</i>',
+  ref: '<b>ጓደኞችን ይጋብዙ</b>\n\nየእርስዎ አገናኝ፦\n{link}\n\nብቁ የሆኑ ጓደኞች፦ <b>{ok}</b>\nበመጠባበቅ ላይ፦ <b>{wait}</b>\nየተገኘ፦ <b>{earned} ብር</b>\n\nጓደኛዎ {cond} <b>{reward} ብር</b> ያገኛሉ።',
+  ref_cond_captcha: 'ማረጋገጫውን ሲያልፍ', ref_cond_tasks: '{n} ተግባር(ራት) ሲያጠናቅቅ', ref_off: 'ግብዣዎች ጠፍተዋል።', b_share: 'አገናኙን አጋራ',
+  top: '<b>የደረጃ ሰንጠረዥ</b>', top_none: 'እስካሁን መረጃ የለም።', b_by_earn: 'በገቢ', b_by_tasks: 'በተግባራት', b_by_ref: 'በግብዣዎች',
+  wd_min: 'ዝቅተኛው የገንዘብ ማውጣት መጠን <b>{min} ብር</b> ነው። ሊወጣ የሚችል ቀሪ ሂሳብዎ {balance} ብር ነው።', wd_method: 'የገንዘብ ማውጫ ዘዴ ይምረጡ፦',
+  wd_account: 'የ<b>{method}</b> ሂሳብዎን ወይም የስልክ ቁጥርዎን ይላኩ።', wd_bad_account: 'ይህ ትክክል አይመስልም። እንደገና ይላኩ።',
+  wd_amount: 'ምን ያህል? ከ<b>{min}</b> እስከ <b>{max} ብር</b> መካከል።', wd_bad_amount: 'ከ{min} እስከ {max} ብር መካከል ትክክለኛ መጠን ያስገቡ።',
+  wd_confirm: '<b>ገንዘብ ማውጣቱን ያረጋግጡ</b>\n\nመጠን፦ {amount} ብር\nክፍያ፦ {fee} ብር\nየሚደርስዎት፦ <b>{net} ብር</b>\nዘዴ፦ {method}\nሂሳብ፦ {account}',
+  wd_sent: 'ጥያቄ #{id} ተልኳል። አስተዳዳሪው እስኪወስን ድረስ መጠኑ ተይዞ ይቆያል።',
+  wd_err_pending_exists: 'አስቀድመው በሂደት ላይ ያለ ገንዘብ ማውጣት አለዎት።', wd_err_low_balance: 'ቀሪ ሂሳብዎ በቂ አይደለም።', wd_err_below_min: 'ከዝቅተኛው የገንዘብ ማውጣት መጠን በታች ነው።',
+  wd_err_above_max: 'ከከፍተኛው የገንዘብ ማውጣት መጠን በላይ ነው።', wd_err_under_review: 'አካውንትዎ በግምገማ ላይ ነው።', wd_err_fee_too_high: 'ክፍያው ከመጠኑ ይበልጣል።', wd_err_no_user: 'አካውንቱ አይገኝም።',
+  wd_s_approved: 'ገንዘብ ማውጣት #{id} ጸድቋል፣ ክፍያውን እየጠበቀ ነው።', wd_s_processing: 'ገንዘብ ማውጣት #{id} በሂደት ላይ ነው።', wd_s_paid: 'ገንዘብ ማውጣት #{id} ተከፍሏል፦ {net} ብር። ማጣቀሻ፦ {ref}',
+  wd_s_rejected: 'ገንዘብ ማውጣት #{id} ውድቅ ተደርጓል። {amount} ብር ወደ ቀሪ ሂሳብዎ ተመልሷል። {note}',
+  b_support: 'ድጋፍ ያግኙ', support_ask: 'ለድጋፍ መልዕክትዎን በአንድ መልዕክት ይጻፉ።', support_sent: 'መልዕክት ተልኳል። እዚሁ እንመልስልዎታለን።', support_reply: 'የድጋፍ መልስ፦\n{text}',
+  lang_pick: 'ቋንቋዎን ይምረጡ፦', ref_ok_note: 'ጓደኛዎ {name} ብቁ ሆኗል። <b>{amount} ብር</b> አግኝተዋል።',
+  reversed: 'ቻናሉን ስለለቀቁ ለ<b>{title}</b> የተሰጠዎት {amount} ብር ሽልማት ተመልሷል። ደንብ፦ {rules}',
+  adm_wd: '<b>አዲስ ገንዘብ ማውጣት #{id}</b>\nተጠቃሚ፦ {user}\nመጠን፦ {amount} ብር (የተጣራ {net})\n{method}፦ {account}', adm_ticket: '<b>የድጋፍ ጥያቄ</b> ከ{user}\n{text}', b_approve: 'ፍቀድ', b_reject: 'ውድቅ አድርግ',
 };
 const DICT = { en, am };
 const makeT = (lang) => (key, vars = {}) => {
@@ -38,3 +65,4 @@ const makeT = (lang) => (key, vars = {}) => {
   return s;
 };
 module.exports = { makeT };
+module.exports.DICT = DICT;

@@ -203,8 +203,9 @@ async function requestWithdraw(ctx, user, { amount, method, account }) {
   if (S.auto_approve) await rpc(ctx.db, 'jb_set_withdraw_status', { p_bot: ctx.bot.id, p_id: id, p_status: 'approved', p_by: 0, p_note: 'auto', p_ref: null });
   // tell the people who handle money
   const ids = await adminIds(ctx, 'finance');
-  const w = `<b>New withdrawal #${id}</b>\nUser: ${user.first_name || ''} (${user.tg_id})\nAmount: ${amount.toFixed(2)} ETB (net ${(amount - feeFor(S, amount)).toFixed(2)})\n${method}: ${account}`;
-  for (const a of ids) { try { await ctx.api.call('sendMessage', { chat_id: a, text: w, parse_mode: 'HTML', reply_markup: { inline_keyboard: [[{ text: 'Approve', callback_data: `wd:a:${id}` }, { text: 'Reject', callback_data: `wd:r:${id}` }]] } }, 1); } catch (_) { /* ignore */ } }
+  const ta = makeT(S.lang);   // alerts for admins use the bot's default language
+  const w = ta('adm_wd', { id, user: `${user.first_name || ''} (${user.tg_id})`, amount: amount.toFixed(2), net: (amount - feeFor(S, amount)).toFixed(2), method, account });
+  for (const a of ids) { try { await ctx.api.call('sendMessage', { chat_id: a, text: w, parse_mode: 'HTML', reply_markup: { inline_keyboard: [[{ text: ta('b_approve'), callback_data: `wd:a:${id}` }, { text: ta('b_reject'), callback_data: `wd:r:${id}` }]] } }, 1); } catch (_) { /* ignore */ } }
   return id;
 }
 
