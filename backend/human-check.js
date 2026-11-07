@@ -7,7 +7,9 @@
 //
 // It hooks in by wrapping each bot's update handler, so it needs ONE line in server.js:
 //     require('./human-check')(app, db, { requireAdmin });
-// Both checks are OFF until the admin switches them on for a bot (admin page -> bot card -> Protection).
+// 3. GAMES JOIN GATE. The games app only opens for users who joined the channels the admin listed (enforced on the server).
+//
+// All three are OFF until the admin switches them on for a bot (admin page -> bot card -> Protection).
 
 const crypto = require('crypto');
 
@@ -19,6 +21,7 @@ const TXT = {
   locked: (min) => `ብዙ የተሳሳቱ መልሶች። ከ${min} ደቂቃ በኋላ ይሞክሩ።\nToo many wrong answers. Try again in ${min} minutes.`,
   expired: 'ጊዜው አልፏል። አዲስ ጥያቄ ተልኳል።\nTime is up. A new question was sent.',
   first: 'መጀመሪያ ሰው መሆንዎን ያረጋግጡ።\nPlease verify that you are human first.',
+  gate: 'ለመጫወት ቻናሎቻችንን ይቀላቀሉ · Please join our channels to open the games.',
   join: (names) => `እባክዎ መጀመሪያ ይቀላቀሉ · Please join first:\n${names}`,
 };
 const TRIES = 3, COOLDOWN_MIN = 5, TTL_MS = 3 * 60 * 1000;
@@ -47,6 +50,26 @@ const toChat = (s) => {
   return null;
 };
 
+// Public channel / group link or @name -> "@name" (the games gate needs a link users can tap, so ids are not allowed).
+const toPublic = (s) => { const c = toChat(s); return c && c.startsWith('@') ? c : null; };
+
+// Telegram sign-in data -> user (same check the main server does).
+function verifyInit(initData, botToken) {
+  try {
+    const params = new URLSearchParams(String(initData || ''));
+    const hash = params.get('hash'); if (!hash) return null;
+    params.delete('hash');
+    const check = [...params.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([k, v]) => `${k}=${v}`).join('\n');
+    const secret = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
+    const expected = crypto.createHmac('sha256', secret).update(check).digest('hex');
+    if (hash.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expected))) return null;
+    const authDate = Number(params.get('auth_date'));
+    if (!authDate || Date.now() / 1000 - authDate > 24 * 3600) return null;
+    const user = JSON.parse(params.get('user'));
+    return user && Number.isInteger(user.id) ? user : null;
+  } catch (_) { return null; }
+}
+
 module.exports = function humanCheck(app, db, { requireAdmin }) {
   const registry = app.get('botRegistry');
   if (!registry) { console.warn('[human-check] bot registry not found: protections are OFF'); return null; }
@@ -56,10 +79,10 @@ module.exports = function humanCheck(app, db, { requireAdmin }) {
   async function settings(botId) {
     const c = cache.get(botId);
     if (c && c.exp > Date.now()) return c.v;
-    let v = { human: 'off', join: false };
-    const r = await db.from('bot_guard_settings').select('human_check,verify_joined').eq('bot_id', botId).maybeSingle();
+    let v = { human: 'off', join: false, gate: false, links: [] };
+    const r = await db.from('bot_guard_settings').select('human_check,verify_joined,gate_enabled,gate_links').eq('bot_id', botId).maybeSingle();
     if (r.error) { if (!warned) { warned = true; console.warn('[human-check] run migration_human_check.sql in Supabase:', r.error.message); } }
-    else if (r.data) v = { human: r.data.human_check, join: !!r.data.verify_joined };
+    else if (r.data) v = { human: r.data.human_check, join: !!r.data.verify_joined, gate: !!r.data.gate_enabled, links: Array.isArray(r.data.gate_links) ? r.data.gate_links : [] };
     cache.set(botId, { exp: Date.now() + 10000, v });
     return v;
   }
@@ -181,18 +204,80 @@ module.exports = function humanCheck(app, db, { requireAdmin }) {
   registry.set = (k, v) => { wrap(v); return origSet(k, v); };      // bots started later are wrapped too
   for (const e of registry.values()) wrap(e);
 
+  /* ---------- games join gate ---------- */
+  const okUntil = new Map();                           // "bot:user" -> time until which a successful check is trusted
+  const gateChats = (links) => links.map((l) => ({ label: l, chat: l, url: `https://t.me/${l.slice(1)}` }));
+  async function gateMissing(entry, uid, links) {
+    const found = await Promise.all(gateChats(links).map(async (c) => {
+      try {
+        const m = await entry.bot.getChatMember(c.chat, uid);
+        return (['left', 'kicked'].includes(m.status) || (m.status === 'restricted' && m.is_member === false)) ? c : null;
+      } catch (_) { return null; }                     // the bot cannot see this channel (not an admin there): cannot check it
+    }));
+    return found.filter(Boolean);
+  }
+  async function gateMiddleware(req, res, next) {
+    try {
+      if (req.method === 'OPTIONS') return next();
+      if (/^\/(gadmin|gate)(\/|$)/.test(req.path)) return next();       // admin tools and the gate's own check
+      const entry = registry.get(Number(req.params.botId));
+      if (!entry || ['p2p', 'store'].includes(entry.row.bot_type)) return next();
+      const st = await settings(entry.row.id);
+      if (!st.gate || !st.links.length) return next();
+      const user = verifyInit((req.get('Authorization') || '').replace(/^tma\s+/i, ''), entry.row.token);
+      if (!user) return next();                                          // the normal login check answers 401
+      const isAdm = app.get('isGameAdmin');
+      if (isAdm && await isAdm(entry.row, user.id)) return next();       // admins can always open the app
+      const key = `${entry.row.id}:${user.id}`;
+      if ((okUntil.get(key) || 0) > Date.now()) return next();
+      const missing = await gateMissing(entry, user.id, st.links);
+      if (!missing.length) { okUntil.set(key, Date.now() + 60000); if (okUntil.size > 20000) okUntil.clear(); return next(); }
+      return res.status(403).json({ error: TXT.gate, code: 'JOIN_REQUIRED', channels: gateChats(st.links).map(({ label, url }) => ({ label, url })), missing: missing.map((m) => m.label) });
+    } catch (e) { console.error('[human-check] gate:', e.message); return next(); }   // never lock everybody out because of an error here
+  }
+  app.use('/api/mini/:botId', gateMiddleware);
+  {                                                                      // run it before every game route, right after cors + json parsing
+    const stack = app._router && app._router.stack;
+    if (stack) {
+      const layer = stack.pop();
+      let at = 2;
+      stack.forEach((l, i) => { if (l.handle && ['corsMiddleware', 'jsonParser'].includes(l.handle.name)) at = Math.max(at, i + 1); });
+      stack.splice(at, 0, layer);
+    }
+  }
+  app.get('/api/mini/:botId/gate', async (req, res) => {
+    const entry = registry.get(Number(req.params.botId));
+    if (!entry) return res.status(404).json({ error: 'This bot is not available.' });
+    const user = verifyInit((req.get('Authorization') || '').replace(/^tma\s+/i, ''), entry.row.token);
+    if (!user) return res.status(401).json({ error: 'Please open this page from Telegram.' });
+    const st = await settings(entry.row.id);
+    if (!st.gate || !st.links.length) return res.json({ required: false, ok: true, channels: [], missing: [] });
+    const missing = await gateMissing(entry, user.id, st.links);
+    if (!missing.length) okUntil.set(`${entry.row.id}:${user.id}`, Date.now() + 60000);
+    res.json({ required: true, ok: !missing.length, channels: gateChats(st.links).map(({ label, url }) => ({ label, url })), missing: missing.map((m) => m.label) });
+  });
+
   /* ---------- admin page ---------- */
   app.get('/api/admin/guard', requireAdmin, async (_req, res) => {
-    const r = await db.from('bot_guard_settings').select('bot_id,human_check,verify_joined');
+    const r = await db.from('bot_guard_settings').select('bot_id,human_check,verify_joined,gate_enabled,gate_links');
     const out = {};
-    for (const s of r.data || []) out[s.bot_id] = { human: s.human_check, join: !!s.verify_joined };
+    for (const s of r.data || []) out[s.bot_id] = { human: s.human_check, join: !!s.verify_joined, gate: !!s.gate_enabled, gate_links: Array.isArray(s.gate_links) ? s.gate_links : [] };
     res.json(out);
   });
   app.post('/api/admin/guard/:id', requireAdmin, async (req, res) => {
     const id = Number(req.params.id), b = req.body || {};
     if (!registry.get(id)) return res.status(404).json({ error: 'Bot not found' });
     if (!['off', 'animal', 'math'].includes(b.human)) return res.status(400).json({ error: 'Choose off, animal or math.' });
-    const { error } = await db.from('bot_guard_settings').upsert({ bot_id: id, human_check: b.human, verify_joined: !!b.join, updated_at: new Date().toISOString() }, { onConflict: 'bot_id' });
+    const raw = (Array.isArray(b.gate_links) ? b.gate_links : String(b.gate_links || '').split(/\r?\n/)).map((x) => String(x).trim()).filter(Boolean);
+    if (raw.length > 6) return res.status(400).json({ error: 'Use at most 6 channels for the games gate.' });
+    const links = [];
+    for (const l of raw) {
+      const c = toPublic(l);
+      if (!c) return res.status(400).json({ error: `"${l}" is not a public channel or group link. Use a link like https://t.me/yourchannel` });
+      if (!links.some((x) => x.toLowerCase() === c.toLowerCase())) links.push(c);
+    }
+    if (b.gate && !links.length) return res.status(400).json({ error: 'Add at least one channel link for the games gate.' });
+    const { error } = await db.from('bot_guard_settings').upsert({ bot_id: id, human_check: b.human, verify_joined: !!b.join, gate_enabled: !!b.gate, gate_links: links, updated_at: new Date().toISOString() }, { onConflict: 'bot_id' });
     if (error) return res.status(500).json({ error: /bot_guard_settings/.test(error.message) ? 'Not set up yet. Run migration_human_check.sql in Supabase.' : error.message });
     cache.delete(id);
     res.json({ ok: true });
@@ -206,7 +291,13 @@ module.exports = function humanCheck(app, db, { requireAdmin }) {
       try { const m = meId && await entry.bot.getChatMember(c.chat, meId); ok = !!m && ['administrator', 'creator'].includes(m.status); } catch (_) {}
       return { label: c.label, ok };
     }));
-    res.json({ links });
+    const st = await settings(entry.row.id);
+    const gate = await Promise.all(gateChats(st.links).map(async (c) => {
+      let ok = false;
+      try { const m = meId && await entry.bot.getChatMember(c.chat, meId); ok = !!m && ['administrator', 'creator'].includes(m.status); } catch (_) {}
+      return { label: c.label, ok };
+    }));
+    res.json({ links, gate });
   });
 
   return { settings };
