@@ -238,6 +238,24 @@
     </main>
   </div>
 
+  <dialog id="guardDlg">
+    <div class="section-title">Protection</div>
+    <p class="sub" id="gName" style="margin-bottom:16px"></p>
+    <label for="gHuman">Human check before the channel buttons</label>
+    <select id="gHuman">
+      <option value="off">Off</option>
+      <option value="animal">Pick the animal</option>
+      <option value="math">Simple math</option>
+    </select>
+    <div class="check"><input type="checkbox" id="gJoin" /><label for="gJoin" style="margin:0">Count the invite only after the user joined the channels</label></div>
+    <p class="note">The bot must be an admin of each channel, so it can see who joined.</p>
+    <div class="note" id="gLinks" style="margin:0 0 14px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="gSave">Save</button>
+      <button class="btn ghost" id="gClose">Close</button>
+    </div>
+  </dialog>
+
   <dialog id="editDlg">
     <div class="section-title" style="margin-bottom:16px">Edit bot</div>
     <div id="editMsg" class="msg"></div>
@@ -546,10 +564,12 @@
 
     /* ---------------- bot list ---------------- */
 
+    let GUARD = {};
     async function loadBots() {
       try {
         const bots = await api('/api/admin/bots');
         botsCache = bots;
+        GUARD = await api('/api/admin/guard').catch(() => ({}));
         fillTargets();
         fillLeaderboardBots();
         loadLeaderboard();
@@ -568,7 +588,7 @@
         <div class="card bot">
           <div>
             <h3>${esc(b.name)}
-              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>
+              <span class="badge ${b.active ? 'on' : 'off'}">${b.active ? 'Active' : 'Paused'}</span>${guardBadges(b.id)}
             </h3>
             <div class="meta">
               <a href="https://t.me/${b.bot_username}" target="_blank">@${b.bot_username}</a>
@@ -582,6 +602,7 @@
           <div class="actions">
             <button class="btn ghost small" onclick="editBot(${b.id})">Edit</button>
             <button class="btn ghost small" onclick="changeToken(${b.id})">Change token</button>
+            <button class="btn ghost small" onclick="openGuard(${b.id})">Protection</button>
             <button class="btn ghost small" onclick="toggle(${b.id}, ${!b.active})">${b.active ? 'Pause' : 'Resume'}</button>
             <button class="btn danger small" onclick="removeBot(${b.id}, '${esc(b.name).replace(/'/g, "\\'")}')">Delete</button>
           </div>
@@ -814,6 +835,36 @@
       } catch (e) { show($('chMsg'), e.message, 'error'); }
       $('chPost').disabled = false;
     };
+
+    function guardBadges(id) {
+      const g = GUARD[id] || {};
+      const h = { animal: 'Human check: animal', math: 'Human check: math' }[g.human];
+      return `${h ? `<span class="badge on">${h}</span>` : ''}${g.join ? '<span class="badge on">Join check</span>' : ''}`;
+    }
+
+    async function openGuard(id) {
+      const b = botsCache.find((x) => x.id === id) || {};
+      const g = GUARD[id] || { human: 'off', join: false };
+      $('gName').textContent = b.name || '';
+      $('gHuman').value = g.human || 'off';
+      $('gJoin').checked = !!g.join;
+      $('gLinks').textContent = 'Checking the channels…';
+      $('guardDlg').showModal();
+      $('gClose').onclick = () => $('guardDlg').close();
+      $('gSave').onclick = async () => {
+        try {
+          await api(`/api/admin/guard/${id}`, 'POST', { human: $('gHuman').value, join: $('gJoin').checked });
+          $('guardDlg').close();
+          loadBots();
+        } catch (e) { alert(e.message); }
+      };
+      try {
+        const r = await api(`/api/admin/guard/${id}/links`);
+        $('gLinks').innerHTML = r.links.length
+          ? r.links.map((l) => `${l.ok ? '✅' : '⚠️'} ${esc(l.label)}${l.ok ? '' : ' (cannot be checked: the bot is not an admin there, or it is not a channel link)'}`).join('<br>')
+          : 'No channel links to check.';
+      } catch (_) { $('gLinks').textContent = ''; }
+    }
 
     async function changeToken(id) {
       const t = (prompt('Paste the NEW BotFather token for this bot:') || '').trim();
