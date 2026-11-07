@@ -375,6 +375,11 @@ textarea{resize:none}
 .sheet .x .ico,.g-x .ico{width:55%;height:55%;stroke-width:2.6}
 .ch-in .send .ico{width:26px;height:26px}
 .gm-row .ic .ico{width:24px;height:24px}
+#joinGate{position:fixed;inset:0;z-index:9999;background:var(--paper,#F4F7F2);display:flex;align-items:center;justify-content:center;padding:22px;overflow:auto}
+#joinGate .jgbox{width:100%;max-width:380px;text-align:center}
+#joinGate h2{font-family:var(--display);font-size:30px;letter-spacing:.02em;margin-bottom:10px}
+#joinGate p{color:var(--muted,#5b6b61);margin-bottom:18px;line-height:1.5}
+#joinGate .jgbtn{display:block;margin:0 0 10px;padding:14px;border-radius:14px;border:1.5px solid var(--turf,#0B6E3B);color:var(--turf,#0B6E3B);font-weight:700;text-decoration:none;background:#fff}
 </style>
 </head>
 <body>
@@ -633,8 +638,29 @@ async function api(path, method = 'GET', body) {
     throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Could not reach the server. Check your internet connection.');
   } finally { clearTimeout(timer); }
   const data = await res.json().catch(() => ({}));
+  if (res.status === 403 && data.code === 'JOIN_REQUIRED') { showJoinGate(data.channels || []); throw new Error(data.error || 'Please join our channels first.'); }
   if (!res.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
+}
+
+/* The admin can require some channels to be joined before the games open. The server enforces it; this is the screen people see. */
+function showJoinGate(channels) {
+  if (document.getElementById('joinGate')) return;
+  const d = document.createElement('div'); d.id = 'joinGate';
+  d.innerHTML = `<div class="jgbox"><h2>Join to play · ለመጫወት ይቀላቀሉ</h2>
+    <p>Join our channels, then tap the button below to open the games.<br>ቻናሎቻችንን ይቀላቀሉ፣ ከዚያ ከታች ያለውን ቁልፍ ይጫኑ።</p>
+    ${channels.map((c) => `<a class="jgbtn" href="${esc(c.url)}" data-tgl="1">${esc(c.label)}</a>`).join('')}
+    <button class="btn go" id="jgCheck" style="margin-top:14px">I joined · ተቀላቅያለሁ</button><div id="jgMsg" class="muted" style="margin-top:10px"></div></div>`;
+  document.body.appendChild(d);
+  d.onclick = (e) => { const a = e.target.closest('[data-tgl]'); if (!a) return; e.preventDefault(); if (tg.openTelegramLink) tg.openTelegramLink(a.href); else window.open(a.href, '_blank'); };
+  document.getElementById('jgCheck').onclick = async () => {
+    const m = document.getElementById('jgMsg'); m.textContent = '…';
+    try {
+      const r = await api(`/api/mini/${BOT}/gate`);
+      if (r.ok) location.reload();
+      else m.textContent = `You have not joined yet: ${(r.missing || []).join(', ')}`;
+    } catch (e) { m.textContent = e.message; }
+  };
 }
 function toast(text) {
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;

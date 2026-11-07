@@ -250,6 +250,11 @@
     <div class="check"><input type="checkbox" id="gJoin" /><label for="gJoin" style="margin:0">Count the invite only after the user joined the channels</label></div>
     <p class="note">The bot must be an admin of each channel, so it can see who joined.</p>
     <div class="note" id="gLinks" style="margin:0 0 14px"></div>
+    <div class="divider"></div>
+    <div class="check"><input type="checkbox" id="gGate" /><label for="gGate" style="margin:0">Users must join these channels to open the games</label></div>
+    <label for="gGateLinks">Channel links (one per line)</label>
+    <textarea id="gGateLinks" rows="3" placeholder="https://t.me/yourchannel"></textarea>
+    <div class="note" id="gGateInfo" style="margin:-6px 0 14px"></div>
     <div style="display:flex;gap:8px">
       <button class="btn" id="gSave">Save</button>
       <button class="btn ghost" id="gClose">Close</button>
@@ -839,7 +844,7 @@
     function guardBadges(id) {
       const g = GUARD[id] || {};
       const h = { animal: 'Human check: animal', math: 'Human check: math' }[g.human];
-      return `${h ? `<span class="badge on">${h}</span>` : ''}${g.join ? '<span class="badge on">Join check</span>' : ''}`;
+      return `${h ? `<span class="badge on">${h}</span>` : ''}${g.join ? '<span class="badge on">Join check</span>' : ''}${g.gate ? '<span class="badge on">Games gate</span>' : ''}`;
     }
 
     async function openGuard(id) {
@@ -848,12 +853,15 @@
       $('gName').textContent = b.name || '';
       $('gHuman').value = g.human || 'off';
       $('gJoin').checked = !!g.join;
+      $('gGate').checked = !!g.gate;
+      $('gGateLinks').value = (g.gate_links || []).join('\n');
+      $('gGateInfo').textContent = '';
       $('gLinks').textContent = 'Checking the channels…';
       $('guardDlg').showModal();
       $('gClose').onclick = () => $('guardDlg').close();
       $('gSave').onclick = async () => {
         try {
-          await api(`/api/admin/guard/${id}`, 'POST', { human: $('gHuman').value, join: $('gJoin').checked });
+          await api(`/api/admin/guard/${id}`, 'POST', { human: $('gHuman').value, join: $('gJoin').checked, gate: $('gGate').checked, gate_links: $('gGateLinks').value });
           $('guardDlg').close();
           loadBots();
         } catch (e) { alert(e.message); }
@@ -863,6 +871,7 @@
         $('gLinks').innerHTML = r.links.length
           ? r.links.map((l) => `${l.ok ? '✅' : '⚠️'} ${esc(l.label)}${l.ok ? '' : ' (cannot be checked: the bot is not an admin there, or it is not a channel link)'}`).join('<br>')
           : 'No channel links to check.';
+        $('gGateInfo').innerHTML = (r.gate || []).map((l) => `${l.ok ? '✅' : '⚠️'} ${esc(l.label)}${l.ok ? '' : ' (add the bot as an admin there, or it cannot be checked)'}`).join('<br>');
       } catch (_) { $('gLinks').textContent = ''; }
     }
 
