@@ -1535,7 +1535,7 @@ async function act(s) {
 async function placeBet(s) {
   const st = S[s], amount = r2(st.amt);
   if (!(amount >= me.min) || amount > me.max) { gmsg(`Bet between ${me.min} and ${me.max} ETB.`); st.auto = false; paintPanels(); return; }
-  if (amount > me.balance) { gmsg('Not enough money in your Games wallet.', true); st.auto = false; paintPanels(); return; }
+  if (amount > r2(me.balance + (me.bonus || 0))) { gmsg('Not enough money in your Games wallet or Aviator bonus.', true); st.auto = false; paintPanels(); return; }   // bonus money can be played too (the server spends the bonus first)
   const ac = st.acOn ? r2(st.ac) : null;
   if (st.acOn && !(ac > 1)) { gmsg('Auto cash out must be above 1.00x.'); st.auto = false; paintPanels(); return; }
   try {
