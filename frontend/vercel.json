@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/jb/:path*", "destination": "https://gmae-production-a450.up.railway.app/jb/:path*" }
+    { "source": "/jb/:path*", "destination": "https://gmae-production-13bb.up.railway.app/jb/:path*" }
   ]
 }
