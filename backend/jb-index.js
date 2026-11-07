@@ -9,6 +9,7 @@ const Api = require('./jb-api');
 const Jobs = require('./jb-jobs');
 const Ctl = require('./jb-controller');
 const createRegistry = require('./jb-registry');
+const { appUrl } = require('./jb-util');
 
 const factorySecret = (token) => crypto.createHmac('sha256', process.env.TOKEN_KEY || 'x').update(`factory:${token || ''}`).digest('hex').slice(0, 32);
 
@@ -53,6 +54,21 @@ module.exports = function attachJoinBot(app, db, { publicUrl, frontendUrl }) {
 
   Api.mount(app, { db, registry, publicUrl: base, factoryToken });
   Jobs.start(registry, db);
+  // The server address can change (new Railway domain). Point every active bot's webhook and menu button at it again on each start.
+  setTimeout(async () => {
+    try {
+      for (const id of await registry.activeBots()) {
+        try {
+          const ctx = await registry.ctxFor(id);
+          if (!ctx) continue;
+          await ctx.api.call('setWebhook', { url: `${base}/jb/hook/${id}`, secret_token: ctx.bot.secret, allowed_updates: ['message', 'callback_query', 'my_chat_member'] });
+          await ctx.api.call('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Open', web_app: { url: appUrl(base, id) } } }).catch(() => {});
+        } catch (e) { console.error(`[joinbot] webhook refresh failed for bot ${id}:`, e.message); }
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      console.log('[joinbot] bot webhooks refreshed');
+    } catch (e) { console.error('[joinbot] webhook refresh failed:', e.message); }
+  }, 5000);
   console.log('[joinbot] Join & Earn platform mounted at /jb');
   return registry;
 };
