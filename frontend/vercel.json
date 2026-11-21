@@ -1,6 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/jb/:path*", "destination": "https://gmae-production-13bb.up.railway.app/jb/:path*" }
+    { "source": "/jb/:path*", "destination": "https://gmae-production-13bb.up.railway.app/jb/:path*" },
+    { "source": "/pro", "destination": "https://YOUR-PRO-PROJECT.vercel.app/pro" },
+    { "source": "/pro/:path*", "destination": "https://YOUR-PRO-PROJECT.vercel.app/pro/:path*" }
   ]
 }
