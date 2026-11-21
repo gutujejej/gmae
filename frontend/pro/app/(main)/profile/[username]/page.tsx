@@ -70,7 +70,7 @@ export default async function ProfilePage({ params }: Params) {
 
       {videos && videos.length > 0 ? (
         <ul className="grid">
-          {videos.map((v) => {
+          {videos.map((v: { id: string; thumb_path: string | null; likes_count: number; caption: string | null }) => {
             const src = thumbSrc(v);
             return (
               <li key={v.id}>
