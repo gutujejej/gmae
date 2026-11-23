@@ -63,7 +63,10 @@ export default async function ProfilePage({ params }: Params) {
               <LogoutButton />
             </>
           ) : (
-            <FollowButton profileId={profile.id} initialFollowing={following} ownId={user?.id ?? null} />
+            <>
+              <FollowButton profileId={profile.id} initialFollowing={following} ownId={user?.id ?? null} />
+              <Link href={`/inbox/${profile.username}`} className="btn btn-ghost">Message</Link>
+            </>
           )}
         </div>
       </header>
