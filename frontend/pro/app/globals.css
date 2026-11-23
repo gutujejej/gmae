@@ -245,3 +245,56 @@ h2 { font-size: 17px; font-weight: 800; }
   .chat { left: 50%; right: auto; width: 480px; transform: translateX(-50%); }
   .fab { right: calc(50% - 240px + 18px); }
 }
+
+/* =====================================================================
+   Search flow, player top bar, follow badge
+   ===================================================================== */
+.topbar-search, .topbar-back { pointer-events: auto; display: grid; place-items: center; width: 40px; height: 40px; color: #fff; text-decoration: none; filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.6)); }
+.topbar-search { justify-self: end; }
+.topbar-back { justify-self: start; margin-left: -8px; }
+
+.rail-author { position: relative; margin-bottom: 12px; }
+.rail-avatar { display: block; line-height: 0; border-radius: 50%; border: 2px solid var(--mist); overflow: hidden; }
+.follow-plus { position: absolute; left: 50%; bottom: -11px; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; background: var(--saffron); color: var(--ink); display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); }
+.follow-plus:active { transform: translateX(-50%) scale(0.9); }
+
+.searchbar-link { text-decoration: none; }
+.searchbar-link span { color: var(--muted); font-size: 16px; }
+
+.search { padding-top: calc(10px + var(--safe-t)); padding-bottom: 28px; }
+.search-head { display: flex; align-items: center; gap: 6px; }
+.search-head .searchbar { flex: 1; margin: 0; height: 44px; }
+.search-go { flex: none; padding: 0 8px; min-height: 44px; font-size: 16px; font-weight: 800; color: var(--saffron); }
+.suggest, .results { margin-top: 18px; }
+.suggest section { margin-bottom: 26px; }
+.suggest-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.suggest-head h2 { font-size: 16px; }
+.suggest-list { list-style: none; margin-top: 14px; }
+.suggest-head + .suggest-list { margin-top: 0; }
+.suggest-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; min-height: 46px; padding: 6px 2px; text-align: left; text-decoration: none; font-size: 16px; font-weight: 700; }
+.suggest-row small { color: var(--muted); font-weight: 600; }
+.suggest-row svg { color: var(--muted); flex: none; }
+.suggest-recent { display: flex; align-items: center; }
+.topics { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+.topics button { width: 100%; min-height: 46px; text-align: left; font-size: 17px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topics li:first-child button { color: var(--saffron); }
+
+.tabline { display: flex; margin: 0 -18px; padding: 0 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabline button { flex: 1; min-height: 46px; font-weight: 800; color: var(--muted); border-bottom: 3px solid transparent; }
+.tabline button[aria-selected='true'] { color: var(--mist); border-color: var(--saffron); }
+.fchips { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 14px; scrollbar-width: none; }
+.fchips::-webkit-scrollbar { display: none; }
+.fchip { flex: none; padding: 8px 16px; border-radius: 10px; background: var(--ink-2); font-weight: 800; font-size: 14px; color: var(--muted); }
+.fchip.on { background: var(--mist); color: var(--ink); }
+
+.rgrid { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rcard { display: grid; gap: 8px; align-content: start; padding-bottom: 10px; border-radius: 14px; background: var(--ink-2); text-decoration: none; overflow: hidden; }
+.rcard-media { position: relative; display: block; aspect-ratio: 9 / 14; background: var(--ink); }
+.rcard-media img, .rcard-media video, .dcard video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rcard-cap { padding: 0 10px; font-size: 14.5px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 10px; }
+.rcard-by { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.rcard-by > span { display: grid; min-width: 0; line-height: 1.15; }
+.rcard-by b { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcard-by small { font-size: 11.5px; color: var(--muted); }
+.rcard-likes { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 12.5px; color: var(--muted); }
