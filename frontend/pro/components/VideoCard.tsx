@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
-import { BookmarkIcon, CommentIcon, HeartIcon, LinkIcon, PlayIcon, PlusIcon } from '@/components/Icons';
+import { BookmarkIcon, CommentIcon, HeartIcon, LinkIcon, MoreIcon, PlayIcon, PlusIcon } from '@/components/Icons';
+import VideoMenu from '@/components/VideoMenu';
 import { compact } from '@/lib/format';
 import { markWatched } from '@/lib/local-store';
 import { thumbSrc, videoSrc } from '@/lib/media';
+import { recordView } from '@/lib/views';
 import type { useVideoActions } from '@/lib/useVideoActions';
 import type { FeedVideo } from '@/lib/types';
 
@@ -19,6 +21,7 @@ type Props = {
   ownId: string | null;
   actions: ReturnType<typeof useVideoActions>;
   onOpenComments: (video: FeedVideo) => void;
+  onDeleted?: (video: FeedVideo) => void;    // the owner deleted this video
 };
 
 type Heart = { id: number; x: number; y: number };
@@ -28,18 +31,22 @@ function Caption({ text }: { text: string }) {
   const parts = text.split(/(#[^\s#]+)/g);
   return (
     <p className="caption">
-      {parts.map((part, i) =>
-        part.startsWith('#') ? (
-          <span key={i} className="tag">{part}</span>
+      {parts.map((part, i) => {
+        const m = part.startsWith('#') ? part.match(/^#([^\s#.,!?;:'")(]{1,30})([\s\S]*)$/) : null;
+        return m ? (
+          <span key={i}>
+            <Link href={`/tag/${encodeURIComponent(m[1].toLowerCase())}`} className="tag">#{m[1]}</Link>
+            {m[2]}
+          </span>
         ) : (
           <span key={i}>{part}</span>
-        ),
-      )}
+        );
+      })}
     </p>
   );
 }
 
-export default function VideoCard({ video, active, shouldLoad, muted, ownId, actions, onOpenComments }: Props) {
+export default function VideoCard({ video, active, shouldLoad, muted, ownId, actions, onOpenComments, onDeleted }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const bar = useRef<HTMLSpanElement>(null);
   const lastTap = useRef(0);
@@ -47,6 +54,7 @@ export default function VideoCard({ video, active, shouldLoad, muted, ownId, act
   const heartId = useRef(0);
   const [paused, setPaused] = useState(false);
   const [hearts, setHearts] = useState<Heart[]>([]);
+  const [menu, setMenu] = useState(false);
 
   // Play the card on screen, pause and rewind the others.
   useEffect(() => {
@@ -74,6 +82,13 @@ export default function VideoCard({ video, active, shouldLoad, muted, ownId, act
   useEffect(() => {
     if (active) markWatched(video.id);
   }, [active, video.id]);
+
+  // A view counts after about 2 seconds on screen.
+  useEffect(() => {
+    if (!active || !shouldLoad) return;
+    const timer = window.setTimeout(() => recordView(video.id), 2000);
+    return () => window.clearTimeout(timer);
+  }, [active, shouldLoad, video.id]);
 
   useEffect(() => () => {
     if (tapTimer.current) window.clearTimeout(tapTimer.current);
@@ -170,7 +185,11 @@ export default function VideoCard({ video, active, shouldLoad, muted, ownId, act
           <LinkIcon />
           <span>Share</span>
         </button>
+        <button type="button" className="act" onClick={() => setMenu(true)} aria-label="More options">
+          <MoreIcon />
+        </button>
       </div>
+      {menu && <VideoMenu video={video} ownId={ownId} onClose={() => setMenu(false)} onDeleted={onDeleted} needLogin={actions.needLogin} />}
 
       <div className="card-info">
         <div className="author">

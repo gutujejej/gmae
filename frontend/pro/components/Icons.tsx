@@ -113,3 +113,20 @@ export const GridIcon = ({ size }: IconProps) => (
     <path d="M5 4v16M10 4v16M15 4v16M20 4v16" />
   </Svg>
 );
+export const MoreIcon = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <circle cx="5" cy="12" r="1.4" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.4" fill="currentColor" />
+  </Svg>
+);
+export const TrashIcon = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" />
+  </Svg>
+);
+export const FlagIcon = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M4 22V4M4 4h13l-2 4 2 4H4" />
+  </Svg>
+);

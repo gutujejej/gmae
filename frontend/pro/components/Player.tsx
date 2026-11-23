@@ -120,6 +120,7 @@ export default function Player({ initial, userId }: { initial: FeedVideo; userId
               ownId={userId}
               actions={actions}
               onOpenComments={(v: FeedVideo) => setCommentsFor(v.id)}
+              onDeleted={(v: FeedVideo) => { if (items.length <= 1) back(); else setItems((prev: FeedVideo[]) => prev.filter((x: FeedVideo) => x.id !== v.id)); }}
             />
           </div>
         ))}

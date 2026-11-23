@@ -161,6 +161,7 @@ export default function Feed() {
                 ownId={userId}
                 actions={actions}
                 onOpenComments={(v) => setCommentsFor(v.id)}
+                onDeleted={(v) => setItems((prev) => prev.filter((x) => x.id !== v.id))}
               />
             </div>
           ))}

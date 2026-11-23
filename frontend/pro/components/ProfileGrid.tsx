@@ -10,6 +10,7 @@ export type GridItem = {
   thumb_path: string | null;
   video_path: string;
   likes_count: number;
+  views_count?: number;
   caption: string | null;
 };
 
@@ -25,6 +26,7 @@ export default function ProfileGrid({ items }: { items: GridItem[] }) {
             onClick={() => savePlaylist(items.map((x: GridItem) => x.id))}
           >
             <SmartThumb video={v} />
+            {v.views_count !== undefined && <span className="grid-views">▶ {compact(v.views_count)}</span>}
             <span className="grid-likes">♥ {compact(v.likes_count)}</span>
           </Link>
         </li>
