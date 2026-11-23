@@ -70,6 +70,10 @@ export function useVideoActions({ userId, patch, setFollow, toast }: Options) {
 
   const share = async (v: FeedVideo) => {
     const url = `${window.location.origin}/pro/v/${v.id}`;
+    if (typeof navigator.share === 'function') {                      // phones: the normal share sheet
+      try { await navigator.share({ title: `@${v.username} on pro`, text: v.caption || undefined, url }); return; }
+      catch (err) { if (err instanceof DOMException && err.name === 'AbortError') return; }   // closed by the person: done
+    }
     try {
       await navigator.clipboard.writeText(url);
     } catch {
