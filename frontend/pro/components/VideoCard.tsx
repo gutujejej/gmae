@@ -128,7 +128,8 @@ export default function VideoCard({ video, active, shouldLoad, muted, ownId, act
         onPlay={() => setPaused(false)}
         onTimeUpdate={(e) => {
           const el = e.currentTarget;
-          if (bar.current && el.duration) bar.current.style.transform = `scaleX(${el.currentTime / el.duration})`;
+          const length = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : Number(video.duration_seconds) || 0;
+          if (bar.current && length) bar.current.style.transform = `scaleX(${Math.min(1, el.currentTime / length)})`;
         }}
       />
       <div className="shade" aria-hidden="true" />

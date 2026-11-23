@@ -108,3 +108,8 @@ export const CheckCheckIcon = ({ size }: IconProps) => (
     <path d="M10 15.5l1.5 1.5 9-9.5" />
   </Svg>
 );
+export const GridIcon = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M5 4v16M10 4v16M15 4v16M20 4v16" />
+  </Svg>
+);

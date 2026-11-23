@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { canCompress, compressVideo, estimateBytes, QUALITY_OPTIONS, type Quality } from '@/lib/compress';
 import { createClient } from '@/lib/supabase/client';
 import { uploadWithProgress } from '@/lib/upload';
 import { readVideoMeta, type VideoMeta } from '@/lib/video-meta';
 import { useSession } from '@/lib/useSession';
 
-const MAX_BYTES = 50 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;               // what the server accepts
+const MAX_PICK_BYTES = 500 * 1024 * 1024;         // what can be chosen when the phone can compress
 const MAX_SECONDS = 60;
 const TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
@@ -33,9 +35,14 @@ export default function UploadForm() {
   const [progress, setProgress] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [quality, setQuality] = useState<Quality>('balanced');
+  const [phase, setPhase] = useState<'' | 'compressing' | 'uploading'>('');
+  const [note, setNote] = useState('');
+  const [canShrink, setCanShrink] = useState(false);
   const abort = useRef<(() => void) | null>(null);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(() => { setCanShrink(canCompress()); }, []);
 
   const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files?.[0];
@@ -46,7 +53,8 @@ export default function UploadForm() {
     setPreview(null);
     if (!picked) return;
     if (!mimeOf(picked)) { setError('Choose an mp4, mov or webm video.'); return; }
-    if (picked.size > MAX_BYTES) { setError(`That video is ${(picked.size / 1048576).toFixed(1)} MB. The limit is 50 MB.`); return; }
+    const limit = canShrink ? MAX_PICK_BYTES : MAX_BYTES;
+    if (picked.size > limit) { setError(`That video is ${(picked.size / 1048576).toFixed(1)} MB. The limit is ${Math.round(limit / 1048576)} MB.`); return; }
     setChecking(true);
     try {
       const m = await readVideoMeta(picked);
@@ -65,12 +73,37 @@ export default function UploadForm() {
     if (!file || !meta || !user) return;
     setBusy(true);
     setError('');
+    setNote('');
     setProgress(0);
     const uploaded: { bucket: 'videos' | 'thumbnails'; path: string }[] = [];
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Please log in again.');
-      const mime = mimeOf(file)!;
+      // 1) shrink it on the phone (skipped for "Original", or when this phone cannot)
+      let upFile: File = file;
+      let upWidth = meta.width;
+      let upHeight = meta.height;
+      if (canShrink && quality !== 'original') {
+        setPhase('compressing');
+        const controller = new AbortController();
+        abort.current = () => controller.abort();
+        const out = await compressVideo(file, quality, setProgress, controller.signal);
+        abort.current = null;
+        if (out) {
+          upFile = out.file;
+          upWidth = out.width;
+          upHeight = out.height;
+          setNote(`Compressed from ${(file.size / 1048576).toFixed(1)} MB to ${(out.file.size / 1048576).toFixed(1)} MB.`);
+        } else {
+          setNote('This video could not be made smaller here. Uploading the original.');
+        }
+      }
+      if (upFile.size > MAX_BYTES) throw new Error(`The video is ${(upFile.size / 1048576).toFixed(1)} MB and the limit is 50 MB. Choose Data saver.`);
+
+      // 2) upload
+      setPhase('uploading');
+      setProgress(0);
+      const mime = mimeOf(upFile)!;
       const ext = mime === 'video/webm' ? 'webm' : mime === 'video/quicktime' ? 'mov' : 'mp4';
       const id = crypto.randomUUID();
 
@@ -82,7 +115,7 @@ export default function UploadForm() {
       }
 
       const videoPath = `${user.id}/${id}.${ext}`;
-      const up = uploadWithProgress({ bucket: 'videos', path: videoPath, file, contentType: mime, token: session.access_token, onProgress: setProgress });
+      const up = uploadWithProgress({ bucket: 'videos', path: videoPath, file: upFile, contentType: mime, token: session.access_token, onProgress: setProgress });
       abort.current = up.abort;
       await up.promise;
       abort.current = null;
@@ -94,9 +127,9 @@ export default function UploadForm() {
         video_path: videoPath,
         thumb_path: thumbPath,
         duration_seconds: Math.round(meta.duration * 100) / 100,
-        size_bytes: file.size,
-        width: meta.width || null,
-        height: meta.height || null,
+        size_bytes: upFile.size,
+        width: upWidth || null,
+        height: upHeight || null,
       });
       if (insertError) throw new Error('Could not save your video. Try again.');
       router.push('/feed');
@@ -107,6 +140,7 @@ export default function UploadForm() {
       setProgress(null);
     } finally {
       abort.current = null;
+      setPhase('');
       setBusy(false);
     }
   };
@@ -127,7 +161,7 @@ export default function UploadForm() {
             Record a video
             <input type="file" accept="video/*" capture="user" hidden onChange={onPick} disabled={busy || checking} />
           </label>
-          <p className="hint">Up to 60 seconds and 50 MB. mp4, mov or webm.</p>
+          <p className="hint">Up to 60 seconds. mp4, mov or webm.{canShrink ? ' Big videos are shrunk on your phone before uploading.' : ' Up to 50 MB.'}</p>
         </div>
       )}
       {checking && <p className="hint" role="status">Checking your video…</p>}
@@ -137,6 +171,25 @@ export default function UploadForm() {
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <video className="preview" src={preview} controls playsInline muted />
           <p className="hint">{Math.round(meta.duration)} seconds · {(file.size / 1048576).toFixed(1)} MB</p>
+          {canShrink && (
+            <div className="quality" role="radiogroup" aria-label="Video quality">
+              {QUALITY_OPTIONS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={quality === o.id}
+                  className={quality === o.id ? 'qopt on' : 'qopt'}
+                  onClick={() => setQuality(o.id)}
+                  disabled={busy}
+                >
+                  <b>{o.label}</b>
+                  <small>{o.hint}</small>
+                  <em>≈ {(estimateBytes(o.id, meta.duration, file.size) / 1048576).toFixed(1)} MB</em>
+                </button>
+              ))}
+            </div>
+          )}
           <label className="field">
             <span>Caption</span>
             <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={300} rows={3} placeholder="Say something. Add #hashtags" disabled={busy} />
@@ -145,8 +198,10 @@ export default function UploadForm() {
         </>
       )}
 
+      {phase === 'compressing' && <p className="hint" role="status">Compressing… keep this screen open.</p>}
+      {note && !error && <p className="hint" role="status">{note}</p>}
       {progress !== null && (
-        <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Upload progress">
+        <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label={phase === 'compressing' ? 'Compression progress' : 'Upload progress'}>
           <span style={{ width: `${progress}%` }} />
           <b>{progress}%</b>
         </div>
@@ -158,8 +213,8 @@ export default function UploadForm() {
         <div className="row">
           {busy
             ? <button type="button" className="btn btn-ghost" onClick={() => abort.current?.()}>Cancel</button>
-            : <button type="button" className="btn btn-ghost" onClick={() => { setFile(null); setMeta(null); setPreview(null); setProgress(null); }}>Change video</button>}
-          <button type="button" className="btn btn-saffron" onClick={submit} disabled={busy}>{busy ? 'Uploading…' : 'Post'}</button>
+            : <button type="button" className="btn btn-ghost" onClick={() => { setFile(null); setMeta(null); setPreview(null); setProgress(null); setNote(''); }}>Change video</button>}
+          <button type="button" className="btn btn-saffron" onClick={submit} disabled={busy}>{busy ? (phase === 'compressing' ? 'Compressing…' : 'Uploading…') : 'Post'}</button>
         </div>
       )}
     </div>
