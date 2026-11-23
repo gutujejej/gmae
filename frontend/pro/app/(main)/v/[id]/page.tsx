@@ -1,22 +1,20 @@
 import { notFound } from 'next/navigation';
-import SingleVideo from '@/components/SingleVideo';
+import Player from '@/components/Player';
 import { thumbSrc } from '@/lib/media';
 import { createClient } from '@/lib/supabase/server';
 import type { FeedVideo } from '@/lib/types';
 
 type Params = { params: Promise<{ id: string }> };
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const COLUMNS = 'id, author_id, caption, video_path, thumb_path, duration_seconds, width, height, series_id, series_part, likes_count, comments_count, saves_count, created_at, author:profiles(username, display_name, avatar_url)';
-
-type Author = { username: string; display_name: string; avatar_url: string | null };
+const COLUMNS = 'id, author_id, caption, video_path, thumb_path, duration_seconds, width, height, series_id, series_part, likes_count, comments_count, saves_count, created_at';
 
 export async function generateMetadata({ params }: Params) {
   const { id } = await params;
   if (!ID.test(id)) return { title: 'Video' };
   const supabase = await createClient();
-  const { data } = await supabase.from('videos').select('caption, thumb_path, author:profiles(username)').eq('id', id).maybeSingle();
+  const { data } = await supabase.from('videos').select('caption, thumb_path, author_id').eq('id', id).maybeSingle();
   if (!data) return { title: 'Video' };
-  const author = (Array.isArray(data.author) ? data.author[0] : data.author) as { username: string } | null;
+  const { data: author } = await supabase.from('profiles').select('username').eq('id', data.author_id).maybeSingle();
   const image = thumbSrc(data);
   return {
     title: author ? `@${author.username}` : 'Video',
@@ -30,9 +28,10 @@ export default async function VideoPage({ params }: Params) {
   if (!ID.test(id)) notFound();
   const supabase = await createClient();
 
+  // Two plain queries (video, then its author): no joined query that could fail on its own.
   const { data: v } = await supabase.from('videos').select(COLUMNS).eq('id', id).maybeSingle();
   if (!v) notFound();
-  const author = (Array.isArray(v.author) ? v.author[0] : v.author) as Author | null;
+  const { data: author } = await supabase.from('profiles').select('username, display_name, avatar_url').eq('id', v.author_id).maybeSingle();
   if (!author) notFound();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -74,5 +73,5 @@ export default async function VideoPage({ params }: Params) {
     score: 0,
   };
 
-  return <SingleVideo initial={video} userId={user?.id ?? null} />;
+  return <Player initial={video} userId={user?.id ?? null} />;
 }
