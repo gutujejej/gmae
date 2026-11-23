@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import CommentsSheet from '@/components/CommentsSheet';
+import { SearchIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import Toast from '@/components/Toast';
 import VideoCard from '@/components/VideoCard';
 import { createClient } from '@/lib/supabase/client';
 import { useSession } from '@/lib/useSession';
 import { useToast } from '@/lib/useToast';
+import { useUnmuteOnTap } from '@/lib/useUnmuteOnTap';
 import { useVideoActions } from '@/lib/useVideoActions';
 import type { FeedVideo } from '@/lib/types';
 
@@ -36,6 +38,7 @@ export default function Feed() {
   const [done, setDone] = useState(false);
   const [active, setActive] = useState(0);
   const [muted, setMuted] = useState(true);
+  useUnmuteOnTap(setMuted);
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
 
@@ -143,7 +146,7 @@ export default function Feed() {
           <button type="button" role="tab" aria-selected={tab === 'following'} className="tab" onClick={() => setTab('following')}>Following</button>
           <button type="button" role="tab" aria-selected={tab === 'for_you'} className="tab" onClick={() => setTab('for_you')}>For you</button>
         </div>
-        <span aria-hidden="true" />
+        <Link href="/search" className="topbar-search" aria-label="Search"><SearchIcon size={26} /></Link>
       </div>
 
       {items.length > 0 && (
@@ -155,7 +158,6 @@ export default function Feed() {
                 active={i === active}
                 shouldLoad={i === active || i === active + 1}
                 muted={muted}
-                onToggleMute={() => setMuted((m) => !m)}
                 ownId={userId}
                 actions={actions}
                 onOpenComments={(v) => setCommentsFor(v.id)}

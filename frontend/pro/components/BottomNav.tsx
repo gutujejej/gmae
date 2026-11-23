@@ -57,11 +57,11 @@ export default function BottomNav() {
   }, [user, pathname]);
 
   // Inside a chat the bottom bar gets out of the way (like Telegram).
-  if (pathname.startsWith('/inbox/')) return null;
+  if (pathname.startsWith('/inbox/') || pathname.startsWith('/search')) return null;
 
   const profileHref = user ? (username ? `/profile/${username}` : '/profile/edit') : '/login';
   const onFeed = pathname === '/feed' || pathname.startsWith('/v/');
-  const onDiscover = pathname.startsWith('/discover');
+  const onDiscover = pathname.startsWith('/discover') || pathname.startsWith('/search');
   const onInbox = pathname.startsWith('/inbox');
   const onProfile = pathname.startsWith('/profile') || pathname === '/login' || pathname === '/signup';
 

@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
-import { BookmarkIcon, CommentIcon, HeartIcon, LinkIcon, PlayIcon, VolumeIcon, VolumeOffIcon } from '@/components/Icons';
+import { BookmarkIcon, CommentIcon, HeartIcon, LinkIcon, PlayIcon, PlusIcon } from '@/components/Icons';
 import { compact } from '@/lib/format';
+import { markWatched } from '@/lib/local-store';
 import { thumbSrc, videoSrc } from '@/lib/media';
 import type { useVideoActions } from '@/lib/useVideoActions';
 import type { FeedVideo } from '@/lib/types';
@@ -14,7 +15,7 @@ type Props = {
   active: boolean;        // the card on screen: it plays
   shouldLoad: boolean;    // only the current and the next card download video (saves data)
   muted: boolean;
-  onToggleMute: () => void;
+  onToggleMute?: () => void;
   ownId: string | null;
   actions: ReturnType<typeof useVideoActions>;
   onOpenComments: (video: FeedVideo) => void;
@@ -38,7 +39,7 @@ function Caption({ text }: { text: string }) {
   );
 }
 
-export default function VideoCard({ video, active, shouldLoad, muted, onToggleMute, ownId, actions, onOpenComments }: Props) {
+export default function VideoCard({ video, active, shouldLoad, muted, ownId, actions, onOpenComments }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const bar = useRef<HTMLSpanElement>(null);
   const lastTap = useRef(0);
@@ -68,6 +69,11 @@ export default function VideoCard({ video, active, shouldLoad, muted, onToggleMu
   useEffect(() => {
     if (ref.current) ref.current.muted = muted;
   }, [muted]);
+
+  // Remember what was watched (for the Watched / Unwatched search filters).
+  useEffect(() => {
+    if (active) markWatched(video.id);
+  }, [active, video.id]);
 
   useEffect(() => () => {
     if (tapTimer.current) window.clearTimeout(tapTimer.current);
@@ -136,11 +142,17 @@ export default function VideoCard({ video, active, shouldLoad, muted, onToggleMu
         ))}
       </div>
 
-      <button type="button" className="mute" onClick={onToggleMute} aria-label={muted ? 'Turn sound on' : 'Turn sound off'}>
-        {muted ? <VolumeOffIcon size={22} /> : <VolumeIcon size={22} />}
-      </button>
-
       <div className="rail">
+        <div className="rail-author">
+          <Link href={`/profile/${video.username}`} className="rail-avatar" aria-label={`Open @${video.username}`}>
+            <Avatar url={video.avatar_url} name={video.display_name || video.username} size={50} />
+          </Link>
+          {!isOwn && !video.following && (
+            <button type="button" className="follow-plus" onClick={() => actions.follow(video)} aria-label={`Follow @${video.username}`}>
+              <PlusIcon size={14} />
+            </button>
+          )}
+        </div>
         <button type="button" className={video.liked ? 'act on' : 'act'} onClick={() => actions.like(video)} aria-pressed={video.liked} aria-label="Like">
           <HeartIcon filled={video.liked} />
           <span>{compact(video.likes_count)}</span>
@@ -162,14 +174,8 @@ export default function VideoCard({ video, active, shouldLoad, muted, onToggleMu
       <div className="card-info">
         <div className="author">
           <Link href={`/profile/${video.username}`} className="author-link">
-            <Avatar url={video.avatar_url} name={video.display_name || video.username} size={36} />
             <b>@{video.username}</b>
           </Link>
-          {!isOwn && (
-            <button type="button" className={video.following ? 'pill on' : 'pill'} onClick={() => actions.follow(video)} aria-pressed={video.following}>
-              {video.following ? 'Following' : 'Follow'}
-            </button>
-          )}
           {video.series_part ? <span className="chip">Part {video.series_part}</span> : null}
         </div>
         {video.caption ? <Caption text={video.caption} /> : null}
