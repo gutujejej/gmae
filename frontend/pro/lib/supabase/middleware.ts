@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 // Pages that need a signed-in user. The feed itself stays public (anyone can watch).
-const PROTECTED = ['/upload', '/profile/edit', '/saved'];
+const PROTECTED = ['/upload', '/profile/edit', '/saved', '/inbox'];
 const AUTH_PAGES = ['/login', '/signup'];
 
 export async function updateSession(request: NextRequest) {
