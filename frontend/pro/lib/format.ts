@@ -22,3 +22,30 @@ export function timeAgo(iso: string): string {
 export function safeNext(value: string | null): string {
   return value && value.startsWith('/') && !value.startsWith('//') ? value : '/feed';
 }
+
+// Chat list time: "14:05" today, "Mon" this week, "Nov 3" older.
+export function chatTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const t = d.getTime();
+  if (t >= startToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (t >= startToday - 6 * 86_400_000) return d.toLocaleDateString([], { weekday: 'short' });
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// Time inside a chat bubble: "14:05".
+export function clockTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// Day divider inside a chat: "Today", "Yesterday", "Nov 3".
+export function dayLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const t = d.getTime();
+  if (t >= startToday) return 'Today';
+  if (t >= startToday - 86_400_000) return 'Yesterday';
+  return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+}
