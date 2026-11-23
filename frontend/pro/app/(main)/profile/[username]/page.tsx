@@ -13,7 +13,7 @@ type Params = {
   searchParams: Promise<{ tab?: string }>;
 };
 
-const TILE_COLUMNS = 'id, thumb_path, video_path, likes_count, caption';
+const TILE_COLUMNS = 'id, thumb_path, video_path, likes_count, views_count, caption';
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -42,11 +42,12 @@ export default async function ProfilePage({ params, searchParams }: Params) {
   // Total likes this person's videos received.
   const { data: likeRows } = await supabase
     .from('videos')
-    .select('likes_count')
+    .select('likes_count, views_count')
     .eq('author_id', profile.id)
     .eq('status', 'published')
     .limit(1000);
-  const totalLikes = ((likeRows ?? []) as { likes_count: number }[]).reduce((sum: number, r: { likes_count: number }) => sum + (r.likes_count || 0), 0);
+  const totalLikes = ((likeRows ?? []) as { likes_count: number; views_count: number }[]).reduce((sum: number, r: { likes_count: number }) => sum + (r.likes_count || 0), 0);
+  const totalViews = ((likeRows ?? []) as { likes_count: number; views_count: number }[]).reduce((sum: number, r: { views_count: number }) => sum + (r.views_count || 0), 0);
 
   let items: GridItem[] = [];
   if (tab === 'videos') {
@@ -108,6 +109,7 @@ export default async function ProfilePage({ params, searchParams }: Params) {
             <li><b>{compact(profile.following_count)}</b><span>Following</span></li>
             <li><b>{compact(profile.followers_count)}</b><span>{profile.followers_count === 1 ? 'Follower' : 'Followers'}</span></li>
             <li><b>{compact(totalLikes)}</b><span>Likes</span></li>
+            <li><b>{compact(totalViews)}</b><span>Views</span></li>
           </ul>
         </div>
         <div className="pf-avatar">
