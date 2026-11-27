@@ -253,7 +253,7 @@ const tick = () => beep(700, 520, .07, .08), win = () => { beep(660, 990, .18, .
 
 /* ---------- state ---------- */
 const S = { phase: 'starting', offset: 0, endsAt: 0, hash: '', roundId: null, numbers: null, revealAt: 0, revealMs: 14000, results: [], live: [], count: 0, connected: false, lastRound: null };
-const me = { balance: 0, min: 5, max: 1000, maxPayout: 20000, maxTickets: 5, paytable: {}, tickets: [], name: 'Player', enabled: true };
+const me = { balance: 0, regBonus: 0, min: 5, max: 1000, maxPayout: 20000, maxTickets: 5, paytable: {}, tickets: [], name: 'Player', enabled: true };
 let picks = new Set(), stake = 5, tab = 'game', list = 'all', history = [], stats = null, repeatOn = ls('kn_repeat', '0') === '1', lastPicks = null, shown = 0, busy = false;
 const serverNow = () => Date.now() + S.offset;
 const sync = (d) => { if (d.now) S.offset = d.now - Date.now(); };
@@ -293,7 +293,7 @@ const setStake = (v) => { stake = Math.min(me.max, Math.max(me.min, r2(v))); $('
 $('dec').onclick = () => setStake(stake - me.min);
 $('inc').onclick = () => setStake(stake + me.min);
 $('x2').onclick = () => setStake(stake * 2);
-$('max').onclick = () => setStake(Math.min(me.max, Math.max(me.min, Math.floor(me.balance / me.min) * me.min)));
+$('max').onclick = () => setStake(Math.min(me.max, Math.max(me.min, Math.floor((me.balance + me.regBonus) / me.min) * me.min)));
 $('stake').oninput = () => { stake = Number($('stake').value) || 0; paintBet(); };
 $('stake').onblur = () => setStake(stake || me.min);
 
@@ -319,7 +319,7 @@ async function place(nums, st, silent) {
   if (busy) return; busy = true;
   try {
     const r = await api(`/api/mini/${BOT}/keno/bet`, 'POST', { picks: [...nums], stake: st });
-    me.balance = r.balance; me.tickets.push(r.ticket); lastPicks = [...nums]; picks.clear();
+    me.balance = r.balance; me.regBonus = Number(r.reg_bonus) || 0; me.tickets.push(r.ticket); lastPicks = [...nums]; picks.clear();
     beep(440, 660, .08, .12); if (!silent) say(`Ticket placed — ${nums.length} numbers, ${fmt(st)} ETB.`, true);
   } catch (e) { say(e.message, false, /wallet|deposit/i.test(e.message)); }
   busy = false; paintAll();
@@ -379,11 +379,11 @@ $('tabs').onclick = async (e) => {
 };
 
 /* ---------- live ---------- */
-function paintAll() { $('bal').textContent = fmt(me.balance); paintGrid(); paintBet(); paintList(); }
+function paintAll() { $('bal').textContent = fmt(me.balance + me.regBonus); paintGrid(); paintBet(); paintList(); }
 async function loadMe() {
   try {
     const m = await api(`/api/mini/${BOT}/keno/me`);
-    Object.assign(me, { name: m.name, balance: m.balance, min: m.min, max: m.max, maxPayout: m.maxPayout, maxTickets: m.maxTickets, paytable: m.paytable, enabled: m.enabled, tickets: m.tickets || [] });
+    Object.assign(me, { name: m.name, balance: m.balance, regBonus: Number(m.reg_bonus) || 0, min: m.min, max: m.max, maxPayout: m.maxPayout, maxTickets: m.maxTickets, paytable: m.paytable, enabled: m.enabled, tickets: m.tickets || [] });
     if (stake < me.min) stake = me.min; $('stake').value = Number(stake).toFixed(2);
     paintAll();
   } catch (e) { say(e.message, false); }
@@ -402,7 +402,7 @@ function connect() {
     const d = JSON.parse(e.data); sync(d); apply(d);
     Object.assign(S, { phase: 'betting', roundId: d.round_id, hash: d.server_seed_hash, endsAt: d.betting_ends_at, numbers: null }); shown = 0; S.live = []; S.count = 0; me.tickets = [];
     paintAll(); await loadMe();
-    if (repeatOn && lastPicks && me.tickets.length < me.maxTickets && me.balance >= stake) place(lastPicks, stake, true);
+    if (repeatOn && lastPicks && me.tickets.length < me.maxTickets && me.balance + me.regBonus >= stake) place(lastPicks, stake, true);
   });
   es.addEventListener('draw', (e) => { const d = JSON.parse(e.data); sync(d); Object.assign(S, { phase: 'drawing', numbers: d.numbers, revealAt: d.reveal_started_at, revealMs: d.reveal_ms }); shown = 0; picks.clear(); paintAll(); });
   es.addEventListener('result', async (e) => {

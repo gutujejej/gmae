@@ -476,7 +476,7 @@ textarea{resize:none}
         <span class="sub">Soccer odds · multi bets</span>
       </button>
     </div>
-    <div class="lobby-note">One <b>Games wallet</b> for every game: Aviator, Bingo, Keno and Sports. Your registration bonus can be played in Bingo.</div>
+    <div class="lobby-note">One <b>Games wallet</b> for every game: Aviator, Bingo, Keno and Sports. Your registration bonus can be played in every game.</div>
   </section>
 
   <!-- ================= WALLET ================= -->
@@ -508,7 +508,7 @@ textarea{resize:none}
       <div class="panel" style="margin-top:0"><div id="depList"><p class="muted">No deposits yet.</p></div></div>
       <div class="panel" id="refPanel" hidden>
         <h3>Invite friends &amp; earn <span id="refPct">10</span>%</h3>
-        <p class="muted" style="margin-top:4px">Every time a friend you invited makes a deposit, you get <b><span id="refPct2">10</span>%</b> of it as Bingo bonus. No limit.</p>
+        <p class="muted" style="margin-top:4px">Every time a friend you invited makes a deposit, you get <b><span id="refPct2">10</span>%</b> of it as bonus you can play in every game. No limit.</p>
         <div class="refbox"><div><small>FRIENDS INVITED</small><b id="refInvited">0</b></div><div><small>YOU EARNED</small><b id="refEarned">0.00</b></div></div>
         <div class="reflink"><input type="text" id="refLink" readonly><button id="refCopy">Copy</button></div>
         <button class="btn go" id="refShare" style="margin-top:12px">Share my link</button>
@@ -546,7 +546,7 @@ textarea{resize:none}
         </div>
         <div id="wdMsg"></div>
         <button class="btn go" id="wdBtn" style="margin-top:16px">Confirm payout →</button>
-        <p class="muted" style="margin-top:10px">The registration bonus can only be used in Bingo.</p>
+        <p class="muted" style="margin-top:10px">The registration bonus can be played in every game: Aviator, Bingo, Keno and Sports.</p>
       </div>
     </div>
   </section>
@@ -843,14 +843,14 @@ async function loadWallet() {
     PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name;
     $('wTotal').textContent = fmt(d.total); $('wWd').textContent = fmt(d.withdrawable); $('wLock').textContent = fmt(d.locked);
     $('wAv').textContent = fmt(d.games ? d.games.balance : d.aviator.balance);
-    $('wBonus').hidden = !(d.bingo.bonus > 0); $('wBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.bingo.bonus)} bonus (Bingo only)`;
-    $('wAvBonus').hidden = !(d.aviator.bonus > 0); $('wAvBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.aviator.bonus)} bonus (Aviator only)`; me.bonus = d.aviator.bonus;
+    $('wBonus').hidden = !(d.bingo.bonus > 0); $('wBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.bingo.bonus)} bonus (play it in every game)`;
+    $('wAvBonus').hidden = !(d.aviator.bonus > 0); $('wAvBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.aviator.bonus)} Aviator bonus (Aviator only)`; me.bonus = d.aviator.bonus; me.regBonus = d.bingo.bonus;
     $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(d.aviator.balance)} ETB`;
     $('wdRule').textContent = d.canWithdraw ? 'Withdraw your balance to your registered account.' : `You need to deposit at least ${d.withdrawMinDeposit} ETB in total before you can withdraw.`;
     $('mCount').textContent = `${d.methods.length} Available`;
     const fb = d.firstBonus || {};
     $('bonusBanner').hidden = !fb.eligible;
-    if (fb.eligible) $('bonusBanner').innerHTML = `<span><svg class="ico"><use href="#i-gift"/></svg> <b>First deposit bonus ${fb.pct}%</b>${fb.max > 0 ? ` (up to ${fb.max} ETB)` : ''} — added to your Bingo bonus.</span>`;
+    if (fb.eligible) $('bonusBanner').innerHTML = `<span><svg class="ico"><use href="#i-gift"/></svg> <b>First deposit bonus ${fb.pct}%</b>${fb.max > 0 ? ` (up to ${fb.max} ETB)` : ''} — added to your bonus (playable in every game).</span>`;
     $('cbFab').hidden = tab !== 'wallet' || !(d.cashbackPct > 0 || d.aviatorCashbackPct > 0);
     $('methods').innerHTML = d.methods.map((m) => `<button class="method ${m.id === 'cbe' ? 'cbe' : 'tb'}" data-m="${m.id}"><i>${m.id === 'cbe' ? 'CBE' : 't'}</i>${esc(m.label)}</button>`).join('');
     $('methods').onclick = (e) => { const b = e.target.closest('button[data-m]'); if (b) startDeposit(b.dataset.m); };
@@ -968,7 +968,7 @@ function stepComplete(o) {
       const done = r.result === 'credited';
       openSheet(`<div style="text-align:center;padding:14px 4px"><div style="font-size:56px">${done ? '<svg class="ico" style="color:#1faa59"><use href="#i-checkcircle"/></svg>' : '<svg class="ico" style="color:#e0a100"><use href="#i-hourglass"/></svg>'}</div>
         <h2 style="margin-top:6px">${done ? 'Deposit successful' : 'Payment received'}</h2>
-        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your Games wallet.${r.bonus > 0 ? `<br><svg class="ico"><use href="#i-gift"/></svg> First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
+        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your Games wallet.${r.bonus > 0 ? `<br><svg class="ico"><use href="#i-gift"/></svg> First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your bonus (playable in every game).` : ''}` : esc(r.message)}</p>
         <button class="btn go" id="okBtn" style="margin-top:18px">Done</button></div>`).querySelector('#okBtn').onclick = () => { closeSheet(); loadWallet(); };
       if (done) Sound.claim();
       loadWallet();
@@ -1055,7 +1055,7 @@ async function openCashback() {
       <button class="btn go" id="${id}Claim" style="margin-top:10px" ${c.eligible ? '' : 'disabled'}>Claim ETB ${fmt(c.amount)}</button></div>` : '');
     sh.innerHTML = `<div class="hd"><div><h2>Cashback</h2></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
       ${block('cbA', '<svg class="ico"><use href="#i-plane"/></svg> Aviator cashback', av, 'Aviator', 'Aviator bonus (play it in Aviator)')}
-      ${block('cbB', '<svg class="ico"><use href="#i-target"/></svg> Bingo cashback', bi, 'Bingo', 'Bingo bonus (play it in Bingo)')}
+      ${block('cbB', '<svg class="ico"><use href="#i-target"/></svg> Bingo cashback', bi, 'Bingo', 'bonus (play it in every game)')}
       ${av.pct > 0 || bi.pct > 0 ? '' : '<p class="muted" style="margin-top:12px">Cashback is not active right now.</p>'}`;
     sh.querySelector('.x').onclick = closeSheet;
     const bind = (id, path) => {
@@ -1075,13 +1075,13 @@ $('cbFab').onclick = openCashback;
 /* ================================================================= */
 const A = { sub: 'overview', timer: null };
 const adm = (path, method, body) => api(`/api/mini/${BOT}/gadmin${path}`, method, body);
-const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['logos', 'Logos'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['partners', 'Partners'], ['settings', 'Settings'], ['admins', 'Admins']];
+const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['logos', 'Logos'], ['broadcast', 'Broadcast'], ['posts', 'Posts'], ['sports', 'Sports ↗'], ['partners', 'Partners'], ['settings', 'Settings'], ['admins', 'Admins']];
 const aErr = (e) => { $('aMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; };
 const aOk = (t) => { $('aMsg').innerHTML = `<div class="msg ok">${esc(t)}</div>`; };
 function renderASegs() { $('aTabs').innerHTML = aSubs.map(([k, l]) => `<button class="chipbtn" data-v="${k}" aria-pressed="${k === A.sub}">${l}</button>`).join(''); }
 $('aTabs').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; A.sub = b.dataset.v; renderASegs(); showSub(); };
 function loadAdmin() { renderASegs(); showSub(); }
-function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, partners: aPartners, logos: aLogos, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
+function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, posts: aPosts, settings: aSettings, admins: aAdmins, partners: aPartners, logos: aLogos, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
 
 
 /* ================================================================= */
@@ -1217,7 +1217,7 @@ async function aCoupons() {
       <label>Expires on (optional)</label><input type="date" id="cExp">
       <label>The bonus can be played in</label>
       <div class="chips" id="cWal"><button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-plane"/></svg> Aviator</button><button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo</button></div>
-      <p class="muted" style="margin-top:10px">Each player can use a coupon once. The registration bonus is separate and can only be played in Bingo.</p>
+      <p class="muted" style="margin-top:10px">Each player can use a coupon once. Each coupon is for Aviator or for Bingo. The registration bonus is separate and can be played in every game.</p>
       <div id="cMsg"></div><button class="btn go" id="cMake" style="margin-top:12px">Create coupon</button></div>
       <div class="panel"><h3>Your coupons</h3>${coupons.length ? coupons.map((c) => `<div class="cp"><div><b>${esc(c.code)}</b><span class="ctag ${c.wallet === 'aviator' ? 'av' : ''}">${c.wallet === 'aviator' ? '<svg class="ico"><use href="#i-plane"/></svg> Aviator' : '<svg class="ico"><use href="#i-target"/></svg> Bingo'}</span><span class="muted">${fmt(c.amount)} ETB · used ${c.used_count}/${c.max_uses} · ${when(c)}${c.min_lifetime_deposit > 0 ? ` · needs ${fmt(c.min_lifetime_deposit)} deposited` : ''}</span></div>
         <div style="display:flex;gap:6px;flex:none"><button class="smallbtn" data-t="${c.id}">${c.active ? 'Turn off' : 'Turn on'}</button><button class="smallbtn red" data-d="${c.id}">Delete</button></div></div>`).join('') : '<p class="muted" style="margin-top:8px">No coupons yet.</p>'}</div>`;
@@ -1297,6 +1297,71 @@ function aBroadcast() {
   };
 }
 
+function aPosts() {
+  let image = null;
+  const pad = (n) => String(n).padStart(2, '0');
+  const local = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const when = (iso) => new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  const label = { scheduled: 'Scheduled', running: 'Sending…', sent: 'Sent', failed: 'Failed', cancelled: 'Cancelled' };
+  const rep = { none: 'Once', daily: 'Every day', weekly: 'Every week' };
+  const soon = new Date(Date.now() + 3600_000);
+  $('aBody').innerHTML = `<div class="panel"><h3>Schedule a post</h3>
+    <p class="muted" style="margin-top:4px">The post is sent automatically at the time you choose (your phone's time). It can repeat every day or week.</p>
+    <label>Message</label><textarea id="pText" rows="5" maxlength="3500" placeholder="Write your post…"></textarea>
+    <label>Photo (optional)</label>
+    <input type="file" id="pFile" accept="image/png,image/jpeg,image/webp" style="padding:10px">
+    <img class="imgprev" id="pPrev" hidden alt="">
+    <label>Send to</label>
+    <select id="pTarget"><option value="users">All users of this bot</option><option value="channel">The bot's channel</option></select>
+    <div class="field2"><div><label>Date &amp; time</label><input type="datetime-local" id="pWhen" value="${local(soon)}" min="${local(new Date())}"></div>
+    <div><label>Repeat</label><select id="pRepeat"><option value="none">Once</option><option value="daily">Every day</option><option value="weekly">Every week</option></select></div></div>
+    <div class="sw2"><span>Add a “Play now” button</span><span class="tgl on" id="pBtn"></span></div>
+    <div id="pMsg"></div>
+    <button class="btn go" id="pSave">Schedule post</button></div>
+    <div class="panel"><h3>Your posts</h3><div id="pList"><div class="empty">Loading…</div></div></div>`;
+  let btn = true;
+  $('pBtn').onclick = () => { btn = !btn; $('pBtn').classList.toggle('on', btn); };
+  $('pFile').onchange = async () => {
+    const f = $('pFile').files[0]; if (!f) { image = null; $('pPrev').hidden = true; return; }
+    try { image = await readImage(f); $('pPrev').src = image; $('pPrev').hidden = false; $('pMsg').innerHTML = ''; }
+    catch (e) { image = null; $('pMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+  };
+  async function load() {
+    try {
+      const r = await adm('/posts');
+      if (!r.has_channel) { const o = $('pTarget').querySelector('[value=channel]'); if (o) o.disabled = true; }
+      $('pList').innerHTML = r.posts.length ? r.posts.map((p) => {
+        const res = p.last_result || {};
+        const detail = res.error ? `Error: ${esc(res.error)}` : (res.total != null ? `Last run: ${res.sent} sent${res.blocked ? ` · ${res.blocked} blocked` : ''}${res.failed ? ` · ${res.failed} failed` : ''}` : '');
+        return `<div class="box" style="margin-top:10px"><div class="kv"><div><small>${esc(label[p.status] || p.status)} · ${esc(rep[p.repeat])} · ${p.target === 'channel' ? 'Channel' : 'All users'}${p.has_image ? ' · 📷' : ''}</small>
+          <b>${esc(when(p.send_at))}</b></div></div>
+          <p class="muted" style="margin-top:6px;white-space:pre-wrap">${esc((p.text || '(photo only)').slice(0, 160))}${(p.text || '').length > 160 ? '…' : ''}</p>
+          ${detail ? `<p class="muted" style="margin-top:4px">${detail}</p>` : ''}
+          ${['scheduled', 'failed'].includes(p.status) ? `<button class="btn" data-cancel="${p.id}" style="margin-top:8px">Cancel</button>` : ''}</div>`;
+      }).join('') : '<div class="empty">No posts yet.</div>';
+      $('pList').querySelectorAll('[data-cancel]').forEach((b) => { b.onclick = async () => {
+        if (!confirm('Cancel this post?')) return;
+        try { await adm(`/posts/${b.dataset.cancel}`, 'DELETE'); load(); } catch (e) { aErr(e); }
+      }; });
+    } catch (e) { $('pList').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+  }
+  $('pSave').onclick = async () => {
+    const text = $('pText').value.trim();
+    if (!text && !image) { $('pMsg').innerHTML = '<div class="msg err">Write a message or add a photo.</div>'; return; }
+    const d = new Date($('pWhen').value);
+    if (isNaN(d.getTime())) { $('pMsg').innerHTML = '<div class="msg err">Choose a date and time.</div>'; return; }
+    $('pSave').disabled = true; $('pMsg').innerHTML = '';
+    try {
+      await adm('/posts', 'POST', { text, image, button: btn, target: $('pTarget').value, repeat: $('pRepeat').value, send_at: d.toISOString() });
+      $('pText').value = ''; $('pFile').value = ''; image = null; $('pPrev').hidden = true;
+      aOk('Post scheduled.'); load();
+    } catch (e) { $('pMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+    $('pSave').disabled = false;
+  };
+  load();
+  A.timer = setInterval(load, 20000);
+}
+
 async function aSettings() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
   try {
@@ -1309,7 +1374,7 @@ async function aSettings() {
       <label>Telebirr number (players pay here)</label><input type="tel" id="sPhone" value="${esc(v.deposit_phone || '')}" placeholder="09xxxxxxxx">
       <label>CBE account (optional)</label><input type="tel" id="sCbe" value="${esc(v.deposit_cbe_account || '')}" placeholder="leave empty to hide CBE">
       <label>Agent / account name shown to players</label><input type="text" id="sHolder" value="${esc(v.deposit_holder || '')}" placeholder="e.g. Baqale"></div>
-      <div class="panel"><h3>Bonuses</h3><p class="muted" style="margin-top:4px">First-deposit, promoter and Bingo bonuses go to the Bingo bonus. Aviator cashback and Aviator coupons go to the Aviator bonus. Use 0 to switch one off.</p><div class="field2">
+      <div class="panel"><h3>Bonuses</h3><p class="muted" style="margin-top:4px">First-deposit, promoter and Bingo cashback bonuses go to the registration bonus, which can be played in every game (Aviator, Bingo, Keno, Sports). Aviator cashback and Aviator coupons go to the Aviator bonus (Aviator only). Use 0 to switch one off.</p><div class="field2">
         ${f('sFirst', 'First deposit bonus (%)', v.first_deposit_bonus_pct, 'e.g. 10')}
         ${f('sFirstMax', 'First bonus max (ETB, 0 = none)', v.first_deposit_bonus_max)}
         ${f('sRef', 'Promoter bonus on invited players\' deposits (%)', v.referral_deposit_bonus_pct, 'e.g. 10')}
@@ -1439,7 +1504,7 @@ async function aPartners() {
 /* ================================================================= */
 const G = { phase: 'starting', offset: 0, flyingSince: 0, bettingEndsAt: 0, crash: null, roundId: null, hash: '', lastRound: null,
             history: [], live: { players: 0, cashed: 0, win: 0, bets: [] }, prev: null, online: 0, chat: [], connected: false, open: false };
-const me = { name: 'Player', balance: 0, bonus: 0, min: 5, max: 5000, bets: {}, enabled: true };
+const me = { name: 'Player', balance: 0, bonus: 0, regBonus: 0, min: 5, max: 5000, bets: {}, enabled: true };
 // Cash out pays: real part x multiplier + bonus part x (multiplier - 1)  (the bonus stake itself is not paid back)
 const payoutFor = (b, m) => r2((b.amount - (b.bonus || 0)) * m + (b.bonus || 0) * (m - 1));
 const newSlot = () => ({ tab: 'bet', amt: 5, acOn: false, ac: 2, auto: false });
@@ -1541,7 +1606,7 @@ async function loadMe() {
   try {
     const m = await api(`/api/mini/${BOT}/aviator/me`);
     me.name = m.name || me.name; me.min = m.min; me.max = m.max; me.enabled = m.enabled;
-    if (!cashing[1] && !cashing[2]) { me.balance = m.balance; me.bonus = m.bonus || 0; }
+    if (!cashing[1] && !cashing[2]) { me.balance = m.balance; me.bonus = m.bonus || 0; me.regBonus = Number(m.reg_bonus) || 0; }
     const prev = me.bets, next = {};
     (m.bets || []).forEach((b) => { next[b.slot] = b; });
     [1, 2].forEach((s) => { if (cashing[s] && prev[s]) next[s] = prev[s]; });
@@ -1554,7 +1619,7 @@ async function loadMe() {
     paintBal(); paintPanels();
   } catch (e) { gmsg(e.message); }
 }
-function paintBal() { $('gBal').textContent = fmt(me.balance); $('gBonus').hidden = !(me.bonus > 0); $('gBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> ${fmt(me.bonus)}`; }
+function paintBal() { const bn = r2((me.bonus || 0) + (me.regBonus || 0)); $('gBal').textContent = fmt(me.balance); $('gBonus').hidden = !(bn > 0); $('gBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> ${fmt(bn)}`; }
 function showCbub(m, p) {
   const b = $('cbub'); b.hidden = false;
   b.innerHTML = `<div><small>You have cashed out!</small>${Number(m).toFixed(2)}x</div><div><small>Win ETB</small>${fmt(p)}</div>`;
@@ -1650,12 +1715,12 @@ async function act(s) {
 async function placeBet(s) {
   const st = S[s], amount = r2(st.amt);
   if (!(amount >= me.min) || amount > me.max) { gmsg(`Bet between ${me.min} and ${me.max} ETB.`); st.auto = false; paintPanels(); return; }
-  if (amount > r2(me.balance + (me.bonus || 0))) { gmsg('Not enough money in your Games wallet or Aviator bonus.', true); st.auto = false; paintPanels(); return; }   // bonus money can be played too (the server spends the bonus first)
+  if (amount > r2(me.balance + (me.bonus || 0) + (me.regBonus || 0))) { gmsg('Not enough money in your Games wallet or bonus.', true); st.auto = false; paintPanels(); return; }   // bonus money can be played too (the server spends the bonus first)
   const ac = st.acOn ? r2(st.ac) : null;
   if (st.acOn && !(ac > 1)) { gmsg('Auto cash out must be above 1.00x.'); st.auto = false; paintPanels(); return; }
   try {
     const r = await api(`/api/mini/${BOT}/aviator/bet`, 'POST', { slot: s, amount, auto_cashout_at: ac, avatar: myAvatar() });
-    me.balance = r.balance; me.bonus = r.bonus || 0; Sound.bet(); paintBal();
+    me.balance = r.balance; me.bonus = r.bonus || 0; me.regBonus = Number(r.reg_bonus) || 0; Sound.bet(); paintBal();
   } catch (e) { gmsg(e.message, /wallet|deposit/i.test(e.message)); st.auto = false; }
   await loadMe();
 }
@@ -1760,7 +1825,7 @@ $('gMenu').onclick = async (e) => {
   if (k === 'free') return modal('<h3>Free Bets <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>You have no free bets right now.</p>');
   if (k === 'limits') return modal(`<h3>Game Limits <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><div class="hrow"><span>Minimum bet</span><b>${fmt(me.min)} ETB</b></div><div class="hrow"><span>Maximum bet</span><b>${fmt(me.max)} ETB</b></div><p style="margin-top:12px">Payouts are limited to the funds available on the platform.</p>`);
   if (k === 'how') return modal('<h3>How To Play <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Place a bet before the round starts. You can use two bets at the same time.</li><li>Watch the plane take off. The multiplier goes up while it flies.</li><li>Tap <b>Cash Out</b> before the plane flies away to win your bet × the multiplier.</li><li>If the plane flies away first, the bet is lost.</li><li>Use <b>Auto</b> to play every round automatically and to cash out at a multiplier you choose.</li></ul>');
-  if (k === 'rules') return modal('<h3>Game Rules <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Aviator is played with your <b>Games wallet</b> and your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons). The registration bonus cannot be used here.</li><li>A bet uses your Aviator bonus first. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
+  if (k === 'rules') return modal('<h3>Game Rules <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><ul><li>Aviator is played with your <b>Games wallet</b>, your <b>Aviator bonus</b> (Aviator cashback and Aviator coupons) and your <b>registration / first-deposit bonus</b>, which works in every game.</li><li>A bet uses your Aviator bonus first, then your wallet, then the registration bonus if more is needed. The bonus part of a bet is not paid back, only the winnings on it.</li><li>Win = bet × multiplier at the moment you cash out.</li><li>An auto cash out pays at exactly the multiplier you set.</li><li>The round result is fixed before betting starts and can be checked in Provably Fair.</li><li>Payouts in a round never go above the funds the platform has available; a round limited for that reason is marked when you verify it.</li></ul>');
   if (k === 'fair') return modal(`<h3>Provably Fair <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>Before each round a secret seed is chosen and its hash is shown. After the round the seed is revealed so anyone can check it.</p><p style="margin-top:10px">Current round hash:<br><code>${esc(G.hash || '…')}</code></p>${G.lastRound ? `<button class="hrow" style="width:100%;color:#8fe27a;font-weight:700" onclick="verifyRound('${esc(G.lastRound)}')">Verify last round</button>` : ''}`);
   if (k === 'hist') {
     modal('<h3>My Bet History <button data-x><svg class="ico"><use href="#i-x"/></svg></button></h3><p>Loading…</p>');

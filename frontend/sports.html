@@ -188,7 +188,7 @@ let events = [], leagues = [], slip = [], mode = 'single', stake = 10;
 const F = { tab: 'all', day: 'all', league: '', q: '' };
 let isAdmin = false, view = 'home';
 
-function paintBal() { $('bal').textContent = Number(info.balance).toFixed(1); }
+function paintBal() { $('bal').textContent = (Number(info.balance) + (Number(info.reg_bonus) || 0)).toFixed(1); }   // wallet + registration bonus (both playable)
 function dayRange(day) {
   if (day === 'all') return {};
   const d = day === 'today' ? new Date() : new Date(day); d.setHours(0, 0, 0, 0);
@@ -290,7 +290,7 @@ function openSlip(note) {
     if (stake < info.min || stake > info.max) { $('sm').innerHTML = `<div class="msg">Stake between ${info.min} and ${info.max} ETB.</div>`; b.disabled = false; return; }
     try {
       const r = await api(`/api/mini/${BOT}/sports/bet`, 'POST', { kind: mode, stake, legs: slip.map((s) => ({ event_id: s.event_id, market: s.market, odds: s.odds })) });
-      info.balance = r.balance; paintBal(); slip = []; paintEvents(); paintSlipBadge();
+      info.balance = r.balance; info.reg_bonus = Number(r.reg_bonus) || 0; paintBal(); slip = []; paintEvents(); paintSlipBadge();
       $('sheetHost').innerHTML = `<div class="sheetbg"><div class="sheet"><div style="text-align:center;padding:14px"><div style="color:var(--green)"><svg class="ic" style="width:54px;height:54px"><use href="#i-check"/></svg></div><h2 style="justify-content:center;margin-top:6px">Bet placed</h2><p style="color:var(--muted)">${r.tickets} ticket${r.tickets > 1 ? 's' : ''} · ${fmt(r.total_stake)} ETB</p><button class="go" id="ok">Done</button><button class="go g" id="hh">See my bets</button></div></div></div>`;
       $('ok').onclick = () => { $('sheetHost').innerHTML = ''; }; $('hh').onclick = () => { $('sheetHost').innerHTML = ''; show('hist'); };
     } catch (err) {
