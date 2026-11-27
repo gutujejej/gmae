@@ -11,10 +11,16 @@
 //   GET/POST/DELETE /gadmin/admins    add / remove admins by Telegram ID
 //   POST   /gadmin/broadcast          text or image to every user of this bot (+ GET /broadcast/:id progress)
 //   GET    /gadmin/requests           pending deposits and withdrawals; POST to approve / reject / mark paid
+//   POST   /gadmin/logos              upload or replace a game logo  { game, image }
+//   DELETE /gadmin/logos/:game        remove a game logo
+//   GET    /api/mini/:botId/logos     (any player) the logo URLs the lobby shows
 
 const crypto = require('crypto');
 
 const MAX_IMG_BYTES = 1.5 * 1024 * 1024;
+const LOGO_GAMES = ['aviator', 'bingo', 'keno', 'sports'];
+const LOGO_BUCKET = 'game-logos';
+const LOGO_TYPES = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const round2 = (n) => Math.round(Number(n) * 100) / 100;
 
@@ -136,6 +142,57 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     if (error) throw error;
     Object.assign(req.g.row, patch);        // the bot is cached in memory: refresh the live copy
     res.json({ ok: true });
+  });
+
+  /* ----------------------------- game logos ----------------------------- */
+  // bots.game_logos = { aviator: "<botId>/aviator-<uuid>.png", ... }  (paths in the public 'game-logos' bucket)
+  const logoUrl = (path) => db.storage.from(LOGO_BUCKET).getPublicUrl(path).data.publicUrl;
+  const logoMap = (row) => {
+    const out = {};
+    const raw = (row && row.game_logos) || {};
+    for (const g of LOGO_GAMES) if (typeof raw[g] === 'string' && raw[g]) out[g] = logoUrl(raw[g]);
+    return out;
+  };
+
+  app.get('/api/mini/:botId/logos', wrap(async (req, res) => {
+    const a = miniAuth(req, res); if (!a) return;
+    res.set('Cache-Control', 'no-store');
+    res.json({ logos: logoMap(a.entry.row) });
+  }));
+
+  adminRoute('post', '/logos', async (req, res) => {
+    const b = req.body || {};
+    const game = String(b.game || '');
+    if (!LOGO_GAMES.includes(game)) throw new HttpError(400, 'Choose a game: Aviator, Bingo, Keno or Sports.');
+    const img = decodeImage(b.image);
+    const path = `${req.g.botId}/${game}-${crypto.randomUUID()}.${img.ext}`;
+    const up = await db.storage.from(LOGO_BUCKET).upload(path, img.buf, { contentType: LOGO_TYPES[img.ext], upsert: false });
+    if (up.error) throw up.error;
+    const current = { ...((req.g.row.game_logos) || {}) };
+    const old = current[game];
+    current[game] = path;
+    const { error } = await db.from('bots').update({ game_logos: current }).eq('id', req.g.botId);
+    if (error) {
+      await db.storage.from(LOGO_BUCKET).remove([path]).catch(() => {});
+      throw error;
+    }
+    req.g.row.game_logos = current;                       // the bot row is cached in memory
+    if (old) await db.storage.from(LOGO_BUCKET).remove([old]).catch(() => {});
+    res.json({ ok: true, logos: logoMap(req.g.row) });
+  });
+
+  adminRoute('delete', '/logos/:game', async (req, res) => {
+    const game = String(req.params.game || '');
+    if (!LOGO_GAMES.includes(game)) throw new HttpError(400, 'Unknown game.');
+    const current = { ...((req.g.row.game_logos) || {}) };
+    const old = current[game];
+    if (!old) return res.json({ ok: true, logos: logoMap(req.g.row) });
+    delete current[game];
+    const { error } = await db.from('bots').update({ game_logos: current }).eq('id', req.g.botId);
+    if (error) throw error;
+    req.g.row.game_logos = current;
+    await db.storage.from(LOGO_BUCKET).remove([old]).catch(() => {});
+    res.json({ ok: true, logos: logoMap(req.g.row) });
   });
 
   /* ----------------------------- coupons ----------------------------- */
@@ -312,7 +369,7 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     const { data, error } = await db.rpc('credit_deposit_wallet', { p_deposit_id: id, p_admin: `admin:${req.g.userId}` });
     if (error) throw error;
     if (!data || !data.ok) throw new HttpError(409, 'Already decided.');
-    const wl = data.wallet === 'aviator' ? 'Games' : 'Bingo';
+    const wl = 'Games';   // one shared wallet for every game
     tell(req, data.telegram_id, `✅ Your deposit of *${Number(data.amount)} birr* has been approved.\n${wl} wallet: *${Number(data.new_balance)} birr*${data.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(data.bonus)} birr* (Bingo bonus)` : ''}`, { parse_mode: 'Markdown' });
     if (Number(data.promoter_bonus) > 0 && data.promoter_id) {
       tell(req, data.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(data.promoter_bonus)} birr* (Bingo bonus).`, { parse_mode: 'Markdown' });

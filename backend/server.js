@@ -35,7 +35,7 @@ app.use('/api/p2p', express.json({ limit: '1mb' }));
 app.use(/^\/api\/store\/\d+\/admin/, express.json({ limit: '12mb' })); // admin uploads squad photos inside Telegram
 app.use('/api/store', express.json({ limit: '2mb' }));
 app.use('/api/admin/store', express.json({ limit: '12mb' }));
-app.use(/^\/api\/mini\/\d+\/gadmin\/broadcast/, express.json({ limit: '4mb' })); // broadcast photo
+app.use(/^\/api\/mini\/\d+\/gadmin\/(broadcast|logos)/, express.json({ limit: '4mb' })); // broadcast photo + game logo uploads
 app.use(express.json());
 // Browsers send the site address without a trailing slash, so ignore one in FRONTEND_URL.
 app.use(cors({ origin: FRONTEND_URL ? FRONTEND_URL.trim().replace(/\/+$/, '') : '*' }));

@@ -1,7 +1,10 @@
 // Mini App wallet for the combined Aviator + Bingo bot.
 //
-//   Bingo wallet   = game_balance (deposits) + balance (registration bonus)
-//   Aviator wallet = aviator_balance (deposits only — the bonus cannot be used here)
+//   ONE Games wallet for every game (Bingo, Aviator, Keno, Sports).
+//   The database keeps bot_users.game_balance and bot_users.aviator_balance equal
+//   (see sql/2026-11_unify_wallets_and_logos.sql), so they are the SAME money and
+//   must never be added together. Bonuses stay separate and locked:
+//   balance (registration / first-deposit bonus, Bingo only) and aviator_bonus (Aviator only).
 //
 // Deposits are checked automatically (verify.et), the same way the store checks
 // orders. The player can paste the whole Telebirr SMS or just the transaction
@@ -31,7 +34,8 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
 
   const err = (res, code, msg) => res.status(code).json({ error: msg });
   const receiverOf = (row, method) => (method === 'cbe' ? row.deposit_cbe_account : (row.deposit_phone || DEFAULT_PHONE));
-  const WALLET_LABEL = { bingo: 'Bingo', aviator: 'Games' };   // the Aviator wallet is the Games wallet (Aviator, Keno, Sports)
+  const WALLET_LABEL = { bingo: 'Games', aviator: 'Games' };   // one shared Games wallet for every game
+  const SHARED_WALLET = 'bingo';   // canonical wallet id for new deposits/withdrawals (same money as 'aviator'; keeps the existing bonus + withdrawal rules)
 
   function tell(req, botId, tg, text) {
     const reg = req.app.get('botRegistry');
@@ -46,7 +50,9 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       const row = a.entry.row;
       const { data: u } = await db.from('bot_users')
         .select('game_balance,balance,aviator_balance,aviator_bonus,lifetime_deposit').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
-      const dep = Number((u && u.game_balance) || 0);
+      // One shared Games wallet. game_balance and aviator_balance are kept equal by the database.
+      const dep = round2(Number((u && u.aviator_balance) || 0));
+      if (u && round2(Number(u.game_balance || 0)) !== dep) console.warn('wallets: game_balance and aviator_balance differ - run sql/2026-11_unify_wallets_and_logos.sql');
       const bonus = Number((u && u.balance) || 0);
       const lifetime = Number((u && u.lifetime_deposit) || 0);
       const minWd = Number(row.withdraw_min_deposit || 100);
@@ -64,10 +70,11 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
       res.set('Cache-Control', 'no-store');
       res.json({
         name: row.name,
+        games: { balance: dep },
         bingo: { deposit: dep, bonus, playable: round2(dep + bonus) },
-        aviator: { balance: Number((u && u.aviator_balance) || 0), bonus: Number((u && u.aviator_bonus) || 0), enabled: row.aviator_enabled !== false },
-        total: round2(dep + bonus + Number((u && u.aviator_balance) || 0) + Number((u && u.aviator_bonus) || 0)),
-        withdrawable: round2(dep + Number((u && u.aviator_balance) || 0)), locked: round2(bonus + Number((u && u.aviator_bonus) || 0)),
+        aviator: { balance: dep, bonus: Number((u && u.aviator_bonus) || 0), enabled: row.aviator_enabled !== false },
+        total: round2(dep + bonus + Number((u && u.aviator_bonus) || 0)),
+        withdrawable: dep, locked: round2(bonus + Number((u && u.aviator_bonus) || 0)),
         lifetimeDeposit: lifetime, withdrawMinDeposit: minWd, canWithdraw: lifetime >= minWd,
         minDeposit: minDepOf(row), methods, firstBonus, cashbackPct: Number(row.cashback_pct) || 0, aviatorCashbackPct: Number(row.aviator_cashback_pct) || 0, autoCheck: !!process.env.CHECK_API_KEY,
       });
@@ -90,8 +97,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
     try {
       const row = a.entry.row;
       const body = req.body || {};
-      const wallet = body.wallet === 'aviator' ? 'aviator' : 'bingo';
-      if (wallet === 'aviator' && row.aviator_enabled === false) return err(res, 403, 'Aviator is switched off.');
+      const wallet = SHARED_WALLET;   // one Games wallet: the player no longer picks
       const method = body.method === 'cbe' ? 'cbe' : 'telebirr';
       const receiver = receiverOf(row, method);
       if (!receiver) return err(res, 400, 'This payment method is not available.');
@@ -304,7 +310,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
     try {
       const row = a.entry.row;
       const body = req.body || {};
-      const wallet = body.wallet === 'aviator' ? 'aviator' : 'bingo';
+      const wallet = SHARED_WALLET;   // one Games wallet
       const amount = round2(body.amount);
       let phone = String(body.phone || '').replace(/[^\d+]/g, '');
       if (body.account_id) {
@@ -330,7 +336,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         r = Array.isArray(data) ? data[0] : data;
       }
       if (!r || !r.ok) {
-        const msgs = { deposit_required: `You need to deposit at least ${minDep} birr before you can withdraw.`, insufficient_balance: 'Not enough money in that wallet.', no_account: 'Please send /start to the bot first.' };
+        const msgs = { deposit_required: `You need to deposit at least ${minDep} birr before you can withdraw.`, insufficient_balance: 'Not enough money in your Games wallet.', no_account: 'Please send /start to the bot first.' };
         return err(res, 400, msgs[r && r.reason] || 'Could not process the withdrawal.');
       }
       res.json({ ok: true, message: 'Withdrawal requested. The admin will send the payment to your Telebirr number.' });
