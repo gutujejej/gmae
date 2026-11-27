@@ -20,6 +20,7 @@
 // Round state lives in memory, so run ONE backend instance (same as Bingo).
 
 const crypto = require('crypto');
+const { coverStake, regBonusOf } = require('./bonus-cover');
 
 const HOUSE_EDGE = 0.97;
 const BETTING_MS = 8000;
@@ -244,8 +245,8 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
   const fail = (res, code, msg) => res.status(code).json({ error: msg });
 
   async function walletOf(botId, tg) {
-    const { data } = await db.from('bot_users').select('aviator_balance,aviator_bonus').eq('bot_id', botId).eq('telegram_id', tg).maybeSingle();
-    return { balance: data ? Number(data.aviator_balance) : 0, bonus: data ? Number(data.aviator_bonus) || 0 : 0 };
+    const { data } = await db.from('bot_users').select('aviator_balance,aviator_bonus,balance').eq('bot_id', botId).eq('telegram_id', tg).maybeSingle();
+    return { balance: data ? Number(data.aviator_balance) : 0, bonus: data ? Number(data.aviator_bonus) || 0 : 0, regBonus: data ? Number(data.balance) || 0 : 0 };
   }
 
   app.get('/api/mini/:botId/aviator/me', async (req, res) => {
@@ -261,7 +262,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
       }
       res.set('Cache-Control', 'no-store');
       const w = await walletOf(row.id, a.user.id);
-      res.json({ name: maskName(a.user), balance: w.balance, bonus: w.bonus, enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
+      res.json({ name: maskName(a.user), balance: w.balance, bonus: w.bonus, reg_bonus: w.regBonus, enabled: row.aviator_enabled !== false, ...limitsOf(row), round_id: round ? round.id : null, bets });
     } catch (err) { console.error('aviator me error:', err); fail(res, 500, 'Could not load Aviator.'); }
   });
 
@@ -281,13 +282,16 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
       if (auto !== null && (!(auto > 1) || auto > MAX_AUTO)) return fail(res, 400, 'Auto cash-out must be above 1.00x.');
 
       const r = round; // the round we validated against
+      // Registration bonus is playable here too: the Aviator bonus is spent first by the database,
+      // anything still missing is moved from the registration bonus into the wallet.
+      { const w0 = await walletOf(row.id, a.user.id); await coverStake(db, row.id, a.user.id, amount - w0.bonus); }
       const { data, error } = await db.rpc('aviator_place_bet', {
         p_bot_id: row.id, p_telegram_id: a.user.id, p_round_id: r.id,
         p_slot: slot, p_amount: amount, p_auto: auto, p_username: maskName(a.user),
       });
       if (error) throw error;
       if (!data.ok) {
-        const msgs = { insufficient: 'Not enough money in your Aviator wallet. Deposit to Aviator first.', already_bet: 'You already have a bet in this slot.', no_account: 'Please send /start to the bot first.' };
+        const msgs = { insufficient: 'Not enough money in your Games wallet and bonus. Deposit first.', already_bet: 'You already have a bet in this slot.', no_account: 'Please send /start to the bot first.' };
         return fail(res, data.reason === 'insufficient' ? 402 : 400, msgs[data.reason] || 'Could not place the bet.');
       }
       // The round may have locked while the database was working: give the money back.
@@ -298,7 +302,7 @@ module.exports = function attachAviator(app, db, { miniAuth, requireAdmin }) {
       const avatar = Math.max(0, Math.min(11, parseInt(req.body && req.body.avatar, 10) || 0));
       r.bets.set(keyOf(row.id, a.user.id, slot), { id: data.bet_id, botId: row.id, tg: a.user.id, slot, amount, bonus: Number(data.bonus_used) || 0, auto, status: 'placed', name: maskName(a.user), avatar });
       liveDirty = true;
-      res.json({ ok: true, balance: Number(data.balance), bonus: Number(data.bonus) || 0 });
+      res.json({ ok: true, balance: Number(data.balance), bonus: Number(data.bonus) || 0, reg_bonus: await regBonusOf(db, row.id, a.user.id) });
     } catch (err) { console.error('aviator bet error:', err); fail(res, 500, 'Could not place the bet. Please try again.'); }
   });
 

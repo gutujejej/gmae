@@ -1,6 +1,7 @@
 // Sports betting (soccer): 1 / X / 2 and double chance 1X / 12 / X2, single and multi (accumulator) tickets.
 //
-// Money: played with the Games wallet (bot_users.aviator_balance). The Aviator bonus and the registration bonus
+// Money: played with the Games wallet (bot_users.aviator_balance). The registration bonus is playable too
+// (shortfall moved from the bonus into the wallet before the bet, see bonus-cover.js). The Aviator bonus
 // cannot be used here.
 //
 // Matches come from two places, per bot:
@@ -14,6 +15,7 @@
 //   SPORTS_ODDS_SYNC_MIN    how often to fetch new odds (default 360 = every 6 hours; every fetch uses credits)
 //   SPORTS_SCORES_SYNC_MIN  how often to look for finished games (default 60)
 
+const { coverStake, regBonusOf } = require('./bonus-cover');
 const ODDS_BASE = 'https://api.the-odds-api.com/v4';
 const MARKETS = ['1', 'X', '2', '1X', '12', 'X2'];
 const COL = { '1': 'odds_1', X: 'odds_x', '2': 'odds_2', '1X': 'odds_1x', '12': 'odds_12', X2: 'odds_x2' };
@@ -240,8 +242,8 @@ module.exports = function attachSports(app, db, { miniAuth }) {
 
   app.get('/api/mini/:botId/sports/info', wrap(async (req, res) => {
     const a = miniAuth(req, res); if (!a) return;
-    const { data: u } = await db.from('bot_users').select('aviator_balance').eq('bot_id', a.entry.row.id).eq('telegram_id', a.user.id).maybeSingle();
-    res.json({ name: a.entry.row.name, balance: u ? Number(u.aviator_balance) : 0, maxLegs: MAX_LEGS, ...limitsOf(a.entry.row) });
+    const { data: u } = await db.from('bot_users').select('aviator_balance,balance').eq('bot_id', a.entry.row.id).eq('telegram_id', a.user.id).maybeSingle();
+    res.json({ name: a.entry.row.name, balance: u ? Number(u.aviator_balance) : 0, reg_bonus: u ? Number(u.balance) || 0 : 0, maxLegs: MAX_LEGS, ...limitsOf(a.entry.row) });
   }));
 
   // Upcoming games. Filters: from / to (ISO), top=1 (Hot tab), league (key), q (search).
@@ -297,13 +299,14 @@ module.exports = function attachSports(app, db, { miniAuth }) {
     const bets = kind === 'multi'
       ? (() => { const total = legs.reduce((p, l) => p * l.odds, 1); return [{ kind, stake, total_odds: round2(total), potential: Math.min(round2(stake * total), lim.maxPayout), legs }]; })()
       : legs.map((l) => ({ kind, stake, total_odds: l.odds, potential: Math.min(round2(stake * l.odds), lim.maxPayout), legs: [l] }));
+    await coverStake(db, row.id, a.user.id, round2(stake * bets.length));   // registration bonus is playable here too
     const { data, error: rpcErr } = await db.rpc('sports_place_bets', { p_bot_id: row.id, p_telegram_id: a.user.id, p_bets: bets });
     if (rpcErr) throw rpcErr;
     if (!data.ok) {
       const msgs = { insufficient: 'Not enough money in your Games wallet. Deposit first.', no_account: 'Please send /start to the bot first.' };
       throw new HttpError(data.reason === 'insufficient' ? 402 : 400, msgs[data.reason] || 'Could not place the bet.');
     }
-    res.json({ ok: true, balance: Number(data.balance), tickets: bets.length, total_stake: round2(stake * bets.length) });
+    res.json({ ok: true, balance: Number(data.balance), reg_bonus: await regBonusOf(db, row.id, a.user.id), tickets: bets.length, total_stake: round2(stake * bets.length) });
   }));
 
   app.get('/api/mini/:botId/sports/my-bets', wrap(async (req, res) => {

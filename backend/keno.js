@@ -1,8 +1,8 @@
 // Fast Keno — one shared draw for every player of every bot.
 // 20 numbers are drawn from 1..80. A ticket picks 1..10 numbers and wins by how many of them are drawn.
 //
-// Money: Keno is played with the Games wallet (bot_users.aviator_balance). The Aviator bonus and the
-// registration bonus cannot be used here.
+// Money: Keno is played with the Games wallet (bot_users.aviator_balance). The registration bonus can be
+// played too: any shortfall is moved from the bonus into the wallet just before the bet (bonus-cover.js).
 //
 // Money safety: like Aviator, a draw is never allowed to pay out more than the platform can afford.
 // After bets close, the server tries the draw for nonce 0, 1, 2... of the (already published) seed and uses
@@ -185,10 +185,10 @@ module.exports = function attachKeno(app, db, { miniAuth }) {
     const a = miniAuth(req, res); if (!a) return;
     try {
       const row = a.entry.row;
-      const { data: u } = await db.from('bot_users').select('aviator_balance').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
+      const { data: u } = await db.from('bot_users').select('aviator_balance,balance').eq('bot_id', row.id).eq('telegram_id', a.user.id).maybeSingle();
       const tickets = round ? [...round.bets.values()].filter((b) => b.botId === row.id && b.tg === a.user.id).map(ticketView) : [];
       res.set('Cache-Control', 'no-store');
-      res.json({ name: maskName(a.user), balance: u ? Number(u.aviator_balance) : 0, enabled: row.keno_enabled !== false, ...limitsOf(row),
+      res.json({ name: maskName(a.user), balance: u ? Number(u.aviator_balance) : 0, reg_bonus: u ? Number(u.balance) || 0 : 0, enabled: row.keno_enabled !== false, ...limitsOf(row),
                  maxTickets: MAX_TICKETS, paytable: PAYTABLE, round_id: round ? round.id : null, tickets });
     } catch (e) { console.error('keno me error:', e); fail(res, 500, 'Could not load Keno.'); }
   });
@@ -205,6 +205,7 @@ module.exports = function attachKeno(app, db, { miniAuth }) {
       const stake = round2(req.body && req.body.stake); const { min, max } = limitsOf(row);
       if (!(stake >= min) || stake > max) return fail(res, 400, `Bet between ${min} and ${max} ETB.`);
       const r = round;
+      await coverStake(db, row.id, a.user.id, stake);   // registration bonus is playable here too
       const { data, error } = await db.rpc('keno_place_bet', { p_bot_id: row.id, p_telegram_id: a.user.id, p_round_id: r.id, p_picks: picks, p_stake: stake, p_username: maskName(a.user), p_max_tickets: MAX_TICKETS });
       if (error) throw error;
       if (!data.ok) {
@@ -217,7 +218,7 @@ module.exports = function attachKeno(app, db, { miniAuth }) {
       }
       r.bets.set(data.bet_id, { id: data.bet_id, botId: row.id, tg: a.user.id, name: maskName(a.user), picks, stake, status: 'placed' });
       liveDirty = true;
-      res.json({ ok: true, balance: Number(data.balance), ticket: { id: data.bet_id, picks, stake, status: 'placed', hits: null, payout: 0 } });
+      res.json({ ok: true, balance: Number(data.balance), reg_bonus: await regBonusOf(db, row.id, a.user.id), ticket: { id: data.bet_id, picks, stake, status: 'placed', hits: null, payout: 0 } });
     } catch (e) { console.error('keno bet error:', e); fail(res, 500, 'Could not place the bet. Please try again.'); }
   });
 

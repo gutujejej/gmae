@@ -370,9 +370,9 @@ module.exports = function attachGameAdmin(app, db, { miniAuth, MINIAPP_BASE, pre
     if (error) throw error;
     if (!data || !data.ok) throw new HttpError(409, 'Already decided.');
     const wl = 'Games';   // one shared wallet for every game
-    tell(req, data.telegram_id, `✅ Your deposit of *${Number(data.amount)} birr* has been approved.\n${wl} wallet: *${Number(data.new_balance)} birr*${data.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(data.bonus)} birr* (Bingo bonus)` : ''}`, { parse_mode: 'Markdown' });
+    tell(req, data.telegram_id, `✅ Your deposit of *${Number(data.amount)} birr* has been approved.\n${wl} wallet: *${Number(data.new_balance)} birr*${data.bonus > 0 ? `\n🎁 First deposit bonus: *${Number(data.bonus)} birr* (playable in every game)` : ''}`, { parse_mode: 'Markdown' });
     if (Number(data.promoter_bonus) > 0 && data.promoter_id) {
-      tell(req, data.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(data.promoter_bonus)} birr* (Bingo bonus).`, { parse_mode: 'Markdown' });
+      tell(req, data.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(data.promoter_bonus)} birr* (playable in every game).`, { parse_mode: 'Markdown' });
     }
     res.json({ ok: true });
   });

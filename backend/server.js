@@ -35,7 +35,7 @@ app.use('/api/p2p', express.json({ limit: '1mb' }));
 app.use(/^\/api\/store\/\d+\/admin/, express.json({ limit: '12mb' })); // admin uploads squad photos inside Telegram
 app.use('/api/store', express.json({ limit: '2mb' }));
 app.use('/api/admin/store', express.json({ limit: '12mb' }));
-app.use(/^\/api\/mini\/\d+\/gadmin\/(broadcast|logos)/, express.json({ limit: '4mb' })); // broadcast photo + game logo uploads
+app.use(/^\/api\/mini\/\d+\/gadmin\/(broadcast|logos|posts)/, express.json({ limit: '4mb' })); // broadcast photo, scheduled post photo + game logo uploads
 app.use(express.json());
 // Browsers send the site address without a trailing slash, so ignore one in FRONTEND_URL.
 app.use(cors({ origin: FRONTEND_URL ? FRONTEND_URL.trim().replace(/\/+$/, '') : '*' }));
@@ -568,6 +568,7 @@ require('./bingo')(app, db, { requireAdmin, miniAuth, mainMenuFor: mainMenu, sen
 require('./payments')(app, db, { miniAuth });   // two wallets + auto-verified deposits
 require('./aviator')(app, db, { miniAuth, requireAdmin }); // Aviator game + admin earnings
 require('./game-admin')(app, db, { miniAuth, MINIAPP_BASE, presence }); // per-bot admins: stats, settings, coupons, broadcast
+require('./scheduled-posts')(app, db, { miniAuth, MINIAPP_BASE }); // scheduled / automatic posts (Admin > Posts)
 const kenoApi = require('./keno')(app, db, { miniAuth });      // Fast Keno
 const sportsApi = require('./sports')(app, db, { miniAuth });    // sports betting (needs game-admin loaded first)
 require('./partners')(app, db, { miniAuth, leagues: sportsApi.LEAGUES, paytable: kenoApi.PAYTABLE, port: PORT }); // partner API (sports, Aviator, Keno)

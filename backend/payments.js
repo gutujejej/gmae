@@ -3,8 +3,10 @@
 //   ONE Games wallet for every game (Bingo, Aviator, Keno, Sports).
 //   The database keeps bot_users.game_balance and bot_users.aviator_balance equal
 //   (see sql/2026-11_unify_wallets_and_logos.sql), so they are the SAME money and
-//   must never be added together. Bonuses stay separate and locked:
-//   balance (registration / first-deposit bonus, Bingo only) and aviator_bonus (Aviator only).
+//   must never be added together. The registration / first-deposit bonus (bot_users.balance) is
+//   playable in EVERY game: when a stake is bigger than the wallet, the shortfall is moved from the
+//   bonus into the wallet first (backend/bonus-cover.js, same rule Bingo already used).
+//   The Aviator bonus (aviator_bonus: cashback / coupons) is spent by Aviator itself.
 //
 // Deposits are checked automatically (verify.et), the same way the store checks
 // orders. The player can paste the whole Telebirr SMS or just the transaction
@@ -163,9 +165,9 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         return res.json({ result: 'pending', amount, wallet, message: 'Payment confirmed. Your wallet will be credited by the admin in a moment.' });
       }
       const bonus = Number(cr.bonus) || 0;
-      tell(req, row.id, a.user.id, `✅ Deposit of *${amount} birr* confirmed.\n${WALLET_LABEL[wallet]} wallet: *${Number(cr.new_balance)} birr*${bonus > 0 ? `\n🎁 First deposit bonus: *${bonus} birr* (Bingo bonus)` : ''}`);
+      tell(req, row.id, a.user.id, `✅ Deposit of *${amount} birr* confirmed.\n${WALLET_LABEL[wallet]} wallet: *${Number(cr.new_balance)} birr*${bonus > 0 ? `\n🎁 First deposit bonus: *${bonus} birr* (playable in every game)` : ''}`);
       if (Number(cr.promoter_bonus) > 0 && cr.promoter_id) {
-        tell(req, row.id, cr.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(cr.promoter_bonus)} birr* (Bingo bonus).`);
+        tell(req, row.id, cr.promoter_id, `🎁 A player you invited made a deposit. You earned *${Number(cr.promoter_bonus)} birr* (playable in every game).`);
       }
       res.json({ result: 'credited', amount, wallet, balance: Number(cr.new_balance), bonus });
     } catch (e) { console.error('deposit error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
@@ -224,8 +226,7 @@ module.exports = function attachPayments(app, db, { miniAuth }) {
         };
         return err(res, 400, msgs[data && data.reason] || 'Could not use this coupon.');
       }
-      const game = data.wallet === 'aviator' ? 'Aviator' : 'Bingo';
-      res.json({ ok: true, amount: Number(data.amount), wallet: data.wallet || 'bingo', message: `🎁 ${Number(data.amount)} ETB bonus added. You can play it in ${game}.` });
+      res.json({ ok: true, amount: Number(data.amount), wallet: data.wallet || 'bingo', message: `🎁 ${Number(data.amount)} ETB bonus added. You can play it in ${data.wallet === 'aviator' ? 'Aviator' : 'every game'}.` });
     } catch (e) { console.error('coupon error:', e); err(res, 500, 'Something went wrong. Please try again.'); }
   });
 
