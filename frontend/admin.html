@@ -964,7 +964,7 @@
         $('depList').innerHTML = rows.length ? rows.map((d) => `
           <div class="card bot" style="margin-bottom:8px">
             <div>
-              <h3>${d.amount} birr <span class="badge off">pending</span> <span class="badge">${d.wallet === 'aviator' ? 'Aviator wallet' : 'Bingo wallet'}</span></h3>
+              <h3>${d.amount} birr <span class="badge off">pending</span> <span class="badge">Games wallet</span></h3>
               <div class="meta">${whoBrief(d)} · ${ago(d.createdAt)}<br/>
                 Ref: <code>${esc(d.reference || '(none provided)')}</code></div>
             </div>

@@ -89,6 +89,20 @@ textarea{resize:none}
 .tile.sports .odds i{font-style:normal;background:rgba(0,0,0,.35);color:#f1d94a;font-weight:800;font-size:12px;padding:4px 7px;border-radius:7px}
 .lobby-note{margin:16px;padding:12px 14px;border-radius:14px;background:#E1EEE7;color:#0F4B35;font-size:13.5px;font-weight:600}
 
+
+/* ================= uploaded game logos ================= */
+.tile.has-logo .tlogo{position:absolute;left:12%;right:12%;top:10%;width:76%;height:54%;object-fit:contain;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));animation:none}
+.tile.has-logo>*:not(.tlogo):not(.sub):not(.live){display:none}
+.tile.has-logo .sub{text-align:center;align-self:stretch}
+.g-logo img{height:40px;width:auto;display:block;transform:skewX(6deg)}
+.logo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.logo-card{border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:10px}
+.logo-card h4{margin:0;font-size:15px}
+.logo-prev{aspect-ratio:1;border-radius:12px;background:repeating-conic-gradient(#e9eee9 0 25%,#f7faf7 0 50%) 0 0/16px 16px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo-prev img{max-width:88%;max-height:88%;object-fit:contain}
+.logo-prev span{font-size:12.5px;color:#6b7a70;padding:8px;text-align:center}
+.logo-card .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.logo-card .btn{padding:9px 8px;font-size:13px}
 /* ================= wallet ================= */
 .walbig{margin:16px 16px 0;border-radius:22px;background:linear-gradient(160deg,var(--pitch),#0a2b20);color:#fff;padding:18px;position:relative;overflow:hidden}
 .walbig::after{content:"";position:absolute;right:-40px;top:-50px;width:150px;height:150px;border-radius:50%;border:2px solid rgba(255,255,255,.12)}
@@ -462,7 +476,7 @@ textarea{resize:none}
         <span class="sub">Soccer odds · multi bets</span>
       </button>
     </div>
-    <div class="lobby-note">Aviator, Keno and Sports use your <b>Games wallet</b>. Bingo uses your <b>Bingo wallet</b> and your registration bonus.</div>
+    <div class="lobby-note">One <b>Games wallet</b> for every game: Aviator, Bingo, Keno and Sports. Your registration bonus can be played in Bingo.</div>
   </section>
 
   <!-- ================= WALLET ================= -->
@@ -475,9 +489,8 @@ textarea{resize:none}
         <div class="wstat o"><small>BONUS / LOCKED</small><b id="wLock">0.00</b></div>
       </div>
     </div>
-    <div class="wal2">
-      <div class="wc"><small><svg class="ico"><use href="#i-target"/></svg> BINGO WALLET</small><b id="wBingo">0.00</b></div>
-      <div class="wc"><small><svg class="ico"><use href="#i-game"/></svg> GAMES WALLET</small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
+    <div class="wal2" style="grid-template-columns:1fr">
+      <div class="wc"><small><svg class="ico"><use href="#i-game"/></svg> GAMES WALLET <span style="font-weight:600;opacity:.75">(Aviator, Bingo, Keno, Sports)</span></small><b id="wAv">0.00</b><small id="wAvBonus" style="color:#8a6a00;margin-top:2px" hidden></small><small id="wBonus" style="color:#8a6a00;margin-top:2px" hidden></small></div>
     </div>
     <div class="pad" id="walMsg"></div>
     <div id="bonusBanner" class="resume" style="background:#DDF1E6;color:#0F5133" hidden></div>
@@ -516,7 +529,6 @@ textarea{resize:none}
         <label>Withdraw from</label>
         <div class="chips" id="wdWallet">
           <button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-game"/></svg> Games wallet</button>
-          <button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo wallet</button>
         </div>
         <label>Enter amount</label>
         <div class="bigamt"><span>ETB</span><input type="number" id="wdAmt" inputmode="decimal" placeholder="0.00"></div>
@@ -830,7 +842,8 @@ async function loadWallet() {
     const d = await api(`/api/mini/${BOT}/wallets`); W.data = d;
     PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name;
     $('wTotal').textContent = fmt(d.total); $('wWd').textContent = fmt(d.withdrawable); $('wLock').textContent = fmt(d.locked);
-    $('wBingo').textContent = fmt(d.bingo.playable); $('wAv').textContent = fmt(d.aviator.balance);
+    $('wAv').textContent = fmt(d.games ? d.games.balance : d.aviator.balance);
+    $('wBonus').hidden = !(d.bingo.bonus > 0); $('wBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.bingo.bonus)} bonus (Bingo only)`;
     $('wAvBonus').hidden = !(d.aviator.bonus > 0); $('wAvBonus').innerHTML = `<svg class="ico"><use href="#i-gift"/></svg> + ${fmt(d.aviator.bonus)} bonus (Aviator only)`; me.bonus = d.aviator.bonus;
     $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(d.aviator.balance)} ETB`;
     $('wdRule').textContent = d.canWithdraw ? 'Withdraw your balance to your registered account.' : `You need to deposit at least ${d.withdrawMinDeposit} ETB in total before you can withdraw.`;
@@ -843,7 +856,7 @@ async function loadWallet() {
     $('methods').onclick = (e) => { const b = e.target.closest('button[data-m]'); if (b) startDeposit(b.dataset.m); };
     const l = await api(`/api/mini/${BOT}/deposits`);
     $('depList').innerHTML = l.deposits.length ? l.deposits.map((x) => `
-      <div class="dep"><span><b>${fmt(x.amount)}</b> ETB · ${x.wallet === 'aviator' ? 'Games' : 'Bingo'}<br><span class="muted">${new Date(x.at).toLocaleString()}</span></span>
+      <div class="dep"><span><b>${fmt(x.amount)}</b> ETB · Games<br><span class="muted">${new Date(x.at).toLocaleString()}</span></span>
       <span class="st ${x.status === 'rejected' ? 'bad' : x.status === 'pending' ? 'wait' : 'ok'}">${x.status === 'pending' ? 'checking' : x.status === 'rejected' ? 'rejected' : x.auto ? 'verified' : 'approved'}</span></div>`).join('')
       : '<p class="muted">No deposits yet.</p>';
     await loadAccounts();
@@ -875,15 +888,13 @@ function startDeposit(methodId) {
   const sh = openSheet(`
     <div class="hd"><div><h2>Deposit Amount</h2><div class="sub">Payment Method: ${esc(m.label)}</div></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
     <div class="msg info" style="margin-top:12px">Minimum deposit: <b>ETB ${W.data.minDeposit}</b>${(W.data.firstBonus || {}).eligible ? ` · <svg class="ico"><use href="#i-gift"/></svg> First deposit bonus <b>${W.data.firstBonus.pct}%</b>` : ''}</div>
-    <label>Deposit to</label>
-    <div class="chips" id="sW"><button class="chipbtn" data-v="aviator" aria-pressed="true"><svg class="ico"><use href="#i-game"/></svg> Games wallet</button><button class="chipbtn" data-v="bingo" aria-pressed="false"><svg class="ico"><use href="#i-target"/></svg> Bingo wallet</button></div>
+    <div class="msg info" style="margin-top:12px"><svg class="ico"><use href="#i-game"/></svg> Deposits go to your <b>Games wallet</b>. Play Aviator, Bingo, Keno and Sports with it.</div>
     <label>Amount</label>
     <div class="bigamt"><span>ETB</span><input id="sAmt" type="number" inputmode="decimal" placeholder="0.00"></div>
     <div class="chips" id="sQ">${[50, 100, 200, 500].map((q) => `<button class="chipbtn" data-q="${q}">${q}</button>`).join('')}</div>
     <div id="sMsg"></div>
     <button class="btn go" id="sNext" style="margin-top:16px">Continue</button>`);
-  let wallet = 'aviator';
-  sh.querySelector('#sW').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; wallet = b.dataset.v; sh.querySelectorAll('#sW button').forEach((x) => x.setAttribute('aria-pressed', x === b)); };
+  const wallet = 'aviator';   // one shared Games wallet
   sh.querySelector('#sQ').onclick = (e) => { const b = e.target.closest('button[data-q]'); if (b) sh.querySelector('#sAmt').value = b.dataset.q; };
   sh.querySelector('#sNext').onclick = () => {
     const amount = r2(sh.querySelector('#sAmt').value);
@@ -940,7 +951,7 @@ function stepInstructions(o, resumed) {
 function stepComplete(o) {
   const sh = openSheet(`
     <div class="hd"><div><h2>Complete Order</h2></div><button class="x"><svg class="ico"><use href="#i-x"/></svg></button></div>
-    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b">${o.wallet === 'aviator' ? '<svg class="ico"><use href="#i-game"/></svg> GAMES WALLET' : '<svg class="ico"><use href="#i-target"/></svg> BINGO WALLET'}</span></div>
+    <div class="tags"><span class="tag">ETB ${fmt(o.amount).replace(/\.00$/, '')}</span><span class="tag b"><svg class="ico"><use href="#i-game"/></svg> GAMES WALLET</span></div>
     <div class="msg info" style="margin-top:14px">Enter the transaction number, or paste the whole payment SMS. We check it automatically.</div>
     <label>REFERENCE NUMBER</label>
     <textarea id="ref" rows="4" placeholder="e.g. DJE9T39EU9  — or paste the SMS"></textarea>
@@ -957,7 +968,7 @@ function stepComplete(o) {
       const done = r.result === 'credited';
       openSheet(`<div style="text-align:center;padding:14px 4px"><div style="font-size:56px">${done ? '<svg class="ico" style="color:#1faa59"><use href="#i-checkcircle"/></svg>' : '<svg class="ico" style="color:#e0a100"><use href="#i-hourglass"/></svg>'}</div>
         <h2 style="margin-top:6px">${done ? 'Deposit successful' : 'Payment received'}</h2>
-        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your ${r.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet.${r.bonus > 0 ? `<br><svg class="ico"><use href="#i-gift"/></svg> First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
+        <p class="muted" style="margin-top:8px">${done ? `${fmt(r.amount)} ETB was added to your Games wallet.${r.bonus > 0 ? `<br><svg class="ico"><use href="#i-gift"/></svg> First deposit bonus: <b>${fmt(r.bonus)} ETB</b> added to your Bingo bonus.` : ''}` : esc(r.message)}</p>
         <button class="btn go" id="okBtn" style="margin-top:18px">Done</button></div>`).querySelector('#okBtn').onclick = () => { closeSheet(); loadWallet(); };
       if (done) Sound.claim();
       loadWallet();
@@ -1064,13 +1075,91 @@ $('cbFab').onclick = openCashback;
 /* ================================================================= */
 const A = { sub: 'overview', timer: null };
 const adm = (path, method, body) => api(`/api/mini/${BOT}/gadmin${path}`, method, body);
-const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['partners', 'Partners'], ['settings', 'Settings'], ['admins', 'Admins']];
+const aSubs = [['overview', 'Overview'], ['requests', 'Requests'], ['coupons', 'Coupons'], ['logos', 'Logos'], ['broadcast', 'Broadcast'], ['sports', 'Sports ↗'], ['partners', 'Partners'], ['settings', 'Settings'], ['admins', 'Admins']];
 const aErr = (e) => { $('aMsg').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; };
 const aOk = (t) => { $('aMsg').innerHTML = `<div class="msg ok">${esc(t)}</div>`; };
 function renderASegs() { $('aTabs').innerHTML = aSubs.map(([k, l]) => `<button class="chipbtn" data-v="${k}" aria-pressed="${k === A.sub}">${l}</button>`).join(''); }
 $('aTabs').onclick = (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; A.sub = b.dataset.v; renderASegs(); showSub(); };
 function loadAdmin() { renderASegs(); showSub(); }
-function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, partners: aPartners, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
+function showSub() { clearInterval(A.timer); $('aMsg').innerHTML = ''; ({ overview: aOverview, requests: aRequests, coupons: aCoupons, broadcast: aBroadcast, settings: aSettings, admins: aAdmins, partners: aPartners, logos: aLogos, sports: () => { location.href = `sports?b=${encodeURIComponent(BOT)}#admin`; } })[A.sub](); }
+
+
+/* ================================================================= */
+/* Game logos: shown on the lobby tiles. Admins upload them from the   */
+/* Admin > Logos tab (PNG, JPG or WebP, resized in the browser).       */
+/* ================================================================= */
+const LOGO_GAMES = [['aviator', 'Aviator', 'tileAv'], ['bingo', 'Bingo', 'tileBingo'], ['keno', 'Keno', 'tileKeno'], ['sports', 'Sports', 'tileSports']];
+let LOGOS = {};
+function applyLogos(map) {
+  LOGOS = map || {};
+  for (const [key, name, tileId] of LOGO_GAMES) {
+    const tile = $(tileId); if (!tile) continue;
+    tile.querySelectorAll('.tlogo').forEach((n) => n.remove());
+    tile.classList.remove('has-logo');
+    if (LOGOS[key]) {
+      const img = document.createElement('img');
+      img.className = 'tlogo'; img.alt = `${name} logo`; img.src = LOGOS[key];
+      img.onerror = () => { img.remove(); tile.classList.remove('has-logo'); };   // broken link: fall back to the built-in art
+      tile.prepend(img); tile.classList.add('has-logo');
+    }
+  }
+  const gl = document.querySelector('.g-logo');
+  if (gl) gl.innerHTML = LOGOS.aviator ? `<img src="${esc(LOGOS.aviator)}" alt="Aviator">` : 'Aviator';
+}
+async function loadLogos() {
+  try { applyLogos((await api(`/api/mini/${BOT}/logos`)).logos); } catch (_) { /* the built-in tile art stays */ }
+}
+function logoFileToData(file) {
+  return new Promise((resolve, reject) => {
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return reject(new Error('Use a PNG, JPG or WebP image.'));
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 640 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let out = c.toDataURL(file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9);
+      if (out.length > 1.9e6) out = c.toDataURL('image/webp', 0.85);   // keep transparency, smaller file
+      if (out.length > 1.9e6) return reject(new Error('That image is too large. Choose a smaller one.'));
+      resolve(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That image could not be read.')); };
+    img.src = url;
+  });
+}
+async function aLogos() {
+  $('aBody').innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    applyLogos((await api(`/api/mini/${BOT}/logos`)).logos);
+    $('aBody').innerHTML = `<div class="panel"><h3>Game logos</h3>
+      <p class="muted" style="margin-top:4px">Upload a logo for each game. It replaces the artwork on the lobby tile for every player. Square PNG with a transparent background looks best.</p>
+      <div class="logo-grid">${LOGO_GAMES.map(([key, name]) => `<div class="logo-card" data-game="${key}">
+        <h4>${name}</h4>
+        <div class="logo-prev">${LOGOS[key] ? `<img src="${esc(LOGOS[key])}" alt="${name} logo">` : '<span>No logo yet. The built-in artwork is showing.</span>'}</div>
+        <input type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="row2"><button class="btn" data-act="pick">${LOGOS[key] ? 'Replace' : 'Upload'}</button><button class="btn ghost" data-act="del" ${LOGOS[key] ? '' : 'disabled'}>Remove</button></div>
+      </div>`).join('')}</div></div>`;
+    $('aBody').querySelectorAll('.logo-card').forEach((card) => {
+      const game = card.dataset.game, input = card.querySelector('input[type=file]');
+      card.querySelector('[data-act=pick]').onclick = () => input.click();
+      input.onchange = async () => {
+        const f = input.files && input.files[0]; if (!f) return;
+        const btn = card.querySelector('[data-act=pick]'); btn.disabled = true; btn.textContent = 'Uploading…';
+        try {
+          const image = await logoFileToData(f);
+          const r = await adm('/logos', 'POST', { game, image });
+          applyLogos(r.logos); aOk('Logo saved. Players see it in the lobby now.'); aLogos();
+        } catch (e) { aErr(e); btn.disabled = false; btn.textContent = LOGOS[game] ? 'Replace' : 'Upload'; }
+        input.value = '';
+      };
+      card.querySelector('[data-act=del]').onclick = async () => {
+        try { const r = await adm(`/logos/${game}`, 'DELETE'); applyLogos(r.logos); aOk('Logo removed.'); aLogos(); } catch (e) { aErr(e); }
+      };
+    });
+  } catch (e) { aErr(e); }
+}
 
 async function aOverview() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
@@ -1097,9 +1186,9 @@ async function aRequests() {
   $('aBody').innerHTML = '<div class="empty">Loading…</div>';
   try {
     const r = await adm('/requests');
-    const dep = r.deposits.map((d) => `<div class="req"><b>${fmt(d.amount)} ETB</b> · ${d.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet<br><span class="muted">User ${d.telegram_id} · ${esc(d.note)}</span>
+    const dep = r.deposits.map((d) => `<div class="req"><b>${fmt(d.amount)} ETB</b> · Games wallet<br><span class="muted">User ${d.telegram_id} · ${esc(d.note)}</span>
       <div class="acts"><button class="ok" data-a="dep-ok" data-id="${d.id}">Approve</button><button class="no" data-a="dep-no" data-id="${d.id}">Reject</button></div></div>`).join('');
-    const wd = r.withdrawals.map((w) => `<div class="req"><b>${fmt(w.amount)} ETB</b> · from ${w.wallet === 'aviator' ? 'Games' : 'Bingo'} wallet<br><span class="muted">User ${w.telegram_id} · send to <b>${esc(w.phone)}</b></span>
+    const wd = r.withdrawals.map((w) => `<div class="req"><b>${fmt(w.amount)} ETB</b> · from Games wallet<br><span class="muted">User ${w.telegram_id} · send to <b>${esc(w.phone)}</b></span>
       <div class="acts"><button class="ok" data-a="wd-ok" data-id="${w.id}">Mark paid</button><button class="no" data-a="wd-no" data-id="${w.id}">Reject</button></div></div>`).join('');
     $('aBody').innerHTML = `<div class="panel"><h3>Pending deposits</h3>${dep || '<p class="muted" style="margin-top:8px">Nothing waiting.</p>'}</div>
       <div class="panel"><h3>Pending withdrawals</h3>${wd || '<p class="muted" style="margin-top:8px">Nothing waiting.</p>'}</div>`;
@@ -1760,6 +1849,7 @@ function frame() {
   tg.ready(); tg.expand();
   api(`/api/mini/${BOT}/wallets`).then((d) => { PLATFORM.name = d.name || PLATFORM.name; $('botName').textContent = PLATFORM.name; $('balPill').innerHTML = `<svg class="ico"><use href="#i-plane"/></svg> ${fmt(d.aviator.balance)} ETB`; me.balance = d.aviator.balance; }).catch(() => {});
   fetch(`${API_URL}/api/aviator/state`).then((r) => r.json()).then((d) => { if (d.online) $('tileLive').textContent = `LIVE · ${d.online}`; }).catch(() => {});
+  loadLogos();
   api(`/api/mini/${BOT}/gadmin/me`).then((r) => { if (r.is_admin) { $('adminTab').hidden = false; if (location.hash === '#admin') setTab('admin'); } }).catch(() => {});
   if (location.hash === '#wallet') setTab('wallet');
   if (new URLSearchParams(location.search).get('game') === 'aviator') openGame();
