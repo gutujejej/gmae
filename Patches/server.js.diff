@@ -1,0 +1,10 @@
+--- /tmp/server.js.orig	2026-11-28 00:12:59.978663295 +0000
++++ backend/server.js	2026-11-28 00:12:59.997590935 +0000
+@@ -570,6 +570,7 @@
+ require('./game-admin')(app, db, { miniAuth, MINIAPP_BASE, presence }); // per-bot admins: stats, settings, coupons, broadcast
+ require('./scheduled-posts')(app, db, { miniAuth, MINIAPP_BASE }); // scheduled / automatic posts (Admin > Posts)
+ const kenoApi = require('./keno')(app, db, { miniAuth });      // Fast Keno
++require('./instant-games')(app, db, { miniAuth });             // Mines + Coin Flip (sql/2026-12_mines_coinflip.sql)
+ const sportsApi = require('./sports')(app, db, { miniAuth });    // sports betting (needs game-admin loaded first)
+ require('./partners')(app, db, { miniAuth, leagues: sportsApi.LEAGUES, paytable: kenoApi.PAYTABLE, port: PORT }); // partner API (sports, Aviator, Keno)
+ require('./jb-index')(app, db, { publicUrl: PUBLIC_URL, frontendUrl: FRONTEND_URL }); // Join & Earn platform (own tables jb_*, own admins, routes /jb/*)

@@ -1,0 +1,34 @@
+--- /tmp/game-admin.js.orig	2026-11-28 00:12:59.979712435 +0000
++++ backend/game-admin.js	2026-11-28 00:12:59.998938819 +0000
+@@ -89,7 +89,7 @@
+   });
+ 
+   /* ----------------------------- settings ----------------------------- */
+-  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_cashback_pct,aviator_cashback_max,keno_enabled,keno_min_bet,keno_max_bet,keno_max_payout,keno_reserve,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
++  const SETTING_FIELDS = 'min_deposit,first_deposit_bonus_pct,first_deposit_bonus_max,referral_deposit_bonus_pct,cashback_pct,cashback_max,aviator_cashback_pct,aviator_cashback_max,keno_enabled,keno_min_bet,keno_max_bet,keno_max_payout,keno_reserve,mines_enabled,mines_min_bet,mines_max_bet,mines_max_payout,coinflip_enabled,coinflip_min_bet,coinflip_max_bet,coinflip_max_payout,aviator_enabled,aviator_min_bet,aviator_max_bet,aviator_reserve,deposit_holder,deposit_phone,deposit_cbe_account,withdraw_min_deposit';
+   adminRoute('get', '/settings', async (req, res) => {
+     const { data, error } = await db.from('bots').select(SETTING_FIELDS).eq('id', req.g.botId).maybeSingle();
+     if (error) throw error;
+@@ -118,6 +118,12 @@
+     num('keno_max_payout', { min: 1, max: 1e9 });
+     num('keno_reserve', { max: 1e9 });
+     if ('keno_enabled' in b) patch.keno_enabled = b.keno_enabled !== false;
++    for (const g of ['mines', 'coinflip']) {                       // Mines + Coin Flip
++      num(`${g}_min_bet`, { min: 1, max: 1e6 });
++      num(`${g}_max_bet`, { min: 1, max: 1e7 });
++      num(`${g}_max_payout`, { min: 1, max: 1e9 });
++      if (`${g}_enabled` in b) patch[`${g}_enabled`] = b[`${g}_enabled`] !== false;
++    }
+     num('aviator_min_bet', { min: 1, max: 1e6 });
+     num('aviator_max_bet', { min: 1, max: 1e7 });
+     num('aviator_reserve', { max: 1e9 });
+@@ -137,6 +143,9 @@
+     const lo = patch.aviator_min_bet ?? Number(cur.aviator_min_bet || 5), hi = patch.aviator_max_bet ?? Number(cur.aviator_max_bet || 5000);
+     if (lo > hi) throw new HttpError(400, 'The minimum bet is above the maximum bet.');
+     if ((patch.keno_min_bet ?? Number(cur.keno_min_bet || 5)) > (patch.keno_max_bet ?? Number(cur.keno_max_bet || 1000))) throw new HttpError(400, 'The Keno minimum bet is above the maximum bet.');
++    for (const [g, label, dMin, dMax] of [['mines', 'Mines', 5, 1000], ['coinflip', 'Coin Flip', 1, 500]]) {
++      if ((patch[`${g}_min_bet`] ?? Number(cur[`${g}_min_bet`] || dMin)) > (patch[`${g}_max_bet`] ?? Number(cur[`${g}_max_bet`] || dMax))) throw new HttpError(400, `The ${label} minimum bet is above the maximum bet.`);
++    }
+     if (!Object.keys(patch).length) throw new HttpError(400, 'Nothing to change.');
+     const { error } = await db.from('bots').update(patch).eq('id', req.g.botId);
+     if (error) throw error;
