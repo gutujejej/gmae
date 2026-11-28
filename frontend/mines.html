@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Mines</title>
+<style>
+  :root {
+    --bg: #121a22;
+    --panel: #1a242f;
+    --line: #2a3745;
+    --text: #e8eef3;
+    --muted: #8fa1b2;
+    --tile-top: #3a4d62;
+    --tile-bot: #263646;
+    --tile-facet: rgba(255, 255, 255, .06);
+    --gem: #39d0c3;
+    --gem-deep: #0e8f86;
+    --gem-bg: #0f2a30;
+    --mine: #ff6a5b;
+    --mine-bg: #35201f;
+    --amber: #f4b740;
+    --amber-text: #241800;
+    --field: #0f161d;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #e6ebf0;
+      --panel: #f5f8fb;
+      --line: #c9d4de;
+      --text: #16212b;
+      --muted: #566a7b;
+      --tile-top: #c3cfdb;
+      --tile-bot: #a9b9c8;
+      --tile-facet: rgba(255, 255, 255, .35);
+      --gem: #0fa89b;
+      --gem-deep: #066d66;
+      --gem-bg: #d3efec;
+      --mine: #d6362a;
+      --mine-bg: #f8dcd8;
+      --amber: #f0b232;
+      --amber-text: #2a1c00;
+      --field: #e9eef3;
+      color-scheme: light;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Avenir Next", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  .app {
+    max-width: 440px;
+    margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+  }
+  .ico { width: 1.1em; height: 1.1em; flex: none; }
+
+  /* ---------- top bar ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+  .wallet { display: flex; align-items: center; gap: 8px; }
+  .bal {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 14px 7px 10px;
+    font-weight: 650; font-variant-numeric: tabular-nums;
+  }
+  .bal .ico { color: var(--amber); }
+  .iconbtn {
+    width: 36px; height: 36px; display: grid; place-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 50%;
+    color: var(--muted);
+  }
+  .iconbtn:hover { color: var(--text); }
+  .iconbtn[aria-pressed="false"] .on, .iconbtn[aria-pressed="true"] .off { display: none; }
+
+  .demo {
+    margin: 12px 0 0; padding: 8px 12px; font-size: 13px; color: var(--muted);
+    border: 1px dashed var(--line); border-radius: 10px;
+  }
+
+  /* ---------- readout ---------- */
+  .readout {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px 16px;
+    align-items: end; margin: 20px 2px 14px;
+  }
+  .readout small { display: block; color: var(--muted); font-size: 13px; }
+  .big {
+    font-size: 40px; line-height: 1.05; font-weight: 750; letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .big.win { color: var(--gem); }
+  .big.lose { color: var(--mine); }
+  .mult { text-align: right; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .facts {
+    grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 12px;
+    color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- board ---------- */
+  .board {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+    perspective: 900px;
+  }
+  .tile {
+    position: relative; aspect-ratio: 1; padding: 0; border: 0; background: none;
+    border-radius: 12px; perspective: 600px;
+  }
+  .tile .in {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    transition: transform .38s cubic-bezier(.3, .7, .2, 1);
+  }
+  .tile.open .in { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; border-radius: 12px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    display: grid; place-items: center; overflow: hidden;
+  }
+  .front {
+    background: linear-gradient(160deg, var(--tile-top), var(--tile-bot));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -4px 0 rgba(0, 0, 0, .22);
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .front::before {
+    content: ""; position: absolute; inset: 0;
+    background: var(--tile-facet);
+    clip-path: polygon(0 0, 62% 0, 22% 100%, 0 100%);
+  }
+  .front::after {
+    content: ""; position: absolute; inset: 0;
+    background: rgba(0, 0, 0, .08);
+    clip-path: polygon(100% 0, 100% 100%, 46% 100%, 80% 0);
+  }
+  .tile:not(.open):not(:disabled):hover .front { filter: brightness(1.12); }
+  .tile:not(.open):not(:disabled):active .front { transform: translateY(2px) scale(.97); }
+  .tile:disabled:not(.open) .front { filter: saturate(.7) brightness(.92); }
+  .back { transform: rotateY(180deg); }
+  .tile.safe .back { background: radial-gradient(circle at 50% 40%, var(--gem-bg), var(--panel)); box-shadow: inset 0 0 0 1.5px var(--gem-deep); }
+  .tile.bomb .back { background: radial-gradient(circle at 50% 40%, var(--mine-bg), var(--panel)); box-shadow: inset 0 0 0 1.5px var(--mine); }
+  .tile.ghost .back > svg { opacity: .45; }
+  .tile.ghost .back { box-shadow: none; }
+  .tile.hit .back { box-shadow: inset 0 0 0 2.5px var(--mine), 0 0 18px rgba(255, 106, 91, .55); }
+  .back svg { width: 62%; height: 62%; }
+  .gem-a { fill: var(--gem); }
+  .gem-b { fill: var(--gem-deep); }
+  .gem-c { fill: #fff; opacity: .55; }
+  .mine-body { fill: var(--mine); }
+  .mine-spk { stroke: var(--mine); stroke-width: 4; stroke-linecap: round; }
+  .mine-hi { fill: #fff; opacity: .55; }
+  .tile.hit { animation: shake .36s linear; }
+  @keyframes shake {
+    20% { transform: translateX(-4px); } 40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); } 80% { transform: translateX(3px); }
+  }
+  .tile.gain .back { animation: pop .3s ease-out; }
+  @keyframes pop { 0% { filter: brightness(1.8); } 100% { filter: brightness(1); } }
+
+  .status { min-height: 22px; margin: 12px 2px 0; font-size: 14px; color: var(--muted); }
+  .status.win { color: var(--gem); font-weight: 650; }
+  .status.lose { color: var(--mine); font-weight: 650; }
+  .status.warn { color: var(--amber); }
+
+  /* ---------- controls ---------- */
+  .controls {
+    margin-top: 14px; padding: 16px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 16px;
+    display: grid; gap: 14px;
+  }
+  .row > label, .row > .lab { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+  .betbox { display: flex; gap: 6px; }
+  .field {
+    flex: 1; min-width: 0; display: flex; align-items: center;
+    background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 0 12px;
+  }
+  .field input {
+    width: 100%; min-width: 0; background: none; border: 0; outline: 0;
+    padding: 11px 0; font-weight: 650; font-variant-numeric: tabular-nums;
+  }
+  .field:focus-within { border-color: var(--amber); }
+  .field span { color: var(--muted); font-size: 13px; padding-left: 6px; }
+  .chip {
+    background: var(--field); border: 1px solid var(--line); border-radius: 10px;
+    padding: 0 11px; min-height: 44px; font-weight: 600; font-size: 13px; color: var(--muted);
+  }
+  .chip:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
+  .chip:disabled { opacity: .5; }
+
+  .minesrow { display: flex; align-items: center; gap: 8px; }
+  .step {
+    width: 44px; height: 44px; border-radius: 10px; font-size: 20px; font-weight: 600;
+    background: var(--field); border: 1px solid var(--line);
+  }
+  .step:disabled { opacity: .5; }
+  .count { min-width: 44px; text-align: center; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .presets { display: flex; gap: 6px; margin-left: auto; }
+  .presets .chip { min-width: 40px; padding: 0 8px; }
+  .presets .chip[aria-pressed="true"] { color: var(--amber-text); background: var(--amber); border-color: var(--amber); }
+
+  .actions { display: grid; gap: 8px; }
+  .main {
+    min-height: 54px; border: 0; border-radius: 12px; font-weight: 750; font-size: 16px;
+    background: var(--gem); color: #04211e;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18);
+    transition: transform .08s ease, filter .12s ease;
+  }
+  .main:hover:not(:disabled) { filter: brightness(1.07); }
+  .main:active:not(:disabled) { transform: translateY(1px); }
+  .main.cash { background: var(--amber); color: var(--amber-text); }
+  .main:disabled { background: var(--line); color: var(--muted); box-shadow: none; }
+  .ghostbtn {
+    min-height: 44px; border-radius: 12px; background: none;
+    border: 1px solid var(--line); color: var(--text); font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .ghostbtn:hover:not(:disabled) { border-color: var(--muted); }
+  .ghostbtn:disabled { opacity: .45; }
+
+  /* ---------- history + fairness ---------- */
+  .section-h { margin: 22px 2px 8px; font-size: 14px; font-weight: 650; }
+  .history { display: flex; gap: 6px; flex-wrap: wrap; min-height: 32px; }
+  .history .empty { color: var(--muted); font-size: 13px; }
+  .pill {
+    padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 650;
+    font-variant-numeric: tabular-nums; border: 1px solid var(--line);
+  }
+  .pill.w { color: var(--gem); border-color: var(--gem-deep); }
+  .pill.l { color: var(--mine); border-color: color-mix(in srgb, var(--mine) 55%, transparent); }
+
+  details.fair {
+    margin-top: 18px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 4px 16px;
+  }
+  details.fair summary {
+    list-style: none; cursor: pointer; padding: 12px 0; font-weight: 650;
+    display: flex; align-items: center; gap: 8px;
+  }
+  details.fair summary::-webkit-details-marker { display: none; }
+  details.fair summary .ico { color: var(--gem); }
+  .fair-body { display: grid; gap: 12px; padding-bottom: 16px; font-size: 13px; color: var(--muted); }
+  .fair-body p { margin: 0; }
+  .kv label { display: block; margin-bottom: 4px; }
+  .mono {
+    display: block; width: 100%; padding: 9px 10px; border-radius: 8px;
+    background: var(--field); border: 1px solid var(--line); color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px;
+    word-break: break-all; min-height: 36px;
+  }
+  input.mono:disabled { opacity: .6; }
+  .verify { color: var(--text); }
+  .verify b.ok { color: var(--gem); }
+  .verify b.bad { color: var(--mine); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile .in { transition: none; }
+    .tile.hit, .tile.gain .back { animation: none; }
+    .main, .front { transition: none; }
+  }
+
+  [hidden] { display: none !important; }
+  .hl { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .back { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); color: var(--muted); text-decoration: none; }
+  .back { flex: none; }
+  .back:hover { color: var(--text); }
+  header h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header .wallet { flex: none; gap: 6px; }
+  .bal { padding: 6px 10px 6px 8px; font-size: 14px; }
+  .bal.bonus .ico { color: var(--gem); }
+  /* small phones: the demo's control rows were 23px wider than a 390px screen */
+  .controls, .row { min-width: 0; }
+  .betbox, .minesrow { flex-wrap: wrap; }
+  .betbox .field { flex: 1 1 110px; min-width: 0; }
+  .presets { flex-wrap: wrap; }
+  .authfail { margin: 28px 0; padding: 18px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<main class="app">
+
+  <header>
+    <div class="hl"><a class="back" id="back" href="#" aria-label="Back to lobby"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1.1em;height:1.1em"><path d="M15 5l-7 7 7 7"/></svg></a><h1>Mines</h1></div>
+    <div class="wallet">
+      <div class="bal" aria-live="polite">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg>
+        <span id="bal">0.00</span>
+      </div>
+      <div class="bal bonus" id="bonusChip" hidden title="Bonus">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8h14v-8M12 8c-2-4-6-3-5 0M12 8c2-4 6-3 5 0"/></svg>
+        <span id="bonus">0.00</span>
+      </div>
+      <button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Sound">
+        <svg class="ico on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <svg class="ico off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>
+      </button>
+    </div>
+  </header>
+
+<div class="authfail" id="authFail" hidden>Please open this game from Telegram.</div>
+<div id="play">
+
+
+  <section class="readout" aria-label="Round status">
+    <div>
+      <small>Cash out value</small>
+      <div class="big" id="payout">0.00</div>
+    </div>
+    <div class="mult" id="mult">x1.00</div>
+    <div class="facts">
+      <span id="gems">Gems found 0 of 22</span>
+      <span id="risk">Mine chance on next pick 0%</span>
+    </div>
+  </section>
+
+  <div class="board" id="board" role="group" aria-label="Mines board, 5 by 5"></div>
+  <div class="status" id="status" role="status" aria-live="polite">Set your bet and the number of mines, then place your bet.</div>
+
+  <section class="controls" aria-label="Bet settings">
+    <div class="row">
+      <label for="bet">Bet amount</label>
+      <div class="betbox">
+        <div class="field"><input id="bet" type="number" inputmode="decimal" min="5" max="1000" step="1" value="10"><span>ETB</span></div>
+        <button class="chip" type="button" data-bet="min">Min</button>
+        <button class="chip" type="button" data-bet="half">1/2</button>
+        <button class="chip" type="button" data-bet="double">2x</button>
+        <button class="chip" type="button" data-bet="max">Max</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="lab" id="minesLab">Mines on the board</span>
+      <div class="minesrow" role="group" aria-labelledby="minesLab">
+        <button class="step" id="mDown" type="button" aria-label="Fewer mines">-</button>
+        <div class="count" id="mCount">3</div>
+        <button class="step" id="mUp" type="button" aria-label="More mines">+</button>
+        <div class="presets" id="presets"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="main" id="main" type="button">Place bet</button>
+      <button class="ghostbtn" id="rand" type="button" disabled>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+        Pick a random tile
+      </button>
+    </div>
+  </section>
+
+  <h2 class="section-h">Recent rounds</h2>
+  <div class="history" id="history"><span class="empty">No rounds yet.</span></div>
+
+  <details class="fair">
+    <summary>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      Provably fair
+    </summary>
+    <div class="fair-body">
+      <p>Before each round the game locks the mine positions with a secret server seed and shows you its hash. When the round ends the seed is revealed, so you can check that the positions were not changed after your picks.</p>
+      <div class="kv"><label for="cseed">Your client seed</label><input class="mono" id="cseed" maxlength="32" autocomplete="off" spellcheck="false"></div>
+      <div class="kv"><label>Server seed hash (locked before you play)</label><span class="mono" id="shash">Not started</span></div>
+      <div class="kv"><label>Round number (nonce)</label><span class="mono" id="nonce">0</span></div>
+      <div class="kv"><label>Server seed (shown after the round)</label><span class="mono" id="sseed">Hidden until the round ends</span></div>
+      <button class="ghostbtn" id="verify" type="button" disabled>Verify last round</button>
+      <p class="verify" id="vout" aria-live="polite"></p>
+    </div>
+  </details>
+
+</div>
+</main>
+<script>
+(() => {
+'use strict';
+const API_URL = 'https://gmae-production-13bb.up.railway.app';
+const tg = window.Telegram && window.Telegram.WebApp;
+const BOT = new URLSearchParams(location.search).get('b');
+const N = 25;
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const floor2 = (n) => Math.floor(n * 100 + 1e-9) / 100;
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const ls = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+const enc = new TextEncoder();
+const toHex = (u8) => Array.from(u8, (b) => b.toString(16).padStart(2, '0')).join('');
+const randHex = (bytes) => toHex(crypto.getRandomValues(new Uint8Array(bytes)));
+async function sha256(text) { return new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(text))); }
+
+async function api(path, method = 'GET', body) {
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 20000); let res;
+  try { res = await fetch(`${API_URL}${path}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `tma ${tg.initData}` }, body: body ? JSON.stringify(body) : undefined, signal: ctl.signal }); }
+  catch (e) { throw new Error(e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Could not reach the server. Check your internet connection.'); }
+  finally { clearTimeout(timer); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const err = new Error(data.error || 'Something went wrong.'); err.status = res.status; err.data = data; throw err; }
+  return data;
+}
+
+/* Multiplier after k safe tiles with m mines (display only: the server decides every payout). */
+const EDGE = 0.97;
+function multiplier(k, m) { if (k === 0) return 1; let x = EDGE; for (let i = 0; i < k; i++) x *= (N - i) / (N - m - i); return x; }
+
+/* Same recipe as the server, used only to verify a finished round on this device. */
+async function minesFor(serverSeed, clientSeed, nonce, m) {
+  let counter = 0, pool = new Uint8Array(0), pos = 0;
+  async function nextByte() { if (pos >= pool.length) { pool = await sha256(`${serverSeed}:${clientSeed}:${nonce}:${counter++}`); pos = 0; } return pool[pos++]; }
+  async function randInt(n) { const limit = Math.floor(256 / n) * n; for (;;) { const b = await nextByte(); if (b < limit) return b % n; } }
+  const arr = Array.from({ length: N }, (_, i) => i);
+  for (let i = N - 1; i > 0; i--) { const j = await randInt(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  return arr.slice(0, m).sort((a, b) => a - b);
+}
+
+/* ---------------- sound ---------------- */
+let audio = null, soundOn = ls('mn_sound', '1') === '1';
+function tone(freq, dur, type = 'sine', vol = 0.08, slideTo = null, delay = 0) {
+  if (!soundOn) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = audio.currentTime + delay, o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(audio.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  } catch (_) { /* sound is optional */ }
+}
+const buzz = (ms) => { try { navigator.vibrate && navigator.vibrate(ms); } catch (_) {} };
+
+/* ---------------- icons ---------------- */
+const GEM = `<svg viewBox="0 0 48 48" aria-hidden="true"><polygon class="gem-a" points="13,10 35,10 43,21 24,42 5,21"/><polygon class="gem-b" points="5,21 43,21 24,42"/><polygon class="gem-c" points="13,10 20,10 15,21 5,21"/><polygon class="gem-c" points="28,10 35,10 43,21 33,21" opacity=".25"/></svg>`;
+const MINE = `<svg viewBox="0 0 48 48" aria-hidden="true"><g class="mine-spk"><line x1="24" y1="5" x2="24" y2="43"/><line x1="5" y1="24" x2="43" y2="24"/><line x1="10.5" y1="10.5" x2="37.5" y2="37.5"/><line x1="37.5" y1="10.5" x2="10.5" y2="37.5"/></g><circle class="mine-body" cx="24" cy="24" r="12"/><circle class="mine-hi" cx="19.5" cy="19.5" r="3.4"/></svg>`;
+
+/* ---------------- state ---------------- */
+const S = {
+  balance: 0, bonus: 0, min: 5, max: 1000,
+  phase: 'idle',                 // idle | loading | playing | ended
+  mines: 3, stake: 0, opened: new Set(),
+  mult: 1, payout: 0, next: 0,
+  hash: '', client: '', nonce: 0, mineTiles: [],
+  last: null, lastResult: null, busy: false, enabled: true,
+};
+const playable = () => floor2(S.balance + S.bonus);
+
+/* ---------------- board ---------------- */
+const board = $('board'), tiles = [];
+for (let i = 0; i < N; i++) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tile'; b.disabled = true;
+  b.setAttribute('aria-label', `Tile ${i + 1}, hidden`);
+  b.innerHTML = `<span class="in"><span class="face front"></span><span class="face back"></span></span>`;
+  b.addEventListener('click', () => pick(i));
+  board.appendChild(b); tiles.push(b);
+}
+const presets = $('presets');
+[1, 3, 5, 10, 24].forEach((n) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.textContent = n; b.dataset.n = n;
+  b.addEventListener('click', () => setMines(n));
+  presets.appendChild(b);
+});
+
+/* ---------------- rendering ---------------- */
+function say(text, cls = '') { const s = $('status'); s.textContent = text; s.className = `status ${cls}`; }
+function setWallet(r) { if (r && r.balance != null) S.balance = Number(r.balance); if (r && r.reg_bonus != null) S.bonus = Number(r.reg_bonus); }
+function setMines(n) { if (S.phase === 'playing' || S.phase === 'loading') return; S.mines = clamp(n, 1, 24); paint(); }
+
+function paint() {
+  const playing = S.phase === 'playing', busy = S.phase === 'loading' || playing;
+  const k = S.opened.size, safeTotal = N - S.mines;
+  $('bal').textContent = fmt(S.balance);
+  $('bonusChip').hidden = !(S.bonus > 0); $('bonus').textContent = fmt(S.bonus);
+  $('mCount').textContent = S.mines;
+  $('mDown').disabled = busy || S.mines <= 1;
+  $('mUp').disabled = busy || S.mines >= 24;
+  presets.querySelectorAll('.chip').forEach((c) => { c.disabled = busy; c.setAttribute('aria-pressed', String(Number(c.dataset.n) === S.mines)); });
+  $('bet').disabled = busy;
+  document.querySelectorAll('[data-bet]').forEach((c) => { c.disabled = busy; });
+  $('cseed').disabled = busy;
+
+  const m = S.phase === 'idle' ? 1 : S.mult;
+  $('mult').textContent = `x${m.toFixed(2)}`;
+  if (S.phase === 'idle') {
+    $('payout').textContent = '0.00'; $('payout').className = 'big';
+    $('gems').textContent = `Gems found 0 of ${safeTotal}`;
+    $('risk').textContent = `Mine chance on next pick ${(S.mines / N * 100).toFixed(0)}%`;
+  } else {
+    $('payout').textContent = fmt(S.phase === 'ended' && S.lastResult === 'lose' ? 0 : S.payout);
+    $('gems').textContent = `Gems found ${k} of ${safeTotal}`;
+    $('risk').textContent = playing ? `Mine chance on next pick ${(S.mines / (N - k) * 100).toFixed(1)}%` : 'Round finished';
+  }
+  const main = $('main');
+  if (playing) { main.className = 'main cash'; main.disabled = k === 0 || S.busy; main.textContent = k === 0 ? 'Pick a tile to start' : `Cash out ${fmt(S.payout)} ETB`; }
+  else { main.className = 'main'; main.disabled = S.phase === 'loading' || !S.enabled; main.textContent = S.phase === 'loading' ? 'Placing bet' : 'Place bet'; }
+  $('rand').disabled = !playing || S.busy;
+  tiles.forEach((t, i) => { t.disabled = !playing || S.busy || S.opened.has(i); });
+  $('verify').disabled = !S.last;
+  $('shash').textContent = S.hash || 'Not started';
+  $('nonce').textContent = S.nonce;
+}
+
+function renderHistory(list) {
+  const h = $('history');
+  if (!list || !list.length) { h.innerHTML = '<span class="empty">No rounds yet.</span>'; return; }
+  h.innerHTML = list.map((r) => r.win ? `<span class="pill w">x${Number(r.mult).toFixed(2)}</span>` : `<span class="pill l">Lost ${fmt(r.stake)}</span>`).join('');
+}
+
+function openTile(i, kind, extra = '') {
+  const t = tiles[i];
+  t.querySelector('.back').innerHTML = kind === 'safe' ? GEM : MINE;
+  t.classList.add('open', kind === 'safe' ? 'safe' : 'bomb');
+  if (extra) t.classList.add(...extra.split(' '));
+  t.setAttribute('aria-label', `Tile ${i + 1}, ${kind === 'safe' ? 'gem' : 'mine'}`);
+}
+function revealRest() {
+  for (let i = 0; i < N; i++) { if (S.opened.has(i) || tiles[i].classList.contains('open')) continue; openTile(i, S.mineTiles.includes(i) ? 'bomb' : 'safe', 'ghost'); }
+}
+function resetBoard() {
+  tiles.forEach((t, i) => { t.className = 'tile'; t.disabled = true; t.querySelector('.back').innerHTML = ''; t.setAttribute('aria-label', `Tile ${i + 1}, hidden`); });
+}
+
+/* ---------------- loading ---------------- */
+let hist = [];
+async function load(keepBoard) {
+  const me = await api(`/api/mini/${BOT}/mines/me`);
+  S.min = me.min; S.max = me.max; S.enabled = me.enabled; setWallet(me);
+  hist = me.history || [];
+  const h0 = hist[0];
+  S.last = h0 ? { serverSeed: h0.server_seed, serverHash: h0.server_seed_hash, clientSeed: h0.client_seed, nonce: h0.nonce, mines: h0.params.mines, minePos: h0.mine_tiles } : null;
+  renderHistory(hist);
+  const r = me.round;
+  if (r) {                                      // a round is running: carry on where the player left off
+    resetBoard();
+    S.phase = 'playing'; S.mines = r.mines; S.stake = r.stake; S.opened = new Set(r.opened); S.mult = r.multiplier; S.payout = r.payout; S.next = r.next_multiplier;
+    S.hash = r.server_seed_hash; S.client = r.client_seed; S.nonce = r.nonce; $('cseed').value = r.client_seed; $('sseed').textContent = 'Hidden until the round ends';
+    r.opened.forEach((i) => openTile(i, 'safe'));
+    say('Round in progress. Pick a tile or cash out.');
+  } else if (!keepBoard) {
+    S.phase = 'idle'; S.opened = new Set(); S.mineTiles = []; resetBoard();
+    S.hash = me.next_hash || ''; S.nonce = h0 ? h0.nonce + 1 : 0;
+    if (!$('cseed').value) $('cseed').value = ls('mn_client', '') || randHex(6);
+    if (!S.enabled) say('Mines is switched off right now.', 'warn'); else say('Set your bet and the number of mines, then place your bet.');
+  } else { S.hash = me.next_hash || S.hash; S.nonce = h0 ? h0.nonce + 1 : S.nonce; }
+  if (!Number($('bet').value)) $('bet').value = Math.max(S.min, Math.min(10, S.max));
+  paint();
+}
+
+/* ---------------- game flow ---------------- */
+async function startRound() {
+  const bet = Number($('bet').value);
+  if (!Number.isFinite(bet) || bet < S.min || bet > S.max) { say(`Enter a bet between ${S.min} and ${S.max} ETB.`, 'warn'); return; }
+  if (bet > playable() + 1e-9) { say('Not enough money in your Games wallet. Deposit first.', 'warn'); return; }
+  const cs = ($('cseed').value.replace(/[^\w.\-]/g, '').slice(0, 32)) || randHex(6);
+  $('cseed').value = cs; lsSet('mn_client', cs);
+  S.phase = 'loading'; S.lastResult = null; S.opened = new Set(); S.mineTiles = []; resetBoard();
+  $('payout').className = 'big'; $('vout').textContent = ''; paint();
+  try {
+    const r = await api(`/api/mini/${BOT}/mines/start`, 'POST', { stake: floor2(bet), mines: S.mines, client_seed: cs });
+    setWallet(r); const rd = r.round;
+    S.phase = 'playing'; S.stake = rd.stake; S.mult = 1; S.payout = 0; S.next = rd.next_multiplier;
+    S.hash = rd.server_seed_hash; S.client = rd.client_seed; S.nonce = rd.nonce;
+    $('sseed').textContent = 'Hidden until the round ends';
+    say('Pick a tile. Every gem raises your cash out value.');
+    tone(330, .12, 'triangle', .06, 440);
+  } catch (e) {
+    S.phase = 'idle'; say(e.message, e.status === 402 ? 'warn' : 'lose');
+    if (e.status === 409) { await load().catch(() => {}); return; }
+  }
+  paint();
+}
+
+function end(result, r) {
+  S.phase = 'ended'; S.lastResult = result; S.mineTiles = r.mine_tiles; S.busy = false;
+  S.last = { serverSeed: r.server_seed, serverHash: r.server_seed_hash, clientSeed: r.client_seed, nonce: r.nonce, mines: S.mines, minePos: r.mine_tiles };
+  $('sseed').textContent = r.server_seed; setWallet(r);
+  revealRest(); paint();
+  load(true).catch(() => {});                  // refresh history and the hash of the next round
+}
+
+async function pick(i) {
+  if (S.phase !== 'playing' || S.busy || S.opened.has(i)) return;
+  S.busy = true; paint();
+  try {
+    const r = await api(`/api/mini/${BOT}/mines/pick`, 'POST', { tile: i });
+    S.opened = new Set(r.opened);
+    if (r.result === 'mine') {
+      openTile(i, 'bomb', 'hit');
+      end('lose', r);
+      $('payout').className = 'big lose';
+      say(`Mine hit. You lost ${fmt(S.stake)} ETB. Place a new bet to play again.`, 'lose');
+      tone(150, .45, 'sawtooth', .1, 40); buzz(70);
+    } else {
+      openTile(i, 'safe', 'gain');
+      S.mult = r.multiplier; S.payout = r.payout; S.next = r.next_multiplier || 0;
+      tone(420 + r.opened.length * 38, .13, 'sine', .07); buzz(12);
+      if (r.result === 'win') {
+        end('win', r); $('payout').className = 'big win';
+        say(`${r.auto ? 'Maximum reached. ' : ''}You won ${fmt(r.payout)} ETB at x${r.multiplier.toFixed(2)}.`, 'win');
+        tone(523, .12, 'sine', .08); tone(784, .22, 'sine', .08, null, .11); buzz(25);
+      } else { say(`Gem found. Next gem pays x${r.next_multiplier.toFixed(2)}.`); S.busy = false; paint(); }
+    }
+  } catch (e) { S.busy = false; say(e.message, 'lose'); await load().catch(() => {}); }
+}
+
+async function cashOut() {
+  if (S.phase !== 'playing' || S.busy || S.opened.size === 0) return;
+  S.busy = true; paint();
+  try {
+    const r = await api(`/api/mini/${BOT}/mines/cashout`, 'POST', {});
+    S.opened = new Set(r.opened); S.mult = r.multiplier; S.payout = r.payout;
+    end('win', r); $('payout').className = 'big win';
+    say(`Cashed out ${fmt(r.payout)} ETB at x${r.multiplier.toFixed(2)}.`, 'win');
+    tone(523, .12, 'sine', .08); tone(784, .22, 'sine', .08, null, .11); buzz(25);
+  } catch (e) { S.busy = false; say(e.message, 'lose'); await load().catch(() => {}); }
+}
+
+function randomPick() {
+  if (S.phase !== 'playing' || S.busy) return;
+  const free = []; for (let i = 0; i < N; i++) if (!S.opened.has(i)) free.push(i);
+  pick(free[crypto.getRandomValues(new Uint32Array(1))[0] % free.length]);
+}
+
+async function verifyLast() {
+  const L = S.last; if (!L) return;
+  const out = $('vout'); out.textContent = 'Checking...';
+  try {
+    const hashOk = toHex(await sha256(L.serverSeed)) === L.serverHash;
+    const again = await minesFor(L.serverSeed, L.clientSeed, L.nonce, L.mines);
+    const posOk = again.length === L.minePos.length && again.every((v, i) => v === L.minePos[i]);
+    out.innerHTML = (hashOk && posOk)
+      ? `<b class="ok">Verified.</b> The server seed matches the hash shown before the round, and it produces the mine tiles ${again.map((v) => v + 1).join(', ')}.`
+      : `<b class="bad">Mismatch.</b> The revealed seed does not match this round.`;
+  } catch (_) { out.textContent = 'Could not verify on this device.'; }
+}
+
+/* ---------------- events ---------------- */
+$('main').addEventListener('click', () => (S.phase === 'playing' ? cashOut() : startRound()));
+$('rand').addEventListener('click', randomPick);
+$('mDown').addEventListener('click', () => setMines(S.mines - 1));
+$('mUp').addEventListener('click', () => setMines(S.mines + 1));
+$('verify').addEventListener('click', verifyLast);
+document.querySelectorAll('[data-bet]').forEach((b) => b.addEventListener('click', () => {
+  const cur = Number($('bet').value) || S.min; let v = cur;
+  if (b.dataset.bet === 'min') v = S.min;
+  if (b.dataset.bet === 'half') v = cur / 2;
+  if (b.dataset.bet === 'double') v = cur * 2;
+  if (b.dataset.bet === 'max') v = Math.min(S.max, playable());
+  $('bet').value = floor2(clamp(v, S.min, S.max));
+}));
+$('bet').addEventListener('blur', () => { $('bet').value = floor2(clamp(Number($('bet').value) || S.min, S.min, S.max)); });
+$('snd').setAttribute('aria-pressed', String(soundOn));
+$('snd').addEventListener('click', () => { soundOn = !soundOn; lsSet('mn_sound', soundOn ? '1' : '0'); $('snd').setAttribute('aria-pressed', String(soundOn)); });
+$('cseed').addEventListener('change', () => { const v = $('cseed').value.replace(/[^\w.\-]/g, '').slice(0, 32) || randHex(6); $('cseed').value = v; lsSet('mn_client', v); });
+
+/* ---------------- start ---------------- */
+$('back').href = `games?b=${encodeURIComponent(BOT || '')}`;
+if (!tg || !tg.initData || !BOT) { $('authFail').hidden = false; $('play').hidden = true; return; }
+tg.ready(); tg.expand();
+paint(); renderHistory([]);
+load().catch((e) => say(e.message, 'lose'));
+})();
+</script>
+</body>
+</html>

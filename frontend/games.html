@@ -82,6 +82,16 @@ textarea{resize:none}
 .tile.keno .nm{font-family:var(--display);font-weight:900;font-style:italic;color:#fff;font-size:32px}
 .tile.keno .nm b{color:#2bd47d}
 .tile.keno i{position:absolute;border-radius:50%;font-style:normal;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:#fff;border:3px solid #fff;box-shadow:0 6px 10px -4px rgba(0,0,0,.5)}
+.tile.mines{background:linear-gradient(150deg,#1d2b3a,#0e1620)}
+.tile.mines .nm{font-family:var(--display);font-weight:900;color:#fff;font-size:32px;letter-spacing:.02em}
+.tile.mines .mgrid{position:absolute;left:14px;top:14px;display:grid;grid-template-columns:repeat(3,26px);gap:5px}
+.tile.mines .mgrid i{height:26px;border-radius:7px;background:linear-gradient(#3a4d62,#263646)}
+.tile.mines .mgrid i.g{background:linear-gradient(#39d0c3,#0e8f86)}
+.tile.mines .mgrid i.b{background:linear-gradient(#ff6a5b,#b8372b)}
+.tile.coinflip{background:linear-gradient(150deg,#3a2a06,#16100a)}
+.tile.coinflip .nm{font-family:var(--display);font-weight:900;color:#fff;font-size:30px;letter-spacing:.02em}
+.tile.coinflip .nm b{color:#f4b740}
+.tile.coinflip .coinart{position:absolute;right:14px;top:14px;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:15px;color:#3a2a00;background:radial-gradient(circle at 35% 30%,#ffe19a,#f4b740 55%,#c98a0a);box-shadow:inset 0 0 0 5px rgba(0,0,0,.14),0 6px 10px -4px rgba(0,0,0,.5)}
 .tile.sports{background:linear-gradient(150deg,#1b8a3d,#0b3d1f)}
 .tile.sports .nm{font-family:var(--display);font-weight:900;color:#fff;font-size:34px}
 .tile.sports .ball{position:absolute;right:14px;top:12px;font-size:58px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))}
@@ -476,7 +486,19 @@ textarea{resize:none}
         <span class="sub">Soccer odds · multi bets</span>
       </button>
     </div>
-    <div class="lobby-note">One <b>Games wallet</b> for every game: Aviator, Bingo, Keno and Sports. Your registration bonus can be played in every game.</div>
+    <div class="tiles" style="padding-top:12px">
+      <button class="tile mines" id="tileMines" aria-label="Play Mines">
+        <div class="mgrid"><i></i><i class="g"></i><i></i><i></i><i class="g"></i><i class="b"></i><i></i><i class="g"></i><i></i></div>
+        <span class="nm">MINES</span>
+        <span class="sub">Find gems, avoid the mines</span>
+      </button>
+      <button class="tile coinflip" id="tileCoin" aria-label="Play Coin Flip">
+        <span class="coinart">x1.94</span>
+        <span class="nm">COIN <b>FLIP</b></span>
+        <span class="sub">Call it, double up</span>
+      </button>
+    </div>
+    <div class="lobby-note">One <b>Games wallet</b> for every game: Aviator, Bingo, Keno, Sports, Mines and Coin Flip. Your registration bonus can be played in every game.</div>
   </section>
 
   <!-- ================= WALLET ================= -->
@@ -813,6 +835,8 @@ $('musicBtn').onclick = () => {
 $('tileBingo').onclick = () => setTab('bingo');
 $('tileKeno').onclick = () => { location.href = `keno?b=${encodeURIComponent(BOT)}`; };
 $('tileSports').onclick = () => { location.href = `sports?b=${encodeURIComponent(BOT)}`; };
+$('tileMines').onclick = () => { location.href = `mines?b=${encodeURIComponent(BOT)}`; };
+$('tileCoin').onclick = () => { location.href = `coinflip?b=${encodeURIComponent(BOT)}`; };
 $('tileAv').onclick = () => openGame();
 
 /* ================================================================= */
@@ -1387,6 +1411,13 @@ async function aSettings() {
         <div class="sw2"><span>Keno is on</span><span class="tgl ${v.keno_enabled === false ? '' : 'on'}" id="sKn"></span></div>
         <div class="field2">${f('sKmin', 'Minimum bet', v.keno_min_bet)}${f('sKmax', 'Maximum bet', v.keno_max_bet)}${f('sKpay', 'Most one ticket can win', v.keno_max_payout)}${f('sKres', 'Payout reserve (ETB)', v.keno_reserve)}</div>
         <p class="muted" style="margin-top:8px">Keno never pays out more than the stakes in a draw + the Keno profit so far + this reserve. Sports limits are in the Sports admin page.</p></div>
+      <div class="panel"><h3>Mines</h3>
+        <div class="sw2"><span>Mines is on</span><span class="tgl ${v.mines_enabled === false ? '' : 'on'}" id="sMn"></span></div>
+        <div class="field2">${f('sMnMin', 'Minimum bet', v.mines_min_bet)}${f('sMnMax', 'Maximum bet', v.mines_max_bet)}${f('sMnPay', 'Most one round can win', v.mines_max_payout)}</div></div>
+      <div class="panel"><h3>Coin Flip</h3>
+        <div class="sw2"><span>Coin Flip is on</span><span class="tgl ${v.coinflip_enabled === false ? '' : 'on'}" id="sCf"></span></div>
+        <div class="field2">${f('sCfMin', 'Minimum bet', v.coinflip_min_bet)}${f('sCfMax', 'Maximum bet', v.coinflip_max_bet)}${f('sCfPay', 'Most one round can win', v.coinflip_max_payout)}</div>
+        <p class="muted" style="margin-top:8px">Mines and Coin Flip pay automatically when a round reaches "Most one round can win", so one player can never win more than that.</p></div>
       <div class="panel"><h3>Aviator</h3>
         <div class="sw2"><span>Aviator is on</span><span class="tgl ${v.aviator_enabled === false ? '' : 'on'}" id="sAv"></span></div>
         <div class="field2">${f('sBmin', 'Minimum bet', v.aviator_min_bet)}${f('sBmax', 'Maximum bet', v.aviator_max_bet)}</div>
@@ -1395,6 +1426,9 @@ async function aSettings() {
       <div class="pad"><div id="sMsg"></div><button class="btn go" id="sSave" style="margin-top:6px">Save settings</button></div>`;
     let kn = v.keno_enabled !== false;
     $('sKn').onclick = () => { kn = !kn; $('sKn').classList.toggle('on', kn); };
+    let mn = v.mines_enabled !== false, cf = v.coinflip_enabled !== false;
+    $('sMn').onclick = () => { mn = !mn; $('sMn').classList.toggle('on', mn); };
+    $('sCf').onclick = () => { cf = !cf; $('sCf').classList.toggle('on', cf); };
     let av = v.aviator_enabled !== false;
     $('sAv').onclick = () => { av = !av; $('sAv').classList.toggle('on', av); };
     $('sSave').onclick = async () => {
@@ -1403,6 +1437,8 @@ async function aSettings() {
           min_deposit: $('sMin').value, withdraw_min_deposit: $('sWdMin').value, deposit_phone: $('sPhone').value, deposit_cbe_account: $('sCbe').value, deposit_holder: $('sHolder').value,
           first_deposit_bonus_pct: $('sFirst').value, first_deposit_bonus_max: $('sFirstMax').value, referral_deposit_bonus_pct: $('sRef').value, cashback_pct: $('sCb').value, cashback_max: $('sCbMax').value, aviator_cashback_pct: $('sACb').value, aviator_cashback_max: $('sACbMax').value,
           keno_enabled: kn, keno_min_bet: $('sKmin').value, keno_max_bet: $('sKmax').value, keno_max_payout: $('sKpay').value, keno_reserve: $('sKres').value,
+          mines_enabled: mn, mines_min_bet: $('sMnMin').value, mines_max_bet: $('sMnMax').value, mines_max_payout: $('sMnPay').value,
+          coinflip_enabled: cf, coinflip_min_bet: $('sCfMin').value, coinflip_max_bet: $('sCfMax').value, coinflip_max_payout: $('sCfPay').value,
           aviator_enabled: av, aviator_min_bet: $('sBmin').value, aviator_max_bet: $('sBmax').value, aviator_reserve: $('sRes').value,
         });
         $('sMsg').innerHTML = '<div class="msg ok">Saved.</div>';
